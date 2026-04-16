@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,6 +53,9 @@ public partial class LibraryManagementContext : DbContext
                 .HasMaxLength(20)
                 .HasDefaultValue("Available");
             entity.Property(e => e.Title).HasMaxLength(200);
+            entity.Property(e => e.TotalCopies).HasDefaultValue(1);
+            entity.Property(e => e.AvailableCopies).HasDefaultValue(1);
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
             entity.HasMany(d => d.Categories).WithMany(p => p.Books)
                 .UsingEntity<Dictionary<string, object>>(
@@ -130,7 +133,7 @@ public partial class LibraryManagementContext : DbContext
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
             entity.Property(e => e.Role)
                 .HasMaxLength(20)
-                .HasDefaultValue("User");
+                .HasDefaultValue("Member");
             entity.Property(e => e.StudentId).HasMaxLength(20);
             entity.Property(e => e.SuspensionEndDate).HasColumnType("datetime");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");

@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace LibraryManagement.Backend.Features.Auth
 {
@@ -39,6 +41,19 @@ namespace LibraryManagement.Backend.Features.Auth
             {
                 return Unauthorized(new { message = ex.Message });
             }
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public IActionResult GetCurrentUser()
+        {
+            var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+            return Ok(new
+            {
+                IsAuthenticated = User.Identity?.IsAuthenticated,
+                Name = User.Identity?.Name,
+                Claims = claims
+            });
         }
     }
 }

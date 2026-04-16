@@ -1,0 +1,59 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace LibraryManagement.Backend.Features.Subscriptions
+{
+    [ApiController]
+    [Route("api")]
+    public class SubscriptionController : ControllerBase
+    {
+        private readonly ISubscriptionService _subscriptionService;
+
+        public SubscriptionController(ISubscriptionService subscriptionService)
+        {
+            _subscriptionService = subscriptionService;
+        }
+
+        [HttpGet("memberships")]
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<MembershipDto>>> GetMemberships()
+        {
+            return Ok(await _subscriptionService.GetMembershipsAsync());
+        }
+
+        [HttpGet("subscriptions/me")]
+        [Authorize]
+        public async Task<ActionResult<SubscriptionDto>> GetMySubscription()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+            var userId = int.Parse(userIdStr);
+            var subscription = await _subscriptionService.GetUserSubscriptionAsync(userId);
+            
+            if (subscription == null) return NotFound(new { message = "No active subscription found." });
+            
+            return Ok(subscription);
+        }
+
+        [HttpPost("subscriptions/subscribe")]
+        [Authorize]
+        public async Task<ActionResult<SubscriptionDto>> Subscribe([FromBody] SubscribeRequest request)
+        {
+            try
+            {
+                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+                var userId = int.Parse(userIdStr);
+                var subscription = await _subscriptionService.SubscribeUserAsync(userId, request.MembershipId);
+                return Ok(subscription);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+    }
+}

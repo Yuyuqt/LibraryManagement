@@ -5,6 +5,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
+using LibraryManagement.Backend.Features.Subscriptions;
+
 namespace LibraryManagement.Backend.Features.Auth
 {
     public interface IAuthService
@@ -17,11 +19,13 @@ namespace LibraryManagement.Backend.Features.Auth
     {
         private readonly LibraryManagementContext _context;
         private readonly IConfiguration _configuration;
+        private readonly ISubscriptionService _subscriptionService;
 
-        public AuthService(LibraryManagementContext context, IConfiguration configuration)
+        public AuthService(LibraryManagementContext context, IConfiguration configuration, ISubscriptionService subscriptionService)
         {
             _context = context;
             _configuration = configuration;
+            _subscriptionService = subscriptionService;
         }
 
         public async Task<AuthResponse> Register(RegisterRequest request)
@@ -46,6 +50,11 @@ namespace LibraryManagement.Backend.Features.Auth
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrEmpty(user.StudentId))
+            {
+                await _subscriptionService.SubscribeUserAsync(user.Id, 3); // 3 is "Basic Yearly"
+            }
 
             return await AuthenticateUser(user);
         }

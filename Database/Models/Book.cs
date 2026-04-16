@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Database.Models;
@@ -22,6 +22,12 @@ public partial class Book
     public string? Description { get; set; }
 
     public string? CoverUrl { get; set; }
+    
+    public int TotalCopies { get; set; }
+    
+    public int AvailableCopies { get; set; }
+    
+    public DateTime? UpdatedAt { get; set; }
 
     public virtual ICollection<Borrowing> Borrowings { get; set; } = new List<Borrowing>();
 
