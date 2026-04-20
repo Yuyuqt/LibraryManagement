@@ -132,7 +132,10 @@ namespace LibraryManagement.Backend.Features.Users
                 IsActive = user.IsActive,
                 StudentId = user.StudentId,
                 Address = user.Address,
-                CreatedAt = user.CreatedAt
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,
+                BanStatus = user.BanStatus,
+                SuspensionEndDate = user.SuspensionEndDate
             };
         }
     }
@@ -149,6 +152,9 @@ namespace LibraryManagement.Backend.Features.Users
         public string? StudentId { get; set; }
         public string? Address { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public bool? BanStatus { get; set; }
+        public DateTime? SuspensionEndDate { get; set; }
     }
 
     public class UserCreateRequest

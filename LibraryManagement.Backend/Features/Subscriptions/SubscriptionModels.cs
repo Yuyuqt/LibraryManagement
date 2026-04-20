@@ -29,4 +29,10 @@ namespace LibraryManagement.Backend.Features.Subscriptions
     {
         public int MembershipId { get; set; }
     }
+
+    public class AdminSubscribeRequest
+    {
+        public int UserId { get; set; }
+        public int MembershipId { get; set; }
+    }
 }

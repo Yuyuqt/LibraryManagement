@@ -23,7 +23,7 @@ namespace LibraryManagement.Backend.Features.Subscriptions
         }
 
         [HttpGet("subscriptions/me")]
-        //[Authorize]
+        [Authorize]
         public async Task<ActionResult<SubscriptionDto>> GetMySubscription()
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -38,7 +38,7 @@ namespace LibraryManagement.Backend.Features.Subscriptions
         }
 
         [HttpPost("subscriptions/subscribe")]
-        //[Authorize]
+        [Authorize]
         public async Task<ActionResult<SubscriptionDto>> Subscribe([FromBody] SubscribeRequest request)
         {
             try
@@ -48,6 +48,31 @@ namespace LibraryManagement.Backend.Features.Subscriptions
 
                 var userId = int.Parse(userIdStr);
                 var subscription = await _subscriptionService.SubscribeUserAsync(userId, request.MembershipId);
+                return Ok(subscription);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("subscriptions/user/{userId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<SubscriptionDto>> GetUserSubscription(int userId)
+        {
+            var subscription = await _subscriptionService.GetUserSubscriptionAsync(userId);
+            if (subscription == null) return NotFound(new { message = "No active subscription found." });
+            
+            return Ok(subscription);
+        }
+
+        [HttpPost("subscriptions/admin-subscribe")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<SubscriptionDto>> AdminSubscribe([FromBody] AdminSubscribeRequest request)
+        {
+            try
+            {
+                var subscription = await _subscriptionService.SubscribeUserAsync(request.UserId, request.MembershipId);
                 return Ok(subscription);
             }
             catch (Exception ex)

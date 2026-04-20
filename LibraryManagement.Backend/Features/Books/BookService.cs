@@ -49,7 +49,6 @@ namespace LibraryManagement.Backend.Features.Books
                 Isbn = request.Isbn,
                 Author = request.Author,
                 Description = request.Description,
-                CoverUrl = request.CoverUrl,
                 TotalCopies = request.TotalCopies,
                 AvailableCopies = request.TotalCopies,
                 Status = request.TotalCopies > 0 ? "Available" : "Out Of Stock",
@@ -71,7 +70,6 @@ namespace LibraryManagement.Backend.Features.Books
             book.Title = request.Title;
             book.Author = request.Author;
             book.Description = request.Description;
-            book.CoverUrl = request.CoverUrl;
             
             // Basic logic to sync availability when total copies change
             int difference = request.TotalCopies - book.TotalCopies;
@@ -108,11 +106,12 @@ namespace LibraryManagement.Backend.Features.Books
                 Isbn = book.Isbn,
                 Author = book.Author,
                 Status = book.Status,
+                IsActive = book.IsActive,
                 Description = book.Description,
-                CoverUrl = book.CoverUrl,
                 TotalCopies = book.TotalCopies,
                 AvailableCopies = book.AvailableCopies,
-                CreatedAt = book.CreatedAt
+                CreatedAt = book.CreatedAt,
+                UpdatedAt = book.UpdatedAt
             };
         }
     }
@@ -124,11 +123,12 @@ namespace LibraryManagement.Backend.Features.Books
         public string Isbn { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
         public string? Description { get; set; }
-        public string? CoverUrl { get; set; }
         public int TotalCopies { get; set; }
         public int AvailableCopies { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 
     public class BookCreateRequest
@@ -137,7 +137,6 @@ namespace LibraryManagement.Backend.Features.Books
         public string Isbn { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string? CoverUrl { get; set; }
         public int TotalCopies { get; set; }
     }
 
@@ -146,7 +145,6 @@ namespace LibraryManagement.Backend.Features.Books
         public string Title { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string? CoverUrl { get; set; }
         public int TotalCopies { get; set; }
     }
 }
