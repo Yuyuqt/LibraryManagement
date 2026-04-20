@@ -23,7 +23,7 @@ namespace LibraryManagement.Backend.Features.Subscriptions
         }
 
         [HttpGet("subscriptions/me")]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<SubscriptionDto>> GetMySubscription()
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -38,7 +38,7 @@ namespace LibraryManagement.Backend.Features.Subscriptions
         }
 
         [HttpPost("subscriptions/subscribe")]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<SubscriptionDto>> Subscribe([FromBody] SubscribeRequest request)
         {
             try

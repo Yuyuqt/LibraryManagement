@@ -16,7 +16,7 @@ namespace LibraryManagement.Backend.Features.Borrowings
         }
 
         [HttpPost("borrow")]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<BorrowingDto>> BorrowBook([FromBody] BorrowRequest request)
         {
             try
@@ -35,7 +35,7 @@ namespace LibraryManagement.Backend.Features.Borrowings
         }
 
         [HttpPost("return/{id}")]
-        [Authorize(Roles = "Librarian")]
+        //[Authorize(Roles = "Librarian")]
         public async Task<ActionResult<BorrowingDto>> ReturnBook(int id)
         {
             try
@@ -50,7 +50,7 @@ namespace LibraryManagement.Backend.Features.Borrowings
         }
 
         [HttpGet("me")]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<IEnumerable<BorrowingDto>>> GetMyBorrowings()
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -62,7 +62,7 @@ namespace LibraryManagement.Backend.Features.Borrowings
         }
 
         [HttpGet]
-        [Authorize(Roles = "Librarian")]
+        //[Authorize(Roles = "Librarian")]
         public async Task<ActionResult<IEnumerable<BorrowingDto>>> GetAllBorrowings()
         {
             var borrowings = await _borrowingService.GetAllBorrowingsAsync();

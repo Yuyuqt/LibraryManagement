@@ -1,5 +1,4 @@
 <Solution>
   <Project Path="Database/Database.csproj" Id="1ec23dc7-355d-4456-a503-cfd0fb81cd5c" />
   <Project Path="LibraryManagement.Backend/LibraryManagement.Backend.csproj" Id="82e311b1-ce76-4235-9d5f-0d06a942d038" />
-  <Project Path="LibraryManagement.Frontend/LibraryManagement.Frontend.csproj" Id="4209546e-83fd-4d5c-8707-47c86053d9a8" />
 </Solution>

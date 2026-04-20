@@ -15,7 +15,7 @@ namespace LibraryManagement.Backend.Features.Categories
         }
 
         [HttpGet]
-        [Authorize] // Accessible by both Librarian and Member
+        //[Authorize] // Accessible by both Librarian and Member
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
         {
             var categories = await _categoryService.GetAllCategoriesAsync();
@@ -23,7 +23,7 @@ namespace LibraryManagement.Backend.Features.Categories
         }
 
         [HttpPost]
-        [Authorize(Roles = "Librarian")]
+        //[Authorize(Roles = "Librarian")]
         public async Task<ActionResult<CategoryDto>> CreateCategory([FromBody] CategoryCreateRequest request)
         {
             try
@@ -38,7 +38,7 @@ namespace LibraryManagement.Backend.Features.Categories
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Librarian")]
+        //[Authorize(Roles = "Librarian")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             var success = await _categoryService.DeleteCategoryAsync(id);
