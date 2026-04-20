@@ -20,8 +20,6 @@ public partial class Book
     public DateTime CreatedAt { get; set; }
 
     public string? Description { get; set; }
-
-    public string? CoverUrl { get; set; }
     
     public int TotalCopies { get; set; }
     
