@@ -1,0 +1,90 @@
+@model Frontend.Models.Dtos.UserCreateRequest
+@{
+    ViewData["Title"] = "Add New Member";
+}
+
+<div class="mb-8">
+    <a asp-action="Index" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 mb-6 group">
+        <svg class="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Back to Directory
+    </a>
+
+    <div class="max-w-3xl mx-auto">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">Add New Member</h1>
+            <p class="mt-2 text-slate-500">Register a new member to the library system.</p>
+        </div>
+
+        <div class="card p-6 sm:p-8">
+            <form asp-action="Create" method="post" class="space-y-6">
+                <!-- Validation Summary -->
+                <div asp-validation-summary="ModelOnly" class="text-sm text-red-600 bg-red-50 p-3 rounded-md"></div>
+
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <!-- FullName -->
+                    <div class="sm:col-span-2">
+                        <label asp-for="FullName" class="block text-sm font-medium text-slate-700">Full Name <span class="text-rose-500">*</span></label>
+                        <div class="mt-1">
+                            <input asp-for="FullName" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" placeholder="John Doe" required />
+                            <span asp-validation-for="FullName" class="mt-1 text-xs text-rose-500"></span>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label asp-for="Email" class="block text-sm font-medium text-slate-700">Email Address <span class="text-rose-500">*</span></label>
+                        <div class="mt-1">
+                            <input asp-for="Email" type="email" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" placeholder="you@domain.com" required />
+                            <span asp-validation-for="Email" class="mt-1 text-xs text-rose-500"></span>
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label asp-for="Password" class="block text-sm font-medium text-slate-700">Password <span class="text-rose-500">*</span></label>
+                        <div class="mt-1">
+                            <input asp-for="Password" type="password" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" required />
+                            <span asp-validation-for="Password" class="mt-1 text-xs text-rose-500"></span>
+                        </div>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div>
+                        <label asp-for="PhoneNumber" class="block text-sm font-medium text-slate-700">Phone Number</label>
+                        <div class="mt-1">
+                            <input asp-for="PhoneNumber" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" placeholder="+123456789" />
+                            <span asp-validation-for="PhoneNumber" class="mt-1 text-xs text-rose-500"></span>
+                        </div>
+                    </div>
+
+                    <!-- Student ID -->
+                    <div>
+                        <label asp-for="StudentId" class="block text-sm font-medium text-slate-700">Student ID</label>
+                        <div class="mt-1">
+                            <input asp-for="StudentId" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" placeholder="Optional" />
+                            <span asp-validation-for="StudentId" class="mt-1 text-xs text-rose-500"></span>
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="sm:col-span-2">
+                        <label asp-for="Address" class="block text-sm font-medium text-slate-700">Address</label>
+                        <div class="mt-1">
+                            <textarea asp-for="Address" rows="3" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" placeholder="Full address details"></textarea>
+                            <span asp-validation-for="Address" class="mt-1 text-xs text-rose-500"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-5 border-t border-slate-100 flex justify-end gap-3">
+                    <a asp-action="Index" class="btn-secondary">Cancel</a>
+                    <button type="submit" class="btn-primary">Create Member</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

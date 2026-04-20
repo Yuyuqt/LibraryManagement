@@ -1,0 +1,91 @@
+@model IEnumerable<Frontend.Models.Dtos.UserDto>
+@{
+    ViewData["Title"] = "Members Directory";
+}
+
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Members Directory</h1>
+        <p class="mt-2 text-slate-500">Manage library members and administrator accounts.</p>
+    </div>
+    <div class="flex items-center gap-3">
+        <a asp-action="Create" class="btn-primary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Add New Member
+        </a>
+    </div>
+</div>
+
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Member</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Role</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-slate-200">
+                @foreach (var user in Model)
+                {
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="h-10 w-10 flex-shrink-0 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-sm">
+                                    @(user.FullName?.Substring(0, 2).ToUpper() ?? "U")
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-slate-900">
+                                        <a asp-action="Details" asp-route-id="@user.Id" class="hover:underline">@user.FullName</a>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(user.StudentId))
+                                    {
+                                        <div class="text-xs text-slate-500 text-slate-500">ID: @user.StudentId</div>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-slate-900">@user.Email</div>
+                            <div class="text-xs text-slate-500">@(string.IsNullOrEmpty(user.PhoneNumber) ? "No phone" : user.PhoneNumber)</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 @(user.Role == "Admin" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800")">
+                                @user.Role
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @if (user.BanStatus == true)
+                            {
+                                <span class="inline-flex rounded-full bg-rose-100 px-2 text-xs font-semibold leading-5 text-rose-800">
+                                    Suspended
+                                </span>
+                            }
+                            else if (user.IsActive)
+                            {
+                                <span class="inline-flex rounded-full bg-emerald-100 px-2 text-xs font-semibold leading-5 text-emerald-800">
+                                    Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="inline-flex rounded-full bg-slate-100 px-2 text-xs font-semibold leading-5 text-slate-800">
+                                    Inactive
+                                </span>
+                            }
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex items-center justify-end gap-3">
+                                <a asp-action="Details" asp-route-id="@user.Id" class="text-slate-600 hover:text-slate-900 transition-colors">Details</a>
+                                <a asp-action="Edit" asp-route-id="@user.Id" class="text-indigo-600 hover:text-indigo-900 transition-colors">Edit</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,166 @@
+namespace Frontend.Models.Dtos
+{
+    // Auth DTOs
+    public class RegisterRequest
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; }
+        public string? Address { get; set; }
+        public string? StudentId { get; set; }
+    }
+
+    public class LoginRequest
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class AuthResponse
+    {
+        public string Token { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public DateTime Expiry { get; set; }
+    }
+
+    // Book DTOs
+    public class BookDto
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Isbn { get; set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public string? Description { get; set; }
+        public int TotalCopies { get; set; }
+        public int AvailableCopies { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+    }
+
+    public class BookCreateRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Isbn { get; set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public int TotalCopies { get; set; }
+    }
+
+    public class BookUpdateRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public int TotalCopies { get; set; }
+    }
+
+    // Borrowing DTOs
+    public class BorrowingDto
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public string UserEmail { get; set; } = string.Empty;
+        public int BookId { get; set; }
+        public string BookTitle { get; set; } = string.Empty;
+        public DateTime BorrowDate { get; set; }
+        public DateTime DueDate { get; set; }
+        public DateTime? ReturnDate { get; set; } // This is ActualReturnDate in some contexts
+        public string Status { get; set; } = string.Empty;
+        public decimal FineAmount { get; set; }
+        public bool IsFinePaid { get; set; }
+    }
+
+    public class BorrowRequest
+    {
+        public int BookId { get; set; }
+    }
+
+    // Category DTOs
+    public class CategoryDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class CategoryCreateRequest
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    // Subscription & Membership DTOs
+    public class MembershipDto
+    {
+        public int Id { get; set; }
+        public string Type { get; set; } = string.Empty;
+        public int MaxBooks { get; set; }
+        public int BorrowingDays { get; set; }
+        public decimal Price { get; set; }
+        public int DurationMonths { get; set; }
+    }
+
+    public class SubscriptionDto
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public int MembershipId { get; set; }
+        public string MembershipType { get; set; } = string.Empty;
+        public DateTime StartDate { get; set; }
+        public DateTime ExpiryDate { get; set; }
+        public bool IsActive { get; set; }
+    }
+
+    public class SubscribeRequest
+    {
+        public int MembershipId { get; set; }
+    }
+
+    public class AdminSubscribeRequest
+    {
+        public int UserId { get; set; }
+        public int MembershipId { get; set; }
+    }
+
+    // User DTOs
+    public class UserDto
+    {
+        public int Id { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; }
+        public string Role { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public string? StudentId { get; set; }
+        public string? Address { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public bool? BanStatus { get; set; }
+        public DateTime? SuspensionEndDate { get; set; }
+    }
+
+    public class UserCreateRequest
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; }
+        public string? StudentId { get; set; }
+        public string? Address { get; set; }
+    }
+
+    public class UserUpdateRequest
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; }
+        public string? StudentId { get; set; }
+        public string? Address { get; set; }
+    }
+
+    public class UserRoleUpdateRequest
+    {
+        public string Role { get; set; } = string.Empty;
+    }
+}

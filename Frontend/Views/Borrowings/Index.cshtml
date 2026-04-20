@@ -1,0 +1,105 @@
+@model IEnumerable<Frontend.Models.Dtos.BorrowingDto>
+@{
+    ViewData["Title"] = "My Loans";
+}
+
+<div class="mb-8">
+    <h1 class="text-3xl font-bold tracking-tight text-slate-900">@(User.IsInRole("Admin") ? "All Active Loans" : "My Loans")</h1>
+    <p class="mt-2 text-slate-500">Track your current borrowings and return upcoming books.</p>
+</div>
+
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50/50 border-b border-slate-100">
+                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Book Information</th>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Member</th>
+                    }
+                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dates</th>
+                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fines</th>
+                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="@(User.IsInRole("Admin") ? 6 : 5)" class="px-6 py-12 text-center text-slate-400 italic">
+                            You don't have any borrowing history yet.
+                        </td>
+                    </tr>
+                }
+                @foreach (var loan in Model)
+                {
+                    <tr class="hover:bg-slate-50 transition-colors group">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-14 bg-slate-100 rounded flex items-center justify-center text-slate-300">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-slate-900 truncate">@loan.BookTitle</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Loan ID: #@loan.Id</p>
+                                </div>
+                            </div>
+                        </td>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-slate-900 truncate">@loan.UserEmail</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">User ID: #@loan.UserId</div>
+                            </td>
+                        }
+                        <td class="px-6 py-4">
+                            <div class="space-y-1">
+                                <p class="text-[11px]"><span class="text-slate-400">Borrowed:</span> <span class="font-medium text-slate-700">@loan.BorrowDate.ToString("MMM dd, yyyy")</span></p>
+                                <p class="text-[11px]"><span class="text-slate-400">Due:</span> <span class="font-medium @(loan.DueDate < DateTime.Now && loan.Status == "Borrowed" ? "text-rose-600" : "text-slate-700")">@loan.DueDate.ToString("MMM dd, yyyy")</span></p>
+                                @if (loan.ReturnDate.HasValue)
+                                {
+                                    <p class="text-[11px]"><span class="text-slate-400">Returned:</span> <span class="font-medium text-emerald-600">@loan.ReturnDate.Value.ToString("MMM dd, yyyy")</span></p>
+                                }
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                @(loan.Status == "Borrowed" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700")">
+                                @loan.Status
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            @if (loan.FineAmount > 0)
+                            {
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold @(loan.IsFinePaid ? "text-slate-500 line-through" : "text-rose-600")">
+                                        MMK @loan.FineAmount.ToString("N0")
+                                    </span>
+                                    @if (loan.IsFinePaid)
+                                    {
+                                        <span class="text-[10px] text-emerald-600 font-medium">Paid</span>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-[11px] text-slate-400">No Fines</span>
+                            }
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            @if (loan.Status == "Borrowed")
+                            {
+                                <form asp-action="Return" method="POST" onsubmit="return confirm('Ready to return this book?');">
+                                    <input type="hidden" name="id" value="@loan.Id" />
+                                    <button type="submit" class="btn-secondary py-1.5 px-4 text-xs font-bold">@(User.IsInRole("Admin") ? "Process Return" : "Return Book")</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

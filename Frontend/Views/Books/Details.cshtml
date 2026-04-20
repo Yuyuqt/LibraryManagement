@@ -1,0 +1,71 @@
+@model Frontend.Models.Dtos.BookDto
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="mb-8">
+    <a asp-action="Index" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 mb-6 group">
+        <svg class="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Back to Catalog
+    </a>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <!-- Book Cover Image -->
+        <div class="lg:col-span-1">
+            <div class="aspect-[2/3] w-full rounded-2xl bg-slate-100 border border-slate-200 shadow-sm flex items-center justify-center text-slate-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            </div>
+        </div>
+
+        <!-- Book Info -->
+        <div class="lg:col-span-2 space-y-8">
+            <div>
+                <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 mb-4 tracking-wide uppercase">@Model.Status</span>
+                <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">@Model.Title</h1>
+                <p class="text-xl text-slate-500 mt-2 font-medium">by @Model.Author</p>
+            </div>
+
+            <div class="prose prose-slate max-w-none">
+                <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4 uppercase tracking-wider text-sm">Description</h3>
+                <p class="text-slate-600 leading-relaxed">
+                    @(string.IsNullOrEmpty(Model.Description) ? "No description available for this book." : Model.Description)
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-8 border-y border-slate-100 py-6">
+                <div>
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">ISBN</h4>
+                    <p class="text-sm font-semibold text-slate-900">@Model.Isbn</p>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Availability</h4>
+                    <p class="text-sm font-semibold @(Model.AvailableCopies > 0 ? "text-emerald-600" : "text-rose-600")">
+                        @(Model.AvailableCopies > 0 ? $"{Model.AvailableCopies} / {Model.TotalCopies} units in stock" : "Currently occupied")
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 pt-4">
+                @if (Model.AvailableCopies > 0)
+                {
+                    <form asp-controller="Borrowings" asp-action="Borrow" method="POST">
+                        <input type="hidden" name="BookId" value="@Model.Id" />
+                        <button type="submit" class="btn-primary py-3 px-8 text-base shadow-lg shadow-slate-200">Borrow This Book</button>
+                    </form>
+                }
+                else
+                {
+                    <button disabled class="btn-primary py-3 px-8 text-base opacity-50 cursor-not-allowed">Out of Stock</button>
+                }
+                
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-secondary py-3 px-8 text-base">Edit Details</a>
+                
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="POST" onsubmit="return confirm('Are you sure you want to remove this book from the catalog?');">
+                    <button type="submit" class="p-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
