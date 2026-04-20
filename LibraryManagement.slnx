@@ -1,4 +1,5 @@
 <Solution>
-  <Project Path="Database/Database.csproj" Id="1ec23dc7-355d-4456-a503-cfd0fb81cd5c" />
-  <Project Path="LibraryManagement.Backend/LibraryManagement.Backend.csproj" Id="82e311b1-ce76-4235-9d5f-0d06a942d038" />
+  <Project Path="../../../../../../../../C#learn/LibraryManagement/Database/Database.csproj" Id="1ec23dc7-355d-4456-a503-cfd0fb81cd5c" />
+  <Project Path="../../../../../../../../C#learn/LibraryManagement/LibraryManagement.Backend/LibraryManagement.Backend.csproj" Id="82e311b1-ce76-4235-9d5f-0d06a942d038" />
+  <Project Path="../../../../../../../../C#learn/LibraryManagement/LibraryManagement.Frontend/LibraryManagement.Frontend.csproj" Id="8a9483fb-4480-49a1-897e-8917cd9e9a12" />
 </Solution>
