@@ -57,6 +57,7 @@ CREATE TABLE Memberships (
     BorrowingDays INT NOT NULL,
     Price DECIMAL(10, 2) NOT NULL,
     DurationMonths INT NOT NULL,
+    LoyaltyRewardId NVARCHAR(50) NULL,
     CONSTRAINT IX_Memberships_Type UNIQUE (Type)
 );
 GO

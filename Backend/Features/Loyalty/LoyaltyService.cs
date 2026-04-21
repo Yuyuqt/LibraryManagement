@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace Backend.Features.Loyalty
 {
@@ -13,6 +15,10 @@ namespace Backend.Features.Loyalty
         Task<bool> RegisterUserAsync(string externalUserId, string email, string mobile);
         Task<bool> ProcessEventAsync(string externalUserId, string eventKey, double eventValue, string referenceId, string description, string email, string mobile);
         Task<AccountLookupResponse?> GetUserAccountAsync(string externalUserId);
+        Task<(bool Success, string Message)> ClaimRewardAsync(string externalUserId, string rewardId, string notes);
+        Task<IEnumerable<LoyaltyRedemptionDto>> GetUserRedemptionsAsync(string externalUserId);
+        Task<IEnumerable<LoyaltyRedemptionDto>> GetPendingRedemptionsAsync();
+        Task<bool> UpdateRedemptionStatusAsync(string redemptionId, string status);
     }
 
     public class LoyaltyService : ILoyaltyService
@@ -104,6 +110,94 @@ namespace Backend.Features.Loyalty
             {
                 _logger.LogError(ex, $"Error fetching loyalty account for user {externalUserId}.");
                 return null;
+            }
+        }
+
+        public async Task<(bool Success, string Message)> ClaimRewardAsync(string externalUserId, string rewardId, string notes)
+        {
+            try
+            {
+                var payload = new
+                {
+                    externalUserId = externalUserId,
+                    rewardId = rewardId,
+                    notes = notes
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/redemption/claim", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, "Reward claimed successfully!");
+                }
+                
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning($"Failed to claim reward {rewardId} for user {externalUserId}: {error}");
+                
+                try {
+                    var errorDoc = JsonDocument.Parse(error);
+                    if (errorDoc.RootElement.TryGetProperty("message", out var msgElement)) {
+                        return (false, msgElement.GetString() ?? "Failed to claim reward.");
+                    }
+                } catch { }
+
+                return (false, string.IsNullOrEmpty(error) ? "Failed to claim reward." : error);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while claiming reward.");
+                return (false, "An error occurred while processing your request.");
+            }
+        }
+
+        public async Task<IEnumerable<LoyaltyRedemptionDto>> GetUserRedemptionsAsync(string externalUserId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"/api/v1/redemption/history/{SystemId}/{externalUserId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
+                }
+                return Enumerable.Empty<LoyaltyRedemptionDto>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching redemptions for user {externalUserId}.");
+                return Enumerable.Empty<LoyaltyRedemptionDto>();
+            }
+        }
+
+        public async Task<IEnumerable<LoyaltyRedemptionDto>> GetPendingRedemptionsAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("/api/v1/admin/redemptions/pending");
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
+                }
+                return Enumerable.Empty<LoyaltyRedemptionDto>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching pending redemptions.");
+                return Enumerable.Empty<LoyaltyRedemptionDto>();
+            }
+        }
+
+        public async Task<bool> UpdateRedemptionStatusAsync(string redemptionId, string status)
+        {
+            try
+            {
+                var response = await _httpClient.PutAsJsonAsync($"/api/v1/admin/redemptions/{redemptionId}/status", new { status });
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating redemption status to {status} for {redemptionId}.");
+                return false;
             }
         }
     }

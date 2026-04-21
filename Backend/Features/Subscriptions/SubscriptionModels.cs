@@ -11,6 +11,7 @@ namespace Backend.Features.Subscriptions
         public decimal Price { get; set; }
         public string Currency { get; set; } = "MMK";
         public int DurationMonths { get; set; }
+        public string? LoyaltyRewardId { get; set; }
     }
 
     public class SubscriptionDto
@@ -19,6 +20,8 @@ namespace Backend.Features.Subscriptions
         public int UserId { get; set; }
         public int MembershipId { get; set; }
         public string MembershipType { get; set; } = string.Empty;
+        public string UserEmail { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
         public DateTime ExpiryDate { get; set; }
         public bool IsActive { get; set; }

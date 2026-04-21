@@ -102,6 +102,7 @@ namespace Frontend.Models.Dtos
         public int BorrowingDays { get; set; }
         public decimal Price { get; set; }
         public int DurationMonths { get; set; }
+        public string? LoyaltyRewardId { get; set; }
     }
 
     public class SubscriptionDto
@@ -110,9 +111,12 @@ namespace Frontend.Models.Dtos
         public int UserId { get; set; }
         public int MembershipId { get; set; }
         public string MembershipType { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string UserEmail { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
         public DateTime ExpiryDate { get; set; }
         public bool IsActive { get; set; }
+        public bool IsExpired => DateTime.UtcNow > ExpiryDate;
     }
 
     public class SubscribeRequest

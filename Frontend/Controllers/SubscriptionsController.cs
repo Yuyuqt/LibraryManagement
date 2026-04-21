@@ -21,10 +21,12 @@ namespace Frontend.Controllers
         public async Task<IActionResult> Index()
         {
             var memberships = await _apiClient.GetMembershipsAsync();
+            var activeSubscriptions = await _apiClient.GetAllSubscriptionsAsync();
 
             var viewModel = new SubscriptionsViewModel
             {
-                AvailableMemberships = memberships?.ToList() ?? new List<MembershipDto>()
+                AvailableMemberships = memberships?.ToList() ?? new List<MembershipDto>(),
+                ActiveSubscriptions = activeSubscriptions?.ToList() ?? new List<SubscriptionDto>()
             };
 
             return View(viewModel);

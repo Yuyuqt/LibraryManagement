@@ -8,7 +8,9 @@ namespace Backend.Features.Subscriptions
     {
         Task<IEnumerable<MembershipDto>> GetMembershipsAsync();
         Task<SubscriptionDto?> GetUserSubscriptionAsync(int userId);
+        Task<bool> HandleLoyaltyRedemptionAsync(int userId, string rewardId, string id);
         Task<SubscriptionDto> SubscribeUserAsync(int userId, int membershipId);
+        Task<IEnumerable<SubscriptionDto>> GetAllSubscriptionsAsync();
     }
 
     public class SubscriptionService : ISubscriptionService
@@ -32,7 +34,8 @@ namespace Backend.Features.Subscriptions
                     MaxBooks = m.MaxBooks,
                     BorrowingDays = m.BorrowingDays,
                     Price = m.Price,
-                    DurationMonths = m.DurationMonths
+                    DurationMonths = m.DurationMonths,
+                    LoyaltyRewardId = m.LoyaltyRewardId
                 }).ToListAsync();
         }
 
@@ -47,6 +50,33 @@ namespace Backend.Features.Subscriptions
             if (subscription == null) return null;
 
             return MapToDto(subscription);
+        }
+
+        public async Task<bool> HandleLoyaltyRedemptionAsync(int userId, string rewardId, string id)
+        {
+            // externalUserId matches how other loyalty calls identify users
+            string externalUserId = userId.ToString();
+
+            try
+            {
+                // Attempt to claim the reward via the loyalty service
+                var (success, message) = await _loyaltyService.ClaimRewardAsync(externalUserId, rewardId, id);
+
+                if (!success)
+                {
+                    return false;
+                }
+
+                // Optionally update the redemption status in the loyalty system
+                await _loyaltyService.UpdateRedemptionStatusAsync(id, "CLAIMED");
+
+                return true;
+            }
+            catch
+            {
+                // Swallow exceptions to maintain interface contract; caller can handle false result
+                return false;
+            }
         }
 
         public async Task<SubscriptionDto> SubscribeUserAsync(int userId, int membershipId)
@@ -98,6 +128,17 @@ namespace Backend.Features.Subscriptions
             return MapToDto(subscription);
         }
 
+        public async Task<IEnumerable<SubscriptionDto>> GetAllSubscriptionsAsync()
+        {
+            var subscriptions = await _context.UserSubscriptions
+                .Include(s => s.Membership)
+                .Include(s => s.User)
+                .OrderByDescending(s => s.StartDate)
+                .ToListAsync();
+
+            return subscriptions.Select(MapToDto);
+        }
+
         private static SubscriptionDto MapToDto(UserSubscription subscription)
         {
             return new SubscriptionDto
@@ -106,6 +147,8 @@ namespace Backend.Features.Subscriptions
                 UserId = subscription.UserId,
                 MembershipId = subscription.MembershipId,
                 MembershipType = subscription.Membership.Type,
+                UserEmail = subscription.User?.Email ?? "Unknown",
+                UserName = subscription.User?.FullName ?? "Unknown",
                 StartDate = subscription.StartDate,
                 ExpiryDate = subscription.ExpiryDate,
                 IsActive = subscription.IsActive

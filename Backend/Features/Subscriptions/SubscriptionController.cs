@@ -66,6 +66,13 @@ namespace Backend.Features.Subscriptions
             return Ok(subscription);
         }
 
+        [HttpGet("subscriptions/all")]
+        [Authorize(Roles = "Librarian")]
+        public async Task<ActionResult<IEnumerable<SubscriptionDto>>> GetSubscriptions()
+        {
+            return Ok(await _subscriptionService.GetAllSubscriptionsAsync());
+        }
+
         [HttpPost("subscriptions/admin-subscribe")]
         [Authorize(Roles = "Librarian")]
         public async Task<ActionResult<SubscriptionDto>> AdminSubscribe([FromBody] AdminSubscribeRequest request)

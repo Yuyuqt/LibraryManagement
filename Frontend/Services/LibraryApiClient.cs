@@ -157,6 +157,11 @@ namespace Frontend.Services
             var response = await _httpClient.PostAsJsonAsync("api/subscriptions/admin-subscribe", request);
             return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<SubscriptionDto>() : null;
         }
+
+        public async Task<IEnumerable<SubscriptionDto>> GetAllSubscriptionsAsync()
+        {
+            return await _httpClient.GetFromJsonAsync<IEnumerable<SubscriptionDto>>("api/subscriptions/all") ?? Enumerable.Empty<SubscriptionDto>();
+        }
         #endregion
 
         public async Task<LoyaltyAccountDto?> GetMyLoyaltyAccountAsync()
@@ -181,6 +186,13 @@ namespace Frontend.Services
                 System.Diagnostics.Debug.WriteLine($"Loyalty API Exception: {ex.Message}");
                 return null; 
             }
+        }
+
+        public async Task<IEnumerable<LoyaltyRedemptionDto>> GetMyRedemptionsAsync()
+        {
+            try {
+                return await _httpClient.GetFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>("api/Loyalty/my-redemptions") ?? Enumerable.Empty<LoyaltyRedemptionDto>();
+            } catch { return Enumerable.Empty<LoyaltyRedemptionDto>(); }
         }
 
         public async Task<bool> RequestReturnAsync(int borrowingId)

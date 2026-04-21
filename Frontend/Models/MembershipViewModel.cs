@@ -1,0 +1,13 @@
+using Frontend.Models.Dtos;
+using System.Collections.Generic;
+
+namespace Frontend.Models
+{
+    public class MembershipViewModel
+    {
+        public SubscriptionDto? CurrentSubscription { get; set; }
+        public List<MembershipDto> AvailableMemberships { get; set; } = new List<MembershipDto>();
+        public List<LoyaltyRedemptionDto> QueuedMemberships { get; set; } = new List<LoyaltyRedemptionDto>();
+        public LoyaltyAccountDto? LoyaltyAccount { get; set; }
+    }
+}

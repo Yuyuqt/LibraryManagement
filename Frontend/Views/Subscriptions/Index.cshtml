@@ -45,3 +45,62 @@
         }
     </div>
 </div>
+
+<!-- Active Subscriptions Section -->
+<div class="mt-12 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Active User Subscriptions</h2>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-900 text-white">@Model.ActiveSubscriptions.Count Total</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">User</th>
+                    <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Plan Type</th>
+                    <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Start Date</th>
+                    <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Expiry Date</th>
+                    <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-slate-200">
+                @if (!Model.ActiveSubscriptions.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-500 text-sm italic">
+                            No active subscriptions found in the system.
+                        </td>
+                    </tr>
+                }
+                @foreach (var sub in Model.ActiveSubscriptions)
+                {
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-bold text-slate-900">@sub.UserName</div>
+                            <div class="text-xs text-slate-400">@sub.UserEmail</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-900 text-white tracking-tight">@sub.MembershipType</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">@sub.StartDate.ToString("MMM dd, yyyy")</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-bold">@sub.ExpiryDate.ToString("MMM dd, yyyy")</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @if (sub.IsActive && !sub.IsExpired)
+                            {
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
+                            }
+                            else if (sub.IsExpired)
+                            {
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Expired</span>
+                            }
+                            else
+                            {
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">Inactive</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
