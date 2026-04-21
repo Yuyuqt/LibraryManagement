@@ -37,6 +37,18 @@ namespace Backend.Features.Subscriptions
             return Ok(subscription);
         }
 
+        [HttpGet("subscriptions/me/all")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<SubscriptionDto>>> GetMyAllSubscriptions()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+            var userId = int.Parse(userIdStr);
+            var subscriptions = await _subscriptionService.GetUserAllSubscriptionsAsync(userId);
+            return Ok(subscriptions);
+        }
+
         [HttpPost("subscriptions/subscribe")]
         [Authorize]
         public async Task<ActionResult<SubscriptionDto>> Subscribe([FromBody] SubscribeRequest request)

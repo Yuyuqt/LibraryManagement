@@ -8,7 +8,8 @@ namespace Backend.Features.Subscriptions
     {
         Task<IEnumerable<MembershipDto>> GetMembershipsAsync();
         Task<SubscriptionDto?> GetUserSubscriptionAsync(int userId);
-        Task<bool> HandleLoyaltyRedemptionAsync(int userId, string rewardId, string id);
+        Task<IEnumerable<SubscriptionDto>> GetUserAllSubscriptionsAsync(int userId);
+        Task<bool> HandleLoyaltyRedemptionAsync(int userId, string rewardId, string rewardName, string redemptionId);
         Task<SubscriptionDto> SubscribeUserAsync(int userId, int membershipId);
         Task<IEnumerable<SubscriptionDto>> GetAllSubscriptionsAsync();
     }
@@ -52,27 +53,61 @@ namespace Backend.Features.Subscriptions
             return MapToDto(subscription);
         }
 
-        public async Task<bool> HandleLoyaltyRedemptionAsync(int userId, string rewardId, string id)
+        public async Task<IEnumerable<SubscriptionDto>> GetUserAllSubscriptionsAsync(int userId)
+        {
+            var subscriptions = await _context.UserSubscriptions
+                .Include(s => s.Membership)
+                .Include(s => s.User)
+                .Where(s => s.UserId == userId && s.IsActive)
+                .OrderBy(s => s.StartDate)
+                .ToListAsync();
+
+            return subscriptions.Select(MapToDto);
+        }
+
+        public async Task<bool> HandleLoyaltyRedemptionAsync(int userId, string rewardId, string rewardName, string redemptionId)
         {
             try
             {
-                // 1. Find the local membership that corresponds to this loyalty reward
-                var membership = await _context.Memberships
-                    .FirstOrDefaultAsync(m => m.RewardId == rewardId);
+                // Load all memberships into memory (small collection)
+                var allMemberships = await _context.Memberships.ToListAsync();
+                
+                Membership? membership = null;
+
+                // 1. First try exact match by RewardId (most precise)
+                if (!string.IsNullOrEmpty(rewardId))
+                {
+                    membership = allMemberships.FirstOrDefault(m => m.RewardId == rewardId);
+                }
+
+                // 2. Fallback: in-memory string matching on rewardName vs membership Type
+                //    e.g. "Free Monthly Basic Membership" contains words "Basic" and "Monthly"
+                if (membership == null && !string.IsNullOrEmpty(rewardName))
+                {
+                    var normalizedRewardName = rewardName.ToLowerInvariant();
+                    membership = allMemberships.FirstOrDefault(m =>
+                    {
+                        var typeWords = m.Type.ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        return typeWords.All(w => normalizedRewardName.Contains(w));
+                    });
+                }
 
                 if (membership == null)
                 {
-                    // If no membership matches this rewardId, we can't fulfill it automatically
+                    System.Diagnostics.Debug.WriteLine($"No membership matched for rewardId='{rewardId}', rewardName='{rewardName}'");
                     return false;
                 }
 
-                // 2. Grant the membership to the user (will be queued if they already have one)
+                System.Diagnostics.Debug.WriteLine($"Matched membership '{membership.Type}' (Id={membership.Id}) for rewardName='{rewardName}'");
+                
+                // 3. Grant the membership (will be queued if they already have one)
                 await SubscribeUserAsync(userId, membership.Id);
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"HandleLoyaltyRedemptionAsync error: {ex.Message}");
                 return false;
             }
         }

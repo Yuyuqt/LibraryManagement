@@ -139,6 +139,13 @@ namespace Frontend.Services
             } catch { return null; }
         }
 
+        public async Task<IEnumerable<SubscriptionDto>> GetMyAllSubscriptionsAsync()
+        {
+            try {
+                return await _httpClient.GetFromJsonAsync<IEnumerable<SubscriptionDto>>("api/subscriptions/me/all") ?? Enumerable.Empty<SubscriptionDto>();
+            } catch { return Enumerable.Empty<SubscriptionDto>(); }
+        }
+
         public async Task<SubscriptionDto?> SubscribeAsync(SubscribeRequest request)
         {
             var response = await _httpClient.PostAsJsonAsync("api/subscriptions/subscribe", request);

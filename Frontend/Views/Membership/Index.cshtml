@@ -90,7 +90,7 @@
                 <section>
                     <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><path d="M10 10 2.5 2.5"/><path d="M21.5 2.5 14 10"/><path d="m21.5 21.5-7.5-7.5"/><path d="M10 14 2.5 21.5"/><circle cx="12" cy="12" r="3"/></svg>
-                        Queued Membership
+                        Queued Memberships (@Model.QueuedMemberships.Count)
                     </h2>
                     <div class="space-y-3">
                         @foreach (var queued in Model.QueuedMemberships)
@@ -98,16 +98,18 @@
                             <div class="flex items-center justify-between bg-amber-50 border border-amber-100 p-5 rounded-2xl shadow-sm">
                                 <div class="flex items-center gap-4">
                                     <div class="h-12 w-12 bg-white rounded-xl flex items-center justify-center text-amber-600 shadow-sm border border-amber-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                                     </div>
                                     <div>
-                                        <div class="font-bold text-slate-900">@queued.RewardName</div>
-                                        <div class="text-sm text-slate-500">Redeemed on @queued.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                        <div class="font-bold text-slate-900">@queued.MembershipType Membership</div>
+                                        <div class="text-sm text-slate-500">
+                                            Activates on @queued.StartDate.ToString("MMM dd, yyyy") &bull; Expires @queued.ExpiryDate.ToString("MMM dd, yyyy")
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200 uppercase tracking-wider">Pending Approval</span>
-                                    <div class="text-xs text-slate-400 mt-1">Librarian will review soon</div>
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200 uppercase tracking-wider">Queued</span>
+                                    <div class="text-xs text-slate-400 mt-1">Will activate automatically</div>
                                 </div>
                             </div>
                         }

@@ -37,8 +37,8 @@
                 <tr class="bg-slate-50 border-b border-slate-200">
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Member ID</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Reward</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Points Spent</th>
-                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Point Cost</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Redeemed At</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
             </thead>
@@ -68,8 +68,8 @@
                         <td class="px-6 py-4">
                             <span class="font-semibold text-slate-900">@claim.RewardName</span>
                         </td>
-                        <td class="px-6 py-4 text-slate-600">@claim.PointsSpent.ToString("N0") pts</td>
-                        <td class="px-6 py-4 text-slate-500 text-sm">@claim.CreatedAt.ToString("MMM dd, yyyy")</td>
+                        <td class="px-6 py-4 text-slate-600">@claim.PointCost.ToString("N0") pts</td>
+                        <td class="px-6 py-4 text-slate-500 text-sm">@claim.RedeemedAt.ToString("MMM dd, yyyy")</td>
                         <td class="px-6 py-4 text-right">
                             <form asp-action="FulfillRedemption" method="post" class="inline">
                                 <input type="hidden" name="id" value="@claim.Id" />

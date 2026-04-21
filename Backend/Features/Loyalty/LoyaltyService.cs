@@ -17,6 +17,7 @@ namespace Backend.Features.Loyalty
         Task<AccountLookupResponse?> GetUserAccountAsync(string externalUserId);
         Task<(bool Success, string Message)> ClaimRewardAsync(string externalUserId, string rewardId, string notes);
         Task<IEnumerable<LoyaltyRedemptionDto>> GetPendingRedemptionsAsync();
+        Task<IEnumerable<LoyaltyRedemptionDto>> GetUserRedemptionsAsync(string externalUserId);
         Task<IEnumerable<LoyaltyRedemptionDto>> GetRedemptionsHistoryAsync();
         Task<bool> UpdateRedemptionStatusAsync(string redemptionId, string status);
     }

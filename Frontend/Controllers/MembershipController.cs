@@ -21,26 +21,28 @@ namespace Frontend.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var subscription = await _apiClient.GetMySubscriptionAsync();
+            var allSubscriptions = await _apiClient.GetMyAllSubscriptionsAsync();
             var memberships = await _apiClient.GetMembershipsAsync();
-            var redemptions = await _apiClient.GetMyRedemptionsAsync();
             var loyaltyAccount = await _apiClient.GetMyLoyaltyAccountAsync();
             var activeRewards = await _apiClient.GetActiveRewardsAsync();
 
-            // Filter redemptions to only show memberships that are Pending (Queued)
-            // We use LoyaltyRewardId to identify which redemptions are memberships
-            var membershipRewardIds = memberships
-                .Where(m => !string.IsNullOrEmpty(m.RewardId))
-                .Select(m => m.RewardId)
-                .ToList();
-            
-            var queuedMemberships = redemptions
-                .Where(r => (r.Status == "Pending" || r.Status == "PENDING" || r.Status == "Fulfilled" || r.Status == "FULFILLED") && membershipRewardIds.Contains(r.RewardId))
+            var now = DateTime.UtcNow;
+
+            // The currently active subscription is the one whose time range includes now
+            var currentSubscription = allSubscriptions
+                .Where(s => s.StartDate <= now && s.ExpiryDate > now)
+                .OrderByDescending(s => s.StartDate)
+                .FirstOrDefault();
+
+            // Queued = subscriptions that haven't started yet (StartDate in the future)
+            var queuedMemberships = allSubscriptions
+                .Where(s => s.StartDate > now)
+                .OrderBy(s => s.StartDate)
                 .ToList();
 
             var viewModel = new MembershipViewModel
             {
-                CurrentSubscription = subscription,
+                CurrentSubscription = currentSubscription,
                 AvailableMemberships = memberships.ToList(),
                 QueuedMemberships = queuedMemberships,
                 LoyaltyAccount = loyaltyAccount,

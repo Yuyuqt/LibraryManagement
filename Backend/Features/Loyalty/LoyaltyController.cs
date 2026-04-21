@@ -103,13 +103,13 @@ namespace Backend.Features.Loyalty
             bool membershipGranted = false;
             if (int.TryParse(redemption.ExternalUserId?.Trim(), out int userId))
             {
-                System.Diagnostics.Debug.WriteLine($"Fulfilling redemption {id} for user {userId}. RewardId: '{redemption.RewardId}'");
-                membershipGranted = await _subscriptionService.HandleLoyaltyRedemptionAsync(userId, redemption.RewardId, redemption.Id);
+                System.Diagnostics.Debug.WriteLine($"Fulfilling redemption {id} for user {userId}. RewardId: '{redemption.RewardId}', RewardName: '{redemption.RewardName}'");
+                membershipGranted = await _subscriptionService.HandleLoyaltyRedemptionAsync(userId, redemption.RewardId, redemption.RewardName, redemption.Id);
             }
 
             if (!membershipGranted)
             {
-                var errorMsg = $"Redemption fulfilled in loyalty system, but failed to grant library membership. The Reward ID '{redemption.RewardId}' (Redemption ID: {id}) may not be correctly mapped in the library system, or the user already has researchers this membership.";
+                var errorMsg = $"Redemption fulfilled in loyalty system, but failed to grant library membership. RewardName='{redemption.RewardName}', RewardId='{redemption.RewardId}' (Redemption ID: {id}).";
                 System.Diagnostics.Debug.WriteLine(errorMsg);
                 return BadRequest(new { message = errorMsg });
             }
