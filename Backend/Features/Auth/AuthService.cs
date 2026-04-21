@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Text;
 
 using Backend.Features.Subscriptions;
+using Backend.Features.Loyalty;
 
 namespace Backend.Features.Auth
 {
@@ -20,12 +21,14 @@ namespace Backend.Features.Auth
         private readonly LibraryManagementContext _context;
         private readonly IConfiguration _configuration;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly ILoyaltyService _loyaltyService;
 
-        public AuthService(LibraryManagementContext context, IConfiguration configuration, ISubscriptionService subscriptionService)
+        public AuthService(LibraryManagementContext context, IConfiguration configuration, ISubscriptionService subscriptionService, ILoyaltyService loyaltyService)
         {
             _context = context;
             _configuration = configuration;
             _subscriptionService = subscriptionService;
+            _loyaltyService = loyaltyService;
         }
 
         public async Task<AuthResponse> Register(RegisterRequest request)
@@ -55,6 +58,20 @@ namespace Backend.Features.Auth
             {
                 await _subscriptionService.SubscribeUserAsync(user.Id, 3); // 3 is "Basic Yearly"
             }
+
+            // Loyalty Integration: Register the new user and process SIGNUP event
+            string externalUserId = user.Id.ToString();
+            string userMobile = user.PhoneNumber ?? "0000000000";
+            await _loyaltyService.RegisterUserAsync(externalUserId, user.Email, userMobile);
+            await _loyaltyService.ProcessEventAsync(
+                externalUserId: externalUserId,
+                eventKey: "SIGNUP",
+                eventValue: 20,
+                referenceId: $"USR-{user.Id}",
+                description: "New User Registration",
+                email: user.Email,
+                mobile: userMobile
+            );
 
             return await AuthenticateUser(user);
         }

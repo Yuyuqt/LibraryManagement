@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Frontend.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Librarian")]
     public class MembersController : Controller
     {
         private readonly LibraryApiClient _apiClient;

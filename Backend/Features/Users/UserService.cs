@@ -79,7 +79,7 @@ namespace Backend.Features.Users
             await _loyaltyService.ProcessEventAsync(
                 externalUserId: externalUserId,
                 eventKey: "SIGNUP",
-                eventValue: 0,
+                eventValue: 20,
                 referenceId: $"USR-{user.Id}",
                 description: "New User Registration",
                 email: user.Email,

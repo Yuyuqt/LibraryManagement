@@ -32,7 +32,11 @@ namespace Backend.Features.Loyalty
                 return NotFound("Loyalty account not found.");
             }
 
-            return Ok(account);
+            return Ok(new 
+            { 
+                currentBalance = account.CurrentBalance, 
+                tier = account.Tier 
+            });
         }
     }
 }

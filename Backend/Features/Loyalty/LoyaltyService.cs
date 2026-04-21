@@ -1,6 +1,8 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -93,7 +95,8 @@ namespace Backend.Features.Loyalty
                 var response = await _httpClient.GetAsync($"/api/v1/accounts/lookup/{SystemId}/{externalUserId}");
                 if (response.IsSuccessStatusCode)
                 {
-                    return await response.Content.ReadFromJsonAsync<AccountLookupResponse>();
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    return await response.Content.ReadFromJsonAsync<AccountLookupResponse>(options);
                 }
                 return null;
             }
@@ -107,10 +110,19 @@ namespace Backend.Features.Loyalty
 
     public class AccountLookupResponse
     {
+        [JsonPropertyName("id")]
         public string Id { get; set; } = string.Empty;
+
+        [JsonPropertyName("externalUserId")]
         public string ExternalUserId { get; set; } = string.Empty;
+
+        [JsonPropertyName("currentBalance")]
         public double CurrentBalance { get; set; }
+
+        [JsonPropertyName("tier")]
         public string Tier { get; set; } = string.Empty;
+
+        [JsonPropertyName("lifetimePoints")]
         public double LifetimePoints { get; set; }
     }
 }

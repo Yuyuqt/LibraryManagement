@@ -15,7 +15,7 @@ namespace Backend.Features.Books
         }
 
         [HttpGet]
-        //[Authorize]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<BookDto>>> GetBooks()
         {
             var books = await _bookService.GetAllBooksAsync();
@@ -23,7 +23,7 @@ namespace Backend.Features.Books
         }
 
         [HttpGet("{id}")]
-        //[Authorize]
+        [Authorize]
         public async Task<ActionResult<BookDto>> GetBook(int id)
         {
             var book = await _bookService.GetBookByIdAsync(id);
@@ -32,7 +32,7 @@ namespace Backend.Features.Books
         }
 
         [HttpPost]
-        //[Authorize(Roles = "Librarian")]
+        [Authorize(Roles = "Librarian")]
         public async Task<ActionResult<BookDto>> CreateBook([FromBody] BookCreateRequest request)
         {
             try
@@ -47,7 +47,7 @@ namespace Backend.Features.Books
         }
 
         [HttpPut("{id}")]
-        //[Authorize(Roles = "Librarian")]
+        [Authorize(Roles = "Librarian")]
         public async Task<ActionResult<BookDto>> UpdateBook(int id, [FromBody] BookUpdateRequest request)
         {
             var updatedBook = await _bookService.UpdateBookAsync(id, request);
@@ -56,7 +56,7 @@ namespace Backend.Features.Books
         }
 
         [HttpDelete("{id}")]
-        //[Authorize(Roles = "Librarian")]
+        [Authorize(Roles = "Librarian")]
         public async Task<IActionResult> DeleteBook(int id)
         {
             var success = await _bookService.DeleteBookAsync(id);

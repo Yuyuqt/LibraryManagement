@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
-using Frontend.Services;
 using Frontend.Models.Dtos;
+using Frontend.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Frontend.Controllers
 {
@@ -15,16 +16,15 @@ namespace Frontend.Controllers
 
         public async Task<IActionResult> Index()
         {
-            if (User.IsInRole("Admin"))
-            {
-                var allBorrowings = await _apiClient.GetAllBorrowingsAsync();
-                return View(allBorrowings);
-            }
-            else
-            {
-                var borrowings = await _apiClient.GetMyBorrowingsAsync();
-                return View(borrowings);
-            }
+            var borrowings = await _apiClient.GetMyBorrowingsAsync();
+            return View(borrowings);
+        }
+
+        [Authorize(Roles = "Librarian")]
+        public async Task<IActionResult> Manage()
+        {
+            var allBorrowings = await _apiClient.GetAllBorrowingsAsync();
+            return View(allBorrowings);
         }
 
         [HttpPost]
@@ -44,7 +44,8 @@ namespace Frontend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Return(int id)
+        [Authorize(Roles = "Librarian")]
+        public async Task<IActionResult> Return(int id, bool fromManage = false)
         {
             var result = await _apiClient.ReturnBookAsync(id);
             if (result != null)
@@ -55,6 +56,10 @@ namespace Frontend.Controllers
             {
                 TempData["Error"] = "Failed to process return.";
             }
+            
+            if (fromManage)
+                return RedirectToAction(nameof(Manage));
+            
             return RedirectToAction(nameof(Index));
         }
     }

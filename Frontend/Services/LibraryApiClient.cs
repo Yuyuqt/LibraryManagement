@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using Frontend.Models.Dtos;
 
 namespace Frontend.Services
@@ -158,14 +159,29 @@ namespace Frontend.Services
         }
         #endregion
 
-        #region Loyalty
         public async Task<LoyaltyAccountDto?> GetMyLoyaltyAccountAsync()
         {
             try {
-                return await _httpClient.GetFromJsonAsync<LoyaltyAccountDto>("api/loyalty/my-account");
-            } catch { return null; }
+                // Using exact casing for the route to be safe
+                var response = await _httpClient.GetAsync("api/Loyalty/my-account");
+                if (response.IsSuccessStatusCode)
+                {
+                    // JsonPropertyName attributes in LoyaltyAccountDto will handle the mapping
+                    // and correctly populate CurrentBalance from the backend's currentBalance
+                    return await response.Content.ReadFromJsonAsync<LoyaltyAccountDto>();
+                }
+                else
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Loyalty API error: {response.StatusCode} - {error}");
+                    // Throw custom exception or return null based on error
+                }
+                return null;
+            } catch (Exception ex) { 
+                System.Diagnostics.Debug.WriteLine($"Loyalty API Exception: {ex.Message}");
+                return null; 
+            }
         }
-        #endregion
 
         #region Users
         public async Task<IEnumerable<UserDto>> GetUsersAsync()

@@ -57,7 +57,7 @@ namespace Backend.Features.Subscriptions
         }
 
         [HttpGet("subscriptions/user/{userId}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Librarian")]
         public async Task<ActionResult<SubscriptionDto>> GetUserSubscription(int userId)
         {
             var subscription = await _subscriptionService.GetUserSubscriptionAsync(userId);
@@ -67,7 +67,7 @@ namespace Backend.Features.Subscriptions
         }
 
         [HttpPost("subscriptions/admin-subscribe")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Librarian")]
         public async Task<ActionResult<SubscriptionDto>> AdminSubscribe([FromBody] AdminSubscribeRequest request)
         {
             try

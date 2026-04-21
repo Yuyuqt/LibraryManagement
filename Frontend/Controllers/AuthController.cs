@@ -31,8 +31,8 @@ namespace Frontend.Controllers
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    Secure = false,
+                    SameSite = SameSiteMode.Lax,
                     Expires = DateTime.UtcNow.AddDays(7)
                 };
                 Response.Cookies.Append("AuthToken", response.Token, cookieOptions);
@@ -61,8 +61,8 @@ namespace Frontend.Controllers
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    Secure = false,
+                    SameSite = SameSiteMode.Lax,
                     Expires = DateTime.UtcNow.AddDays(7)
                 };
                 Response.Cookies.Append("AuthToken", response.Token, cookieOptions);

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Frontend.Models.Dtos
 {
     // Auth DTOs
@@ -127,10 +129,19 @@ namespace Frontend.Models.Dtos
     // Loyalty DTOs
     public class LoyaltyAccountDto
     {
+        [JsonPropertyName("id")]
         public string Id { get; set; } = string.Empty;
+
+        [JsonPropertyName("externalUserId")]
         public string ExternalUserId { get; set; } = string.Empty;
+
+        [JsonPropertyName("currentBalance")]
         public double CurrentBalance { get; set; }
+
+        [JsonPropertyName("tier")]
         public string Tier { get; set; } = string.Empty;
+
+        [JsonPropertyName("lifetimePoints")]
         public double LifetimePoints { get; set; }
     }
 

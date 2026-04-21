@@ -18,37 +18,61 @@ namespace Frontend.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // Set defaults to avoid nulls
+            ViewBag.TotalBooks = 0;
+            ViewBag.ActiveLoans = 0;
+            ViewBag.OverdueLoans = 0;
+            ViewBag.TotalMembers = 0;
+            ViewBag.LoyaltyPoints = 0;
+            ViewBag.LoyaltyStatus = "Not Authenticated";
+            ViewBag.RecentBooks = Enumerable.Empty<Frontend.Models.Dtos.BookDto>();
+
             try 
             {
+                // 1. Basic Stats (Public)
                 var books = await _apiClient.GetBooksAsync();
-                var borrowings = await _apiClient.GetMyBorrowingsAsync();
-                var members = await _apiClient.GetUsersAsync();
-                
-                // Fetch loyalty points (if user is logged in)
+                ViewBag.TotalBooks = books.Count();
+                ViewBag.RecentBooks = books.Take(6);
+
+                // 2. Personal/Authenticated Stats
                 if (User.Identity?.IsAuthenticated == true)
                 {
-                    var loyaltyAccount = await _apiClient.GetMyLoyaltyAccountAsync();
-                    ViewBag.LoyaltyPoints = loyaltyAccount?.CurrentBalance ?? 0;
-                    ViewBag.LoyaltyTier = loyaltyAccount?.Tier ?? "Member";
+                    // Fetch borrowings
+                    try {
+                        var borrowings = await _apiClient.GetMyBorrowingsAsync();
+                        ViewBag.ActiveLoans = borrowings.Count(b => !b.ReturnDate.HasValue);
+                        ViewBag.OverdueLoans = borrowings.Count(b => !b.ReturnDate.HasValue && b.DueDate < DateTime.UtcNow);
+                    } catch { /* Ignore personal stats failure */ }
+
+                    // Fetch loyalty
+                    try {
+                        var loyaltyAccount = await _apiClient.GetMyLoyaltyAccountAsync();
+                        if (loyaltyAccount != null)
+                        {
+                            ViewBag.LoyaltyPoints = loyaltyAccount.CurrentBalance;
+                            ViewBag.LoyaltyTier = loyaltyAccount.Tier;
+                            ViewBag.LoyaltyStatus = "Connected";
+                        }
+                        else {
+                            ViewBag.LoyaltyStatus = "Account Not Linked";
+                        }
+                    } catch { 
+                        ViewBag.LoyaltyStatus = "Loyalty System Unavailable";
+                    }
+
+                    // 3. Librarian Only Stats
+                    if (User.IsInRole("Librarian"))
+                    {
+                        try {
+                            var members = await _apiClient.GetUsersAsync();
+                            ViewBag.TotalMembers = members.Count();
+                        } catch { /* Ignore member list failure for non-librarians */ }
+                    }
                 }
-                
-                ViewBag.TotalBooks = books.Count();
-                ViewBag.ActiveLoans = borrowings.Count(b => !b.ReturnDate.HasValue);
-                ViewBag.OverdueLoans = borrowings.Count(b => !b.ReturnDate.HasValue && b.DueDate < DateTime.UtcNow);
-                ViewBag.TotalMembers = members.Count();
-                
-                ViewBag.RecentBooks = books.Take(6);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to load dashboard data");
-                // Set default values if API fails
-                ViewBag.TotalBooks = 0;
-                ViewBag.ActiveLoans = 0;
-                ViewBag.TotalMembers = 0;
-                ViewBag.RecentBooks = Enumerable.Empty<Frontend.Models.Dtos.BookDto>();
-                ViewBag.LoyaltyPoints = 0;
-                ViewBag.LoyaltyTier = "Member";
+                _logger.LogError(ex, "Critical failure on dashboard. Some data might be missing.");
             }
 
             return View();
