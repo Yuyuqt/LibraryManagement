@@ -24,6 +24,14 @@ namespace Frontend.Controllers
                 var borrowings = await _apiClient.GetMyBorrowingsAsync();
                 var members = await _apiClient.GetUsersAsync();
                 
+                // Fetch loyalty points (if user is logged in)
+                if (User.Identity?.IsAuthenticated == true)
+                {
+                    var loyaltyAccount = await _apiClient.GetMyLoyaltyAccountAsync();
+                    ViewBag.LoyaltyPoints = loyaltyAccount?.CurrentBalance ?? 0;
+                    ViewBag.LoyaltyTier = loyaltyAccount?.Tier ?? "Member";
+                }
+                
                 ViewBag.TotalBooks = books.Count();
                 ViewBag.ActiveLoans = borrowings.Count(b => !b.ReturnDate.HasValue);
                 ViewBag.OverdueLoans = borrowings.Count(b => !b.ReturnDate.HasValue && b.DueDate < DateTime.UtcNow);
@@ -37,9 +45,10 @@ namespace Frontend.Controllers
                 // Set default values if API fails
                 ViewBag.TotalBooks = 0;
                 ViewBag.ActiveLoans = 0;
-                ViewBag.OverdueLoans = 0;
                 ViewBag.TotalMembers = 0;
                 ViewBag.RecentBooks = Enumerable.Empty<Frontend.Models.Dtos.BookDto>();
+                ViewBag.LoyaltyPoints = 0;
+                ViewBag.LoyaltyTier = "Member";
             }
 
             return View();

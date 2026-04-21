@@ -1,6 +1,7 @@
 using Database.Models;
 using Microsoft.EntityFrameworkCore;
 using Backend.Features.Subscriptions;
+using Backend.Features.Loyalty;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,11 +23,13 @@ namespace Backend.Features.Users
     {
         private readonly LibraryManagementContext _context;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly ILoyaltyService _loyaltyService;
 
-        public UserService(LibraryManagementContext context, ISubscriptionService subscriptionService)
+        public UserService(LibraryManagementContext context, ISubscriptionService subscriptionService, ILoyaltyService loyaltyService)
         {
             _context = context;
             _subscriptionService = subscriptionService;
+            _loyaltyService = loyaltyService;
         }
 
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
@@ -68,6 +71,20 @@ namespace Backend.Features.Users
             {
                 await _subscriptionService.SubscribeUserAsync(user.Id, 3); // 3 is "Basic Yearly"
             }
+
+            // Loyalty Integration: Register the new user and process SIGNUP event
+            string externalUserId = user.Id.ToString();
+            string userMobile = user.PhoneNumber ?? "0000000000";
+            await _loyaltyService.RegisterUserAsync(externalUserId, user.Email, userMobile);
+            await _loyaltyService.ProcessEventAsync(
+                externalUserId: externalUserId,
+                eventKey: "SIGNUP",
+                eventValue: 0,
+                referenceId: $"USR-{user.Id}",
+                description: "New User Registration",
+                email: user.Email,
+                mobile: userMobile
+            );
 
             return MapToDto(user);
         }

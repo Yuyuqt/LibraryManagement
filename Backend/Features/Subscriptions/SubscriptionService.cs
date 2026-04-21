@@ -1,5 +1,6 @@
 using Database.Models;
 using Microsoft.EntityFrameworkCore;
+using Backend.Features.Loyalty;
 
 namespace Backend.Features.Subscriptions
 {
@@ -13,10 +14,12 @@ namespace Backend.Features.Subscriptions
     public class SubscriptionService : ISubscriptionService
     {
         private readonly LibraryManagementContext _context;
+        private readonly ILoyaltyService _loyaltyService;
 
-        public SubscriptionService(LibraryManagementContext context)
+        public SubscriptionService(LibraryManagementContext context, ILoyaltyService loyaltyService)
         {
             _context = context;
+            _loyaltyService = loyaltyService;
         }
 
         public async Task<IEnumerable<MembershipDto>> GetMembershipsAsync()
@@ -75,6 +78,22 @@ namespace Backend.Features.Subscriptions
 
             // Explicitly load the membership data for the DTO mapping
             await _context.Entry(subscription).Reference(s => s.Membership).LoadAsync();
+            await _context.Entry(subscription).Reference(s => s.User).LoadAsync();
+
+            // Loyalty Integration: Send SUBSCRIBE event
+            string externalUserId = userId.ToString();
+            string userMobile = subscription.User?.PhoneNumber ?? "0000000000";
+            string userEmail = subscription.User?.Email ?? "No Email";
+
+            await _loyaltyService.ProcessEventAsync(
+                externalUserId: externalUserId,
+                eventKey: "SUBSCRIBE",
+                eventValue: (double)membership.Price,
+                referenceId: $"SUB-{subscription.Id}",
+                description: $"Purchased Membership: {membership.Type}",
+                email: userEmail,
+                mobile: userMobile
+            );
 
             return MapToDto(subscription);
         }

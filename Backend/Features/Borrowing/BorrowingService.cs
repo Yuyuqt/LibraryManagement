@@ -1,5 +1,6 @@
 using Database.Models;
 using Microsoft.EntityFrameworkCore;
+using Backend.Features.Loyalty;
 
 namespace Backend.Features.Borrowings
 {
@@ -14,11 +15,13 @@ namespace Backend.Features.Borrowings
     public class BorrowingService : IBorrowingService
     {
         private readonly LibraryManagementContext _context;
+        private readonly ILoyaltyService _loyaltyService;
         private const decimal FinePerDay = 500;
 
-        public BorrowingService(LibraryManagementContext context)
+        public BorrowingService(LibraryManagementContext context, ILoyaltyService loyaltyService)
         {
             _context = context;
+            _loyaltyService = loyaltyService;
         }
 
         public async Task<BorrowingDto> BorrowBookAsync(int userId, int bookId)
@@ -85,6 +88,21 @@ namespace Backend.Features.Borrowings
             // Load relations for mapping
             await _context.Entry(borrowing).Reference(b => b.Book).LoadAsync();
             await _context.Entry(borrowing).Reference(b => b.User).LoadAsync();
+
+            // Loyalty Integration: Send BORROW event
+            string externalUserId = userId.ToString();
+            string userMobile = borrowing.User?.PhoneNumber ?? "0000000000";
+            string userEmail = borrowing.User?.Email ?? "No Email";
+            
+            await _loyaltyService.ProcessEventAsync(
+                externalUserId: externalUserId,
+                eventKey: "BORROW",
+                eventValue: 0,
+                referenceId: $"BRW-{borrowing.Id}",
+                description: $"Borrowed Book: {borrowing.Book?.Title}",
+                email: userEmail,
+                mobile: userMobile
+            );
 
             return MapToDto(borrowing);
         }

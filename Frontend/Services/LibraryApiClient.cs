@@ -158,6 +158,15 @@ namespace Frontend.Services
         }
         #endregion
 
+        #region Loyalty
+        public async Task<LoyaltyAccountDto?> GetMyLoyaltyAccountAsync()
+        {
+            try {
+                return await _httpClient.GetFromJsonAsync<LoyaltyAccountDto>("api/loyalty/my-account");
+            } catch { return null; }
+        }
+        #endregion
+
         #region Users
         public async Task<IEnumerable<UserDto>> GetUsersAsync()
         {

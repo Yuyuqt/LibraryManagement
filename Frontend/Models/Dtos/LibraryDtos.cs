@@ -124,6 +124,16 @@ namespace Frontend.Models.Dtos
         public int MembershipId { get; set; }
     }
 
+    // Loyalty DTOs
+    public class LoyaltyAccountDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string ExternalUserId { get; set; } = string.Empty;
+        public double CurrentBalance { get; set; }
+        public string Tier { get; set; } = string.Empty;
+        public double LifetimePoints { get; set; }
+    }
+
     // User DTOs
     public class UserDto
     {

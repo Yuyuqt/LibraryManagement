@@ -10,8 +10,10 @@ using Microsoft.OpenApi.Models;
 using Backend.Features.Subscriptions;
 using Backend.Features.Categories;
 using Backend.Features.Borrowings;
+using Backend.Features.Loyalty;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 builder.Services.AddControllers();
 builder.Services.AddAuthorization();
@@ -54,6 +56,12 @@ builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBorrowingService, BorrowingService>();
+
+// Register Loyalty API Client
+builder.Services.AddHttpClient<ILoyaltyService, LoyaltyService>(client =>
+{
+    client.BaseAddress = new Uri("http://150.95.88.91:4100");
+});
 
 // Configure JWT Authentication
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Secret"] ?? "YourSuperSecretKeyForLibraryManagementSystem_AtLeast32CharsLong");
