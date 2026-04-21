@@ -90,20 +90,7 @@ namespace Backend.Features.Borrowings
             await _context.Entry(borrowing).Reference(b => b.Book).LoadAsync();
             await _context.Entry(borrowing).Reference(b => b.User).LoadAsync();
 
-            // Loyalty Integration: Send BORROW event
-            string externalUserId = userId.ToString();
-            string userMobile = borrowing.User?.PhoneNumber ?? "0000000000";
-            string userEmail = borrowing.User?.Email ?? "No Email";
-            
-            await _loyaltyService.ProcessEventAsync(
-                externalUserId: externalUserId,
-                eventKey: "BORROW",
-                eventValue: 0,
-                referenceId: $"BRW-{borrowing.Id}",
-                description: $"Borrowed Book: {borrowing.Book?.Title}",
-                email: userEmail,
-                mobile: userMobile
-            );
+
 
             return MapToDto(borrowing);
         }
@@ -153,6 +140,22 @@ namespace Backend.Features.Borrowings
             book.Status = "Available";
 
             await _context.SaveChangesAsync();
+
+            // Loyalty Integration: Send RETURN event
+            string externalUserId = borrowing.UserId.ToString();
+            string userMobile = borrowing.User?.PhoneNumber ?? "0000000000";
+            string userEmail = borrowing.User?.Email ?? "No Email";
+            
+            await _loyaltyService.ProcessEventAsync(
+                externalUserId: externalUserId,
+                eventKey: "RETURN",
+                eventValue: 0,
+                referenceId: $"RET-{borrowing.Id}",
+                description: $"Returned Book: {book?.Title}",
+                email: userEmail,
+                mobile: userMobile
+            );
+
             return MapToDto(borrowing);
         }
 
