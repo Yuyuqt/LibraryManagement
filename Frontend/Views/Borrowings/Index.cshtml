@@ -14,7 +14,7 @@
             <thead>
                 <tr class="bg-slate-50/50 border-b border-slate-100">
                     <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Book Information</th>
-                    @if (User.IsInRole("Admin"))
+                    @if (User.IsInRole("Librarian"))
                     {
                         <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Member</th>
                     }
@@ -28,7 +28,7 @@
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="@(User.IsInRole("Admin") ? 6 : 5)" class="px-6 py-12 text-center text-slate-400 italic">
+                        <td colspan="@(User.IsInRole("Librarian") ? 6 : 5)" class="px-6 py-12 text-center text-slate-400 italic">
                             You don't have any borrowing history yet.
                         </td>
                     </tr>
@@ -47,7 +47,7 @@
                                 </div>
                             </div>
                         </td>
-                        @if (User.IsInRole("Admin"))
+                        @if (User.IsInRole("Librarian"))
                         {
                             <td class="px-6 py-4">
                                 <div class="text-sm font-medium text-slate-900 truncate">@loan.UserEmail</div>
@@ -66,8 +66,10 @@
                         </td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                @(loan.Status == "Borrowed" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700")">
-                                @loan.Status
+                                @(loan.Status == "Borrowed" ? "bg-amber-100 text-amber-700" : 
+                                  loan.Status == "PendingReturn" ? "bg-blue-100 text-blue-700" :
+                                  "bg-emerald-100 text-emerald-700")">
+                                @(loan.Status == "PendingReturn" ? "Pending Approval" : loan.Status)
                             </span>
                         </td>
                         <td class="px-6 py-4">
@@ -91,10 +93,14 @@
                         <td class="px-6 py-4 text-right">
                             @if (loan.Status == "Borrowed")
                             {
-                                <form asp-action="Return" method="POST" onsubmit="return confirm('Ready to return this book?');">
+                                <form asp-action="RequestReturn" method="POST" onsubmit="return confirm('Request return for this book? It will be marked as pending until approved.');">
                                     <input type="hidden" name="id" value="@loan.Id" />
-                                    <button type="submit" class="btn-secondary py-1.5 px-4 text-xs font-bold">@(User.IsInRole("Admin") ? "Process Return" : "Return Book")</button>
+                                    <button type="submit" class="btn-secondary py-1.5 px-4 text-xs font-bold">Return Book</button>
                                 </form>
+                            }
+                            else if (loan.Status == "PendingReturn")
+                            {
+                                <span class="text-xs font-medium text-slate-400">Awaiting Approval</span>
                             }
                         </td>
                     </tr>

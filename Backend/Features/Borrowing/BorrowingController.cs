@@ -34,6 +34,21 @@ namespace Backend.Features.Borrowings
             }
         }
 
+        [HttpPost("return-request/{id}")]
+        [Authorize]
+        public async Task<ActionResult<BorrowingDto>> RequestReturn(int id)
+        {
+            try
+            {
+                var borrowing = await _borrowingService.RequestReturnAsync(id);
+                return Ok(borrowing);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpPost("return/{id}")]
         [Authorize(Roles = "Librarian")]
         public async Task<ActionResult<BorrowingDto>> ReturnBook(int id)

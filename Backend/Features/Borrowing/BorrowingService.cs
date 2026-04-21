@@ -7,6 +7,7 @@ namespace Backend.Features.Borrowings
     public interface IBorrowingService
     {
         Task<BorrowingDto> BorrowBookAsync(int userId, int bookId);
+        Task<BorrowingDto> RequestReturnAsync(int borrowingId);
         Task<BorrowingDto> ReturnBookAsync(int borrowingId);
         Task<IEnumerable<BorrowingDto>> GetUserBorrowingsAsync(int userId);
         Task<IEnumerable<BorrowingDto>> GetAllBorrowingsAsync();
@@ -104,6 +105,21 @@ namespace Backend.Features.Borrowings
                 mobile: userMobile
             );
 
+            return MapToDto(borrowing);
+        }
+
+        public async Task<BorrowingDto> RequestReturnAsync(int borrowingId)
+        {
+            var borrowing = await _context.Borrowings
+                .Include(b => b.Book)
+                .Include(b => b.User)
+                .FirstOrDefaultAsync(b => b.Id == borrowingId);
+
+            if (borrowing == null) throw new Exception("Borrowing record not found.");
+            if (borrowing.Status != "Borrowed") throw new Exception("Only borrowed books can be requested for return.");
+
+            borrowing.Status = "PendingReturn";
+            await _context.SaveChangesAsync();
             return MapToDto(borrowing);
         }
 

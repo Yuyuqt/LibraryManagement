@@ -46,25 +46,31 @@
             </div>
 
             <div class="flex items-center gap-4 pt-4">
-                @if (Model.AvailableCopies > 0)
+                @if (User.IsInRole("Member") || !User.Identity.IsAuthenticated)
                 {
-                    <form asp-controller="Borrowings" asp-action="Borrow" method="POST">
-                        <input type="hidden" name="BookId" value="@Model.Id" />
-                        <button type="submit" class="btn-primary py-3 px-8 text-base shadow-lg shadow-slate-200">Borrow This Book</button>
+                    @if (Model.AvailableCopies > 0)
+                    {
+                        <form asp-controller="Borrowings" asp-action="Borrow" method="POST">
+                            <input type="hidden" name="BookId" value="@Model.Id" />
+                            <button type="submit" class="btn-primary py-3 px-8 text-base shadow-lg shadow-slate-200">Borrow This Book</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <button disabled class="btn-primary py-3 px-8 text-base opacity-50 cursor-not-allowed">Out of Stock</button>
+                    }
+                }
+                
+                @if (User.IsInRole("Librarian"))
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-secondary py-3 px-8 text-base">Edit Details</a>
+                    
+                    <form asp-action="Delete" asp-route-id="@Model.Id" method="POST" onsubmit="return confirm('Are you sure you want to remove this book from the catalog?');">
+                        <button type="submit" class="p-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
                     </form>
                 }
-                else
-                {
-                    <button disabled class="btn-primary py-3 px-8 text-base opacity-50 cursor-not-allowed">Out of Stock</button>
-                }
-                
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-secondary py-3 px-8 text-base">Edit Details</a>
-                
-                <form asp-action="Delete" asp-route-id="@Model.Id" method="POST" onsubmit="return confirm('Are you sure you want to remove this book from the catalog?');">
-                    <button type="submit" class="p-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                </form>
             </div>
         </div>
     </div>

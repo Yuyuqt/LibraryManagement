@@ -20,6 +20,28 @@ namespace Frontend.Controllers
             return View(borrowings);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> RequestReturn(int id)
+        {
+            var success = await _apiClient.RequestReturnAsync(id);
+            if (success)
+            {
+                TempData["Success"] = "Return request sent! Awaiting librarian approval.";
+            }
+            else
+            {
+                TempData["Error"] = "Failed to request return.";
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Rewards()
+        {
+            var rewards = await _apiClient.GetActiveRewardsAsync();
+            return View(rewards);
+        }
+
         [Authorize(Roles = "Librarian")]
         public async Task<IActionResult> Manage()
         {

@@ -145,6 +145,27 @@ namespace Frontend.Models.Dtos
         public double LifetimePoints { get; set; }
     }
 
+    public class LoyaltyRewardDto
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = string.Empty;
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("description")]
+        public string Description { get; set; } = string.Empty;
+
+        [JsonPropertyName("pointCost")]
+        public double PointCost { get; set; }
+
+        [JsonPropertyName("stockQuantity")]
+        public int StockQuantity { get; set; }
+
+        [JsonPropertyName("isActive")]
+        public bool IsActive { get; set; }
+    }
+
     // User DTOs
     public class UserDto
     {

@@ -10,26 +10,31 @@
 @if (User.Identity?.IsAuthenticated == true)
 {
     <!-- Loyalty Banner -->
-    <div class="bg-gradient-to-r from-amber-500 to-amber-700 rounded-2xl p-6 mb-10 text-white shadow-lg relative overflow-hidden group">
-        <div class="relative z-10 flex items-center justify-between">
-            <div>
-                <p class="text-amber-100 text-sm font-bold uppercase tracking-widest mb-1">Your Loyalty Status</p>
-                <div class="flex items-baseline gap-3">
-                    <h2 class="text-4xl font-extrabold">@ViewBag.LoyaltyPoints</h2>
-                    <span class="text-amber-200 font-medium tracking-wide">Points</span>
+    <a asp-controller="Borrowings" asp-action="Rewards" class="block group">
+        <div class="bg-gradient-to-r from-amber-500 to-amber-700 rounded-2xl p-6 mb-10 text-white shadow-lg relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:translate-y-[-2px] border border-white/10">
+            <div class="relative z-10 flex items-center justify-between">
+                <div>
+                    <p class="text-amber-100 text-sm font-bold uppercase tracking-widest mb-1">Your Loyalty Status</p>
+                    <div class="flex items-baseline gap-3">
+                        <h2 class="text-4xl font-extrabold">@ViewBag.LoyaltyPoints</h2>
+                        <span class="text-amber-200 font-medium tracking-wide">Points</span>
+                    </div>
+                    <p class="text-[10px] text-amber-300/60 mt-1 uppercase tracking-tighter">Connection: @ViewBag.LoyaltyStatus</p>
                 </div>
-                <p class="text-[10px] text-amber-300/60 mt-1 uppercase tracking-tighter">Connection: @ViewBag.LoyaltyStatus</p>
-            </div>
-            <div class="text-right">
-                <div class="inline-flex items-center gap-2 bg-black/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10 shadow-inner">
-                    <svg class="w-5 h-5 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                    <span class="font-bold text-lg">@ViewBag.LoyaltyTier</span>
+                <div class="text-right flex items-center gap-4">
+                    <div class="inline-flex items-center gap-2 bg-black/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10 shadow-inner">
+                        <svg class="w-5 h-5 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                        <span class="font-bold text-lg">@ViewBag.LoyaltyTier</span>
+                    </div>
+                    <div class="p-2 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
                 </div>
             </div>
+            <!-- Decorative Background -->
+            <div class="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl transform group-hover:scale-110 transition-transform duration-700"></div>
         </div>
-        <!-- Decorative Background -->
-        <div class="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl transform group-hover:scale-110 transition-transform duration-700"></div>
-    </div>
+    </a>
 }
 
 <!-- Stats Grid -->
