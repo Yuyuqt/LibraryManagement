@@ -1,3 +1,4 @@
+using Frontend.Models;
 using Frontend.Models.Dtos;
 using Frontend.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -39,7 +40,15 @@ namespace Frontend.Controllers
         public async Task<IActionResult> Rewards()
         {
             var rewards = await _apiClient.GetActiveRewardsAsync();
-            return View(rewards);
+            var account = await _apiClient.GetMyLoyaltyAccountAsync();
+            
+            var viewModel = new RewardsViewModel
+            {
+                Rewards = rewards,
+                Account = account
+            };
+            
+            return View(viewModel);
         }
 
         [Authorize(Roles = "Librarian")]
