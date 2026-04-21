@@ -36,11 +36,7 @@ namespace Backend.Features.Loyalty
                 return NotFound("Loyalty account not found.");
             }
 
-            return Ok(new
-            {
-                currentBalance = account.CurrentBalance,
-                tier = account.Tier
-            });
+            return Ok(account);
         }
 
         [HttpGet("my-redemptions")]
@@ -52,7 +48,7 @@ namespace Backend.Features.Loyalty
                 return Unauthorized();
             }
 
-            var redemptions = await _loyaltyService.GetUserRedemptionsAsync(userIdStr);
+            var redemptions = await _loyaltyService.GetRedemptionsHistoryAsync();
             return Ok(redemptions);
         }
 
@@ -107,12 +103,15 @@ namespace Backend.Features.Loyalty
             bool membershipGranted = false;
             if (int.TryParse(redemption.ExternalUserId?.Trim(), out int userId))
             {
+                System.Diagnostics.Debug.WriteLine($"Fulfilling redemption {id} for user {userId}. RewardId: '{redemption.RewardId}'");
                 membershipGranted = await _subscriptionService.HandleLoyaltyRedemptionAsync(userId, redemption.RewardId, redemption.Id);
             }
 
             if (!membershipGranted)
             {
-                return BadRequest(new { message = $"Redemption fulfilled in loyalty system, but failed to grant library membership. The Reward ID '{redemption.RewardId}' may not be correctly mapped in the library system, or the user already has this membership." });
+                var errorMsg = $"Redemption fulfilled in loyalty system, but failed to grant library membership. The Reward ID '{redemption.RewardId}' (Redemption ID: {id}) may not be correctly mapped in the library system, or the user already has researchers this membership.";
+                System.Diagnostics.Debug.WriteLine(errorMsg);
+                return BadRequest(new { message = errorMsg });
             }
 
             return Ok(new { message = $"Redemption fulfilled and {redemption.RewardName} membership granted successfully." });

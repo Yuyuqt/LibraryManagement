@@ -201,6 +201,40 @@ namespace Frontend.Services
             return response.IsSuccessStatusCode;
         }
 
+        public async Task<(bool Success, string Message)> ClaimRewardAsync(string rewardId, string? notes = null)
+        {
+            try
+            {
+                var request = new ClaimRewardRequestDto { RewardId = rewardId, Notes = notes };
+                var response = await _httpClient.PostAsJsonAsync("api/Loyalty/claim", request);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<JsonDocument>();
+                    string msg = "Reward claimed successfully!";
+                    if (result != null && result.RootElement.TryGetProperty("message", out var msgElement))
+                    {
+                        msg = msgElement.GetString() ?? msg;
+                    }
+                    return (true, msg);
+                }
+                else
+                {
+                    var error = await response.Content.ReadFromJsonAsync<JsonDocument>();
+                    string msg = "Failed to claim reward.";
+                    if (error != null && error.RootElement.TryGetProperty("message", out var msgElement))
+                    {
+                        msg = msgElement.GetString() ?? msg;
+                    }
+                    return (false, msg);
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, $"An error occurred: {ex.Message}");
+            }
+        }
+
         public async Task<IEnumerable<LoyaltyRewardDto>> GetActiveRewardsAsync()
         {
             try {
@@ -251,5 +285,44 @@ namespace Frontend.Services
             return response.IsSuccessStatusCode;
         }
         #endregion
+        public async Task<IEnumerable<LoyaltyRedemptionDto>> GetPendingRedemptionsAsync()
+        {
+            try {
+                var response = await _httpClient.GetAsync("api/Loyalty/admin/redemptions/pending");
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
+                }
+                return Enumerable.Empty<LoyaltyRedemptionDto>();
+            } catch { return Enumerable.Empty<LoyaltyRedemptionDto>(); }
+        }
+
+        public async Task<(bool Success, string Message)> FulfillRedemptionAsync(string id)
+        {
+            try {
+                var response = await _httpClient.PostAsync($"api/Loyalty/admin/redemptions/{id}/fulfill", null);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<JsonDocument>();
+                    string msg = "Redemption fulfilled successfully!";
+                    if (result != null && result.RootElement.TryGetProperty("message", out var msgElement))
+                    {
+                        msg = msgElement.GetString() ?? msg;
+                    }
+                    return (true, msg);
+                }
+                else
+                {
+                    var error = await response.Content.ReadFromJsonAsync<JsonDocument>();
+                    string msg = "Failed to fulfill redemption.";
+                    if (error != null && error.RootElement.TryGetProperty("message", out var msgElement))
+                    {
+                        msg = msgElement.GetString() ?? msg;
+                    }
+                    return (false, msg);
+                }
+            } catch (Exception ex) { return (false, $"Error: {ex.Message}"); }
+        }
     }
 }

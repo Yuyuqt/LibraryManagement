@@ -25,16 +25,17 @@ namespace Frontend.Controllers
             var memberships = await _apiClient.GetMembershipsAsync();
             var redemptions = await _apiClient.GetMyRedemptionsAsync();
             var loyaltyAccount = await _apiClient.GetMyLoyaltyAccountAsync();
+            var activeRewards = await _apiClient.GetActiveRewardsAsync();
 
             // Filter redemptions to only show memberships that are Pending (Queued)
             // We use LoyaltyRewardId to identify which redemptions are memberships
             var membershipRewardIds = memberships
-                .Where(m => !string.IsNullOrEmpty(m.LoyaltyRewardId))
-                .Select(m => m.LoyaltyRewardId)
+                .Where(m => !string.IsNullOrEmpty(m.RewardId))
+                .Select(m => m.RewardId)
                 .ToList();
             
             var queuedMemberships = redemptions
-                .Where(r => (r.Status == "Pending" || r.Status == "PENDING") && membershipRewardIds.Contains(r.LoyaltyRewardId))
+                .Where(r => (r.Status == "Pending" || r.Status == "PENDING" || r.Status == "Fulfilled" || r.Status == "FULFILLED") && membershipRewardIds.Contains(r.RewardId))
                 .ToList();
 
             var viewModel = new MembershipViewModel
@@ -42,10 +43,24 @@ namespace Frontend.Controllers
                 CurrentSubscription = subscription,
                 AvailableMemberships = memberships.ToList(),
                 QueuedMemberships = queuedMemberships,
-                LoyaltyAccount = loyaltyAccount
+                LoyaltyAccount = loyaltyAccount,
+                RewardPointCosts = activeRewards.ToDictionary(r => r.Id, r => r.PointCost)
             };
 
             return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Redeem(string rewardId)
+        {
+            var (success, message) = await _apiClient.ClaimRewardAsync(rewardId, "Redeemed via Library Membership Page");
+            
+            if (success)
+            {
+                return Json(new { success = true, message });
+            }
+            
+            return Json(new { success = false, message });
         }
     }
 }

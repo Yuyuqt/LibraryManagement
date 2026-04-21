@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Frontend.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Librarian")]
     public class SubscriptionsController : Controller
     {
         private readonly LibraryApiClient _apiClient;
@@ -31,6 +31,25 @@ namespace Frontend.Controllers
 
             return View(viewModel);
         }
+        public async Task<IActionResult> Rewards()
+        {
+            var pendingClaims = await _apiClient.GetPendingRedemptionsAsync();
+            return View("LoyaltyClaims", pendingClaims.ToList());
+        }
 
+        [HttpPost]
+        public async Task<IActionResult> FulfillRedemption(string id)
+        {
+            var (success, message) = await _apiClient.FulfillRedemptionAsync(id);
+            if (success)
+            {
+                TempData["Success"] = message;
+            }
+            else
+            {
+                TempData["Error"] = message;
+            }
+            return RedirectToAction("Rewards");
+        }
     }
 }

@@ -35,7 +35,7 @@ namespace Backend.Features.Subscriptions
                     BorrowingDays = m.BorrowingDays,
                     Price = m.Price,
                     DurationMonths = m.DurationMonths,
-                    LoyaltyRewardId = m.LoyaltyRewardId
+                    RewardId = m.RewardId
                 }).ToListAsync();
         }
 
@@ -54,27 +54,25 @@ namespace Backend.Features.Subscriptions
 
         public async Task<bool> HandleLoyaltyRedemptionAsync(int userId, string rewardId, string id)
         {
-            // externalUserId matches how other loyalty calls identify users
-            string externalUserId = userId.ToString();
-
             try
             {
-                // Attempt to claim the reward via the loyalty service
-                var (success, message) = await _loyaltyService.ClaimRewardAsync(externalUserId, rewardId, id);
+                // 1. Find the local membership that corresponds to this loyalty reward
+                var membership = await _context.Memberships
+                    .FirstOrDefaultAsync(m => m.RewardId == rewardId);
 
-                if (!success)
+                if (membership == null)
                 {
+                    // If no membership matches this rewardId, we can't fulfill it automatically
                     return false;
                 }
 
-                // Optionally update the redemption status in the loyalty system
-                await _loyaltyService.UpdateRedemptionStatusAsync(id, "CLAIMED");
+                // 2. Grant the membership to the user (will be queued if they already have one)
+                await SubscribeUserAsync(userId, membership.Id);
 
                 return true;
             }
             catch
             {
-                // Swallow exceptions to maintain interface contract; caller can handle false result
                 return false;
             }
         }
@@ -84,29 +82,34 @@ namespace Backend.Features.Subscriptions
             var membership = await _context.Memberships.FindAsync(membershipId);
             if (membership == null) throw new Exception("Membership plan not found.");
 
-            // Deactivate any existing active subscriptions for this user
-            var activeSubscriptions = await _context.UserSubscriptions
+            // Find the latest expiry date for this user to enable queuing
+            // We look at all active or future subscriptions
+            var latestSubscription = await _context.UserSubscriptions
                 .Where(s => s.UserId == userId && s.IsActive)
-                .ToListAsync();
+                .OrderByDescending(s => s.ExpiryDate)
+                .FirstOrDefaultAsync();
 
-            foreach (var s in activeSubscriptions)
+            DateTime startDate = DateTime.UtcNow;
+            
+            // If there's an existing subscription that expires in the future, start after it
+            if (latestSubscription != null && latestSubscription.ExpiryDate > startDate)
             {
-                s.IsActive = false;
+                startDate = latestSubscription.ExpiryDate;
             }
 
             var subscription = new UserSubscription
             {
                 UserId = userId,
                 MembershipId = membershipId,
-                StartDate = DateTime.UtcNow,
-                ExpiryDate = DateTime.UtcNow.AddMonths(membership.DurationMonths),
+                StartDate = startDate,
+                ExpiryDate = startDate.AddMonths(membership.DurationMonths),
                 IsActive = true
             };
 
             _context.UserSubscriptions.Add(subscription);
             await _context.SaveChangesAsync();
 
-            // Explicitly load the membership data for the DTO mapping
+            // Explicitly load context for DTO
             await _context.Entry(subscription).Reference(s => s.Membership).LoadAsync();
             await _context.Entry(subscription).Reference(s => s.User).LoadAsync();
 

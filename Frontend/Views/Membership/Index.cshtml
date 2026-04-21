@@ -189,14 +189,23 @@
                             <div class="h-5 w-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-900">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                             </div>
-                            <span class="text-slate-600 font-medium font-bold">@plan.MaxBooks Books limit</span>
+                            <span class="text-slate-600 font-bold">@plan.MaxBooks Books limit</span>
                         </li>
                         <li class="flex items-center gap-3 text-sm">
                             <div class="h-5 w-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-900">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                             </div>
-                            <span class="text-slate-600 font-medium font-bold">@plan.BorrowingDays Days keep</span>
+                            <span class="text-slate-600 font-bold">@plan.BorrowingDays Days keep</span>
                         </li>
+                        @if (!string.IsNullOrEmpty(plan.RewardId) && Model.RewardPointCosts.TryGetValue(plan.RewardId, out var pointCost))
+                        {
+                            <li class="flex items-center gap-3 text-sm text-amber-600 font-black">
+                                <div class="h-5 w-5 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/></svg>
+                                </div>
+                                <span>@pointCost.ToString("N0") Points</span>
+                            </li>
+                        }
                     </ul>
 
                     @if (isCurrent)
@@ -205,13 +214,54 @@
                     }
                     else
                     {
-                        <a href="#" class="block w-full py-4 rounded-2xl bg-white border-2 border-slate-900 text-slate-900 text-center font-bold text-sm transition-all duration-200 group-hover:bg-slate-900 group-hover:text-white">Select Plan</a>
+                        <div class="space-y-3">
+                            <a href="#" class="block w-full py-4 rounded-2xl bg-white border-2 border-slate-900 text-slate-900 text-center font-bold text-sm transition-all duration-200 hover:bg-slate-900 hover:text-white">Pay Cash</a>
+                            
+                            @if (!string.IsNullOrEmpty(plan.RewardId) && Model.RewardPointCosts.ContainsKey(plan.RewardId))
+                            {
+                                <button onclick="redeemMembership('@plan.RewardId', '@plan.Type', @(Model.RewardPointCosts[plan.RewardId]))" 
+                                        class="w-full py-4 rounded-2xl bg-amber-400 text-slate-900 font-black text-sm hover:bg-amber-500 transition-all shadow-lg shadow-amber-400/20">
+                                    Redeem with Points
+                                </button>
+                            }
+                        </div>
                     }
                 </div>
             }
         </div>
     </section>
 </div>
+
+<!-- Modal / Toast Scripts -->
+<script>
+    async function redeemMembership(rewardId, planName, cost) {
+        if (!confirm(`Are you sure you want to redeem ${planName} for ${cost.toLocaleString()} points?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/Membership/Redeem', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ rewardId: rewardId })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Redemption error:', error);
+            alert('An unexpected error occurred. Please try again.');
+        }
+    }
+</script>
 
 <style>
     body {

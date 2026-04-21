@@ -16,7 +16,7 @@ public partial class Membership
     public decimal Price { get; set; }
 
     public int DurationMonths { get; set; }
-    public string? LoyaltyRewardId { get; set; }
+    public string? RewardId { get; set; }
 
     public virtual ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
 }

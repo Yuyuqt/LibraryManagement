@@ -16,8 +16,8 @@ namespace Backend.Features.Loyalty
         Task<bool> ProcessEventAsync(string externalUserId, string eventKey, double eventValue, string referenceId, string description, string email, string mobile);
         Task<AccountLookupResponse?> GetUserAccountAsync(string externalUserId);
         Task<(bool Success, string Message)> ClaimRewardAsync(string externalUserId, string rewardId, string notes);
-        Task<IEnumerable<LoyaltyRedemptionDto>> GetUserRedemptionsAsync(string externalUserId);
         Task<IEnumerable<LoyaltyRedemptionDto>> GetPendingRedemptionsAsync();
+        Task<IEnumerable<LoyaltyRedemptionDto>> GetRedemptionsHistoryAsync();
         Task<bool> UpdateRedemptionStatusAsync(string redemptionId, string status);
     }
 
@@ -31,7 +31,10 @@ namespace Backend.Features.Loyalty
         {
             _httpClient = httpClient;
             _logger = logger;
-            _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
+            if (!_httpClient.DefaultRequestHeaders.Contains("x-system-id"))
+            {
+                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
+            }
         }
 
         public async Task<bool> RegisterUserAsync(string externalUserId, string email, string mobile)
@@ -175,6 +178,28 @@ namespace Backend.Features.Loyalty
                 var response = await _httpClient.GetAsync("/api/v1/admin/redemptions/pending");
                 if (response.IsSuccessStatusCode)
                 {
+                    var rawJson = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation($"Raw Pending Redemptions JSON: {rawJson}");
+                    
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    return JsonSerializer.Deserialize<IEnumerable<LoyaltyRedemptionDto>>(rawJson, options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
+                }
+                return Enumerable.Empty<LoyaltyRedemptionDto>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching pending redemptions.");
+                return Enumerable.Empty<LoyaltyRedemptionDto>();
+            }
+        }
+
+        public async Task<IEnumerable<LoyaltyRedemptionDto>> GetRedemptionsHistoryAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("/api/v1/admin/redemptions/history");
+                if (response.IsSuccessStatusCode)
+                {
                     var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                     return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
                 }
@@ -182,7 +207,7 @@ namespace Backend.Features.Loyalty
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching pending redemptions.");
+                _logger.LogError(ex, "Error fetching redemptions history.");
                 return Enumerable.Empty<LoyaltyRedemptionDto>();
             }
         }

@@ -9,5 +9,6 @@ namespace Frontend.Models
         public List<MembershipDto> AvailableMemberships { get; set; } = new List<MembershipDto>();
         public List<LoyaltyRedemptionDto> QueuedMemberships { get; set; } = new List<LoyaltyRedemptionDto>();
         public LoyaltyAccountDto? LoyaltyAccount { get; set; }
+        public Dictionary<string, double> RewardPointCosts { get; set; } = new Dictionary<string, double>();
     }
 }

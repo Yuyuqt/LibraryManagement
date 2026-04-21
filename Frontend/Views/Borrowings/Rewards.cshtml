@@ -53,7 +53,8 @@
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Stock</span>
                     <span class="text-sm font-bold text-slate-700">@reward.StockQuantity available</span>
                 </div>
-                <button class="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-800 hover:shadow-lg transition-all active:scale-95">
+                <button onclick="redeemReward('@reward.Id', '@reward.Name', @reward.PointCost)" 
+                        class="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-800 hover:shadow-lg transition-all active:scale-95">
                     Redeem Reward
                 </button>
             </div>
@@ -82,3 +83,33 @@
     <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl"></div>
     <div class="absolute -left-10 -top-10 w-48 h-48 bg-blue-400/5 rounded-full blur-3xl"></div>
 </div>
+
+<script>
+    async function redeemReward(rewardId, rewardName, cost) {
+        if (!confirm(`Are you sure you want to redeem ${rewardName} for ${cost.toLocaleString()} points?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/Borrowings/Redeem', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ rewardId: rewardId })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Redemption error:', error);
+            alert('An unexpected error occurred. Please try again.');
+        }
+    }
+</script>

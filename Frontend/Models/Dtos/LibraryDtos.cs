@@ -102,7 +102,7 @@ namespace Frontend.Models.Dtos
         public int BorrowingDays { get; set; }
         public decimal Price { get; set; }
         public int DurationMonths { get; set; }
-        public string? LoyaltyRewardId { get; set; }
+        public string? RewardId { get; set; }
     }
 
     public class SubscriptionDto
@@ -168,6 +168,12 @@ namespace Frontend.Models.Dtos
 
         [JsonPropertyName("isActive")]
         public bool IsActive { get; set; }
+    }
+
+    public class ClaimRewardRequestDto
+    {
+        public string RewardId { get; set; } = string.Empty;
+        public string? Notes { get; set; }
     }
 
     // User DTOs

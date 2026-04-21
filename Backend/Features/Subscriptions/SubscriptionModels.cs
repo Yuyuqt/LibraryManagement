@@ -11,7 +11,7 @@ namespace Backend.Features.Subscriptions
         public decimal Price { get; set; }
         public string Currency { get; set; } = "MMK";
         public int DurationMonths { get; set; }
-        public string? LoyaltyRewardId { get; set; }
+        public string? RewardId { get; set; }
     }
 
     public class SubscriptionDto

@@ -93,5 +93,17 @@ namespace Frontend.Controllers
             
             return RedirectToAction(nameof(Index));
         }
+        [HttpPost]
+        public async Task<IActionResult> Redeem(string rewardId)
+        {
+            var (success, message) = await _apiClient.ClaimRewardAsync(rewardId, "Redeemed via Library Rewards Page");
+            
+            if (success)
+            {
+                return Json(new { success = true, message });
+            }
+            
+            return Json(new { success = false, message });
+        }
     }
 }
