@@ -13,10 +13,24 @@ namespace Frontend.Controllers
             _apiClient = apiClient;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var books = await _apiClient.GetBooksAsync();
-            return View(books);
+            const int pageSize = 8;
+            var allBooks = await _apiClient.GetBooksAsync() ?? Enumerable.Empty<BookDto>();
+            var totalCount = allBooks.Count();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+            var pagedResult = new Frontend.Models.PagedResult<BookDto>
+            {
+                Items = allBooks.Skip((page - 1) * pageSize).Take(pageSize),
+                CurrentPage = page,
+                TotalPages = totalPages,
+                TotalCount = totalCount,
+                PageSize = pageSize
+            };
+
+            return View(pagedResult);
         }
 
         public async Task<IActionResult> Details(int id)

@@ -15,10 +15,24 @@ namespace Frontend.Controllers
             _apiClient = apiClient;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var users = await _apiClient.GetUsersAsync();
-            return View(users);
+            const int pageSize = 10;
+            var allUsers = await _apiClient.GetUsersAsync() ?? Enumerable.Empty<Frontend.Models.Dtos.UserDto>();
+            var totalCount = allUsers.Count();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+            var pagedResult = new Frontend.Models.PagedResult<Frontend.Models.Dtos.UserDto>
+            {
+                Items = allUsers.Skip((page - 1) * pageSize).Take(pageSize),
+                CurrentPage = page,
+                TotalPages = totalPages,
+                TotalCount = totalCount,
+                PageSize = pageSize
+            };
+
+            return View(pagedResult);
         }
 
         public async Task<IActionResult> Details(int id)

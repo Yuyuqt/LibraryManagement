@@ -1,4 +1,4 @@
-@model IEnumerable<Frontend.Models.Dtos.UserDto>
+@model Frontend.Models.PagedResult<Frontend.Models.Dtos.UserDto>
 @{
     ViewData["Title"] = "Members Directory";
 }
@@ -6,7 +6,10 @@
 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
     <div>
         <h1 class="text-3xl font-bold tracking-tight text-slate-900">Members Directory</h1>
-        <p class="mt-2 text-slate-500">Manage library members and administrator accounts.</p>
+        <p class="mt-2 text-slate-500">
+            Manage library members and administrator accounts.
+            <span class="ml-2 text-xs text-slate-400">(@Model.TotalCount total)</span>
+        </p>
     </div>
     <div class="flex items-center gap-3">
         <a asp-action="Create" class="btn-primary">
@@ -29,7 +32,7 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-slate-200">
-                @foreach (var user in Model)
+                @foreach (var user in Model.Items)
                 {
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -88,4 +91,78 @@
             </tbody>
         </table>
     </div>
+
+    @* Pagination *@
+    @if (Model.TotalPages > 1)
+    {
+        <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-white">
+            <p class="text-sm text-slate-500">
+                Showing <span class="font-medium text-slate-700">@((Model.CurrentPage - 1) * Model.PageSize + 1)</span>
+                –
+                <span class="font-medium text-slate-700">@(Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalCount))</span>
+                of <span class="font-medium text-slate-700">@Model.TotalCount</span> members
+            </p>
+            <nav class="flex items-center gap-1" aria-label="Pagination">
+                @* Previous *@
+                @if (Model.HasPreviousPage)
+                {
+                    <a asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)"
+                       class="inline-flex items-center px-3 py-1.5 rounded-md border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Prev
+                    </a>
+                }
+                else
+                {
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-md border border-slate-100 text-sm font-medium text-slate-300 cursor-not-allowed select-none">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Prev
+                    </span>
+                }
+
+                @* Page numbers *@
+                @for (int p = 1; p <= Model.TotalPages; p++)
+                {
+                    if (p == Model.CurrentPage)
+                    {
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-slate-900 text-white text-sm font-semibold">@p</span>
+                    }
+                    else if (p == 1 || p == Model.TotalPages || (p >= Model.CurrentPage - 2 && p <= Model.CurrentPage + 2))
+                    {
+                        <a asp-action="Index" asp-route-page="@p"
+                           class="inline-flex items-center justify-center w-8 h-8 rounded-md border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">@p</a>
+                    }
+                    else if (p == Model.CurrentPage - 3 || p == Model.CurrentPage + 3)
+                    {
+                        <span class="inline-flex items-center justify-center w-8 h-8 text-sm text-slate-400">…</span>
+                    }
+                }
+
+                @* Next *@
+                @if (Model.HasNextPage)
+                {
+                    <a asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)"
+                       class="inline-flex items-center px-3 py-1.5 rounded-md border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                        Next
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                }
+                else
+                {
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-md border border-slate-100 text-sm font-medium text-slate-300 cursor-not-allowed select-none">
+                        Next
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </span>
+                }
+            </nav>
+        </div>
+    }
 </div>
