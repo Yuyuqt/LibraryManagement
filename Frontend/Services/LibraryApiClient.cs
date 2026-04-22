@@ -13,7 +13,7 @@ namespace Frontend.Services
         {
             _httpClient = httpClientFactory.CreateClient("LibraryBackend");
             _httpContextAccessor = httpContextAccessor;
-            
+
             AddAuthHeaderFromCookie();
         }
 
@@ -140,16 +140,20 @@ namespace Frontend.Services
 
         public async Task<SubscriptionDto?> GetMySubscriptionAsync()
         {
-            try {
+            try
+            {
                 return await _httpClient.GetFromJsonAsync<SubscriptionDto>("api/subscriptions/me");
-            } catch { return null; }
+            }
+            catch { return null; }
         }
 
         public async Task<IEnumerable<SubscriptionDto>> GetMyAllSubscriptionsAsync()
         {
-            try {
+            try
+            {
                 return await _httpClient.GetFromJsonAsync<IEnumerable<SubscriptionDto>>("api/subscriptions/me/all") ?? Enumerable.Empty<SubscriptionDto>();
-            } catch { return Enumerable.Empty<SubscriptionDto>(); }
+            }
+            catch { return Enumerable.Empty<SubscriptionDto>(); }
         }
 
         public async Task<SubscriptionDto?> SubscribeAsync(SubscribeRequest request)
@@ -160,9 +164,11 @@ namespace Frontend.Services
 
         public async Task<SubscriptionDto?> GetUserSubscriptionAsync(Guid userId)
         {
-            try {
+            try
+            {
                 return await _httpClient.GetFromJsonAsync<SubscriptionDto>($"api/subscriptions/user/{userId}");
-            } catch { return null; }
+            }
+            catch { return null; }
         }
 
         public async Task<SubscriptionDto?> AdminSubscribeAsync(AdminSubscribeRequest request)
@@ -179,7 +185,8 @@ namespace Frontend.Services
 
         public async Task<LoyaltyAccountDto?> GetMyLoyaltyAccountAsync()
         {
-            try {
+            try
+            {
                 // Using exact casing for the route to be safe
                 var response = await _httpClient.GetAsync("api/Loyalty/my-account");
                 if (response.IsSuccessStatusCode)
@@ -195,17 +202,62 @@ namespace Frontend.Services
                     // Throw custom exception or return null based on error
                 }
                 return null;
-            } catch (Exception ex) { 
+            }
+            catch (Exception ex)
+            {
                 System.Diagnostics.Debug.WriteLine($"Loyalty API Exception: {ex.Message}");
-                return null; 
+                return null;
             }
         }
 
         public async Task<IEnumerable<LoyaltyRedemptionDto>> GetMyRedemptionsAsync()
         {
-            try {
+            try
+            {
                 return await _httpClient.GetFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>("api/Loyalty/my-redemptions") ?? Enumerable.Empty<LoyaltyRedemptionDto>();
-            } catch { return Enumerable.Empty<LoyaltyRedemptionDto>(); }
+            }
+            catch { return Enumerable.Empty<LoyaltyRedemptionDto>(); }
+        }
+
+        public async Task<IEnumerable<LoyaltyRedemptionDto>> GetMyPendingRedemptionsAsync()
+        {
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>("api/Loyalty/my-pending-redemptions") ?? Enumerable.Empty<LoyaltyRedemptionDto>();
+            }
+            catch { return Enumerable.Empty<LoyaltyRedemptionDto>(); }
+        }
+
+        public async Task<IEnumerable<PointHistoryEntryDto>> GetPointsHistoryAsync(string accountId)
+        {
+            try
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var response = await _httpClient.GetAsync($"api/v1/accounts/{accountId}/history");
+                if (response.IsSuccessStatusCode)
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<PointHistoryEntryDto>>(options) ?? Enumerable.Empty<PointHistoryEntryDto>();
+                return Enumerable.Empty<PointHistoryEntryDto>();
+            }
+            catch { return Enumerable.Empty<PointHistoryEntryDto>(); }
+        }
+
+        public async Task<IEnumerable<UserPointsHistoryDto>> GetAllMembersPointsHistoryAsync()
+        {
+            try {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var response = await _httpClient.GetAsync("api/Loyalty/admin/all-points-history");
+                var raw = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                    return Enumerable.Empty<UserPointsHistoryDto>();
+
+                var data = JsonSerializer.Deserialize<List<UserPointsHistoryDto>>(raw, options) ?? new List<UserPointsHistoryDto>();
+                foreach (var member in data)
+                {
+                    member.History = member.History?.ToList() ?? new List<PointHistoryEntryDto>();
+                    member.Redemptions = member.Redemptions?.ToList() ?? new List<LoyaltyRedemptionDto>();
+                }
+                return data;
+            } catch { return Enumerable.Empty<UserPointsHistoryDto>(); }
         }
 
         public async Task<bool> RequestReturnAsync(Guid borrowingId)
@@ -220,7 +272,7 @@ namespace Frontend.Services
             {
                 var request = new ClaimRewardRequestDto { RewardId = rewardId, Notes = notes };
                 var response = await _httpClient.PostAsJsonAsync("api/Loyalty/claim", request);
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadFromJsonAsync<JsonDocument>();
@@ -250,7 +302,8 @@ namespace Frontend.Services
 
         public async Task<IEnumerable<LoyaltyRewardDto>> GetActiveRewardsAsync()
         {
-            try {
+            try
+            {
                 // Fetch from the external loyalty API directly or via our backend proxy
                 // The user specified the URL: http://150.95.88.91:4100/api/v1/rewards/active/THS-LMS
                 // We'll use a new HttpClient or just the existing one if configured correctly.
@@ -260,7 +313,8 @@ namespace Frontend.Services
                 // In ASP.NET Core MVC, the server-side HttpClient can call it directly.
                 var client = new HttpClient();
                 return await client.GetFromJsonAsync<IEnumerable<LoyaltyRewardDto>>("http://150.95.88.91:4100/api/v1/rewards/active/THS-LMS") ?? Enumerable.Empty<LoyaltyRewardDto>();
-            } catch { return Enumerable.Empty<LoyaltyRewardDto>(); }
+            }
+            catch { return Enumerable.Empty<LoyaltyRewardDto>(); }
         }
 
         #region Users
@@ -300,7 +354,8 @@ namespace Frontend.Services
         #endregion
         public async Task<IEnumerable<LoyaltyRedemptionDto>> GetPendingRedemptionsAsync()
         {
-            try {
+            try
+            {
                 var response = await _httpClient.GetAsync("api/Loyalty/admin/redemptions/pending");
                 if (response.IsSuccessStatusCode)
                 {
@@ -308,12 +363,14 @@ namespace Frontend.Services
                     return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
                 }
                 return Enumerable.Empty<LoyaltyRedemptionDto>();
-            } catch { return Enumerable.Empty<LoyaltyRedemptionDto>(); }
+            }
+            catch { return Enumerable.Empty<LoyaltyRedemptionDto>(); }
         }
 
         public async Task<(bool Success, string Message)> FulfillRedemptionAsync(string id)
         {
-            try {
+            try
+            {
                 var response = await _httpClient.PostAsync($"api/Loyalty/admin/redemptions/{id}/fulfill", null);
                 if (response.IsSuccessStatusCode)
                 {
@@ -335,7 +392,8 @@ namespace Frontend.Services
                     }
                     return (false, msg);
                 }
-            } catch (Exception ex) { return (false, $"Error: {ex.Message}"); }
+            }
+            catch (Exception ex) { return (false, $"Error: {ex.Message}"); }
         }
     }
 }

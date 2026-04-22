@@ -1,0 +1,287 @@
+@model Frontend.Models.LibrarianRewardsViewModel
+@{
+    ViewData["Title"] = "Rewards Management";
+
+    string PrettyEvent(string? eventKey, double points)
+    {
+        var key = (eventKey ?? string.Empty).Trim().ToUpperInvariant();
+
+        return key switch
+        {
+            "RETURN" or "BOOK_RETURN" or "BORROW_RETURN" => "RETURN",
+            "SIGNUP" or "REGISTER" => "SIGNUP",
+            "SUBSCRIBE" or "SUBSCRIPTION" or "MEMBERSHIP" => "SUBSCRIBE",
+            "REDEEM" or "REDEMPTION" or "CLAIM_REWARD" => "REDEEM",
+            _ => points < 0 ? "SPENT" : (string.IsNullOrEmpty(key) ? "EARNED" : key)
+        };
+    }
+}
+
+<div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Rewards Management</h1>
+        <p class="text-slate-500 mt-1">Fulfill pending redemptions and review all members' loyalty activity.</p>
+    </div>
+    <div class="flex items-center gap-4">
+        <div class="bg-amber-50 border border-amber-200 px-5 py-2.5 rounded-xl text-center shadow-sm">
+            <p class="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Pending</p>
+            <p class="text-2xl font-black text-slate-900">@Model.PendingRedemptions.Count()</p>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 px-5 py-2.5 rounded-xl text-center shadow-sm">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Members w/ History</p>
+            <p class="text-2xl font-black text-slate-900">@Model.AllMembersHistory.Count()</p>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="mb-6 border-b border-slate-200">
+    <nav class="-mb-px flex gap-6">
+        <button onclick="switchTab('tab-pending','btn-pending')" id="btn-pending"
+                class="tab-btn pb-3 text-sm font-semibold border-b-2 border-slate-900 text-slate-900 transition-all">
+            <span class="inline-flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Pending Redemptions
+            </span>
+            @if (Model.PendingRedemptions.Any())
+            {
+                <span class="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-black rounded-full bg-rose-500 text-white">@Model.PendingRedemptions.Count()</span>
+            }
+        </button>
+        <button onclick="switchTab('tab-history','btn-history')" id="btn-history"
+                class="tab-btn pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+            <span class="inline-flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6m4 6V7m4 10v-3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                All Members' Points History
+            </span>
+        </button>
+    </nav>
+</div>
+
+<!-- Pending Redemptions Tab -->
+<div id="tab-pending" class="tab-content">
+    @if (!Model.PendingRedemptions.Any())
+    {
+        <div class="py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+            <svg class="w-16 h-16 mx-auto opacity-20 text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <p class="text-slate-500 font-medium">No pending redemptions. All caught up!</p>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <table class="min-w-full divide-y divide-slate-100">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Member</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Reward</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Points</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Claimed</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach (var r in Model.PendingRedemptions.OrderBy(x => x.RedeemedAt))
+                    {
+                        <tr class="hover:bg-amber-50/40 transition-colors" id="row-@r.Id">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                        @(r.ExternalUserId.Length >= 2 ? r.ExternalUserId.Substring(0, 2).ToUpper() : "U")
+                                    </div>
+                                    <span class="text-sm font-medium text-slate-700 font-mono text-xs">@r.ExternalUserId</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-sm font-bold text-slate-900">@r.RewardName</p>
+                                <p class="text-xs text-slate-400">ID: @r.Id[..Math.Min(8, r.Id.Length)]...</p>
+                            </td>
+                            <td class="px-6 py-4 text-sm font-bold text-slate-700">@r.PointCost.ToString("N0") pts</td>
+                            <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap">@r.RedeemedAt.ToString("MMM dd, yyyy")</td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                    Pending
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <button onclick="fulfillRedemption('@r.Id')"
+                                        class="inline-flex items-center gap-1.5 bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all active:scale-95">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                    Fulfill
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- All Members Points History Tab -->
+<div id="tab-history" class="tab-content hidden">
+    @if (!Model.AllMembersHistory.Any())
+    {
+        <div class="py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+            <p class="text-slate-400 font-medium">No loyalty history found for any members yet.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Search/filter bar -->
+        <div class="mb-4">
+            <input id="member-search" type="text" placeholder="Filter by member name or email..."
+                   class="w-full max-w-sm px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
+                   oninput="filterMembers(this.value)" />
+        </div>
+
+        <div class="space-y-4" id="members-list">
+            @foreach (var member in Model.AllMembersHistory.OrderByDescending(m => m.CurrentBalance))
+            {
+                <div class="member-card bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm"
+                     data-name="@member.UserName.ToLower()" data-email="@member.UserEmail.ToLower()">
+                    @{
+                        var redemptionById = member.Redemptions
+                            .Where(r => !string.IsNullOrWhiteSpace(r.Id))
+                            .GroupBy(r => r.Id)
+                            .ToDictionary(g => g.Key, g => g.First());
+                    }
+                    <!-- Member header -->
+                    <div class="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-100 cursor-pointer"
+                         onclick="toggleHistory('@member.AccountId')">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                @(member.UserName.Length >= 2 ? member.UserName.Substring(0, 2).ToUpper() : "?")
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-900 text-sm">@member.UserName</p>
+                                <p class="text-xs text-slate-400">@member.UserEmail</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Balance</p>
+                                <p class="font-black text-slate-900">@member.CurrentBalance.ToString("N0") pts</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Tier</p>
+                                <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">@member.Tier</span>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Transactions</p>
+                                <p class="font-black text-slate-900">@member.History.Count()</p>
+                            </div>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform" id="arrow-@member.AccountId" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                    <!-- Collapsible history table -->
+                    <div id="history-@member.AccountId" class="hidden overflow-x-auto">
+                        @if (!member.History.Any())
+                        {
+                            <p class="px-6 py-4 text-sm text-slate-400 italic">No transactions found for this member.</p>
+                        }
+                        else
+                        {
+                            <table class="min-w-full divide-y divide-slate-50">
+                                <thead>
+                                    <tr class="bg-slate-50/50">
+                                        <th class="px-6 py-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date</th>
+                                        <th class="px-6 py-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Type</th>
+                                        <th class="px-6 py-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Details</th>
+                                        <th class="px-6 py-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Spent on</th>
+                                        <th class="px-6 py-2 text-right text-[10px] font-bold text-slate-400 uppercase tracking-wider">Points</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    @foreach (var h in member.History.OrderByDescending(x => x.CreatedAt))
+                                    {
+                                        var isPos = h.PointDelta >= 0;
+                                        var label = PrettyEvent(h.EventKey, h.PointDelta);
+                                        string? spentOn = null;
+                                        if (!isPos && !string.IsNullOrWhiteSpace(h.RewardName))
+                                        {
+                                            spentOn = h.RewardName;
+                                        }
+                                        else if (!isPos && !string.IsNullOrWhiteSpace(h.ReferenceId) && redemptionById.TryGetValue(h.ReferenceId, out var redemption))
+                                        {
+                                            spentOn = redemption.RewardName;
+                                        }
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                            <td class="px-6 py-2.5 text-xs text-slate-500 whitespace-nowrap">@h.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                            <td class="px-6 py-2.5">
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold @(isPos ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700")">@label</span>
+                                            </td>
+                                            <td class="px-6 py-2.5 text-xs text-slate-600 max-w-xs truncate">@h.Description</td>
+                                            <td class="px-6 py-2.5 text-xs text-slate-600 max-w-xs truncate">
+                                                @if (!string.IsNullOrWhiteSpace(spentOn))
+                                                {
+                                                    <span class="font-semibold text-slate-700">@spentOn</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-slate-400">—</span>
+                                                }
+                                            </td>
+                                            <td class="px-6 py-2.5 text-right font-black text-sm @(isPos ? "text-emerald-600" : "text-rose-600")">
+                                                @(isPos ? "+" : "")@h.PointDelta.ToString("N0")
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Hidden form for fulfillment -->
+<form id="fulfill-form" asp-controller="Rewards" asp-action="Fulfill" method="post" class="hidden">
+    <input type="hidden" name="id" id="fulfill-id" />
+</form>
+
+@section Scripts {
+    <script>
+        function switchTab(tabId, btnId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('border-slate-900','text-slate-900');
+                b.classList.add('border-transparent','text-slate-400');
+            });
+            const btn = document.getElementById(btnId);
+            btn.classList.remove('border-transparent','text-slate-400');
+            btn.classList.add('border-slate-900','text-slate-900');
+        }
+
+        function toggleHistory(accountId) {
+            const panel = document.getElementById('history-' + accountId);
+            const arrow = document.getElementById('arrow-' + accountId);
+            panel.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
+        }
+
+        function filterMembers(query) {
+            const q = query.toLowerCase();
+            document.querySelectorAll('.member-card').forEach(card => {
+                const name = card.dataset.name || '';
+                const email = card.dataset.email || '';
+                card.style.display = (name.includes(q) || email.includes(q)) ? '' : 'none';
+            });
+        }
+
+        function fulfillRedemption(id) {
+            if (!confirm('Fulfill this redemption and grant membership to the member?')) return;
+            document.getElementById('fulfill-id').value = id;
+            document.getElementById('fulfill-form').submit();
+        }
+    </script>
+}

@@ -145,6 +145,10 @@ namespace Frontend.Models.Dtos
         [JsonPropertyName("id")]
         public string Id { get; set; } = string.Empty;
 
+        // Some responses use `accountId` instead of `id`.
+        [JsonPropertyName("accountId")]
+        public string? AccountId { get; set; }
+
         [JsonPropertyName("externalUserId")]
         public string ExternalUserId { get; set; } = string.Empty;
 
@@ -223,5 +227,58 @@ namespace Frontend.Models.Dtos
     public class UserRoleUpdateRequest
     {
         public string Role { get; set; } = string.Empty;
+    }
+
+    // Points History DTOs
+    public class PointHistoryEntryDto
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+        [JsonPropertyName("accountId")]
+        public string AccountId { get; set; } = string.Empty;
+        [JsonPropertyName("externalUserId")]
+        public string? ExternalUserId { get; set; }
+        [JsonPropertyName("pointDelta")]
+        public double PointDelta { get; set; }
+        [JsonPropertyName("eventKey")]
+        public string EventKey { get; set; } = string.Empty;
+        [JsonPropertyName("description")]
+        public string Description { get; set; } = string.Empty;
+        [JsonPropertyName("referenceId")]
+        public string? ReferenceId { get; set; }
+        [JsonPropertyName("createdAt")]
+        public DateTime CreatedAt { get; set; }
+
+        [JsonPropertyName("rewardId")]
+        public string? RewardId { get; set; }
+
+        [JsonPropertyName("rewardName")]
+        public string? RewardName { get; set; }
+
+        [JsonPropertyName("redemptionStatus")]
+        public string? RedemptionStatus { get; set; }
+
+        [JsonPropertyName("redeemedAt")]
+        public DateTime? RedeemedAt { get; set; }
+    }
+
+    public class UserPointsHistoryDto
+    {
+        [JsonPropertyName("userId")]
+        public Guid UserId { get; set; }
+        [JsonPropertyName("userName")]
+        public string UserName { get; set; } = string.Empty;
+        [JsonPropertyName("userEmail")]
+        public string UserEmail { get; set; } = string.Empty;
+        [JsonPropertyName("accountId")]
+        public string AccountId { get; set; } = string.Empty;
+        [JsonPropertyName("currentBalance")]
+        public double CurrentBalance { get; set; }
+        [JsonPropertyName("tier")]
+        public string Tier { get; set; } = string.Empty;
+        [JsonPropertyName("history")]
+        public IEnumerable<PointHistoryEntryDto> History { get; set; } = Enumerable.Empty<PointHistoryEntryDto>();
+        [JsonPropertyName("redemptions")]
+        public IEnumerable<LoyaltyRedemptionDto> Redemptions { get; set; } = Enumerable.Empty<LoyaltyRedemptionDto>();
     }
 }

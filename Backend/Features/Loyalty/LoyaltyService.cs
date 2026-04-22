@@ -20,6 +20,8 @@ namespace Backend.Features.Loyalty
         Task<IEnumerable<LoyaltyRedemptionDto>> GetUserRedemptionsAsync(string externalUserId);
         Task<IEnumerable<LoyaltyRedemptionDto>> GetRedemptionsHistoryAsync();
         Task<bool> UpdateRedemptionStatusAsync(string redemptionId, string status);
+        Task<IEnumerable<PointHistoryEntryDto>> GetPointsHistoryAsync(string accountId);
+        Task<IEnumerable<PointHistoryEntryDto>> GetAllMembersPointsHistoryAsync();
     }
 
     public class LoyaltyService : ILoyaltyService
@@ -106,7 +108,12 @@ namespace Backend.Features.Loyalty
                 if (response.IsSuccessStatusCode)
                 {
                     var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    return await response.Content.ReadFromJsonAsync<AccountLookupResponse>(options);
+                    var account = await response.Content.ReadFromJsonAsync<AccountLookupResponse>(options);
+                    if (account != null && string.IsNullOrWhiteSpace(account.Id) && !string.IsNullOrWhiteSpace(account.AccountId))
+                    {
+                        account.Id = account.AccountId;
+                    }
+                    return account;
                 }
                 return null;
             }
@@ -133,16 +140,19 @@ namespace Backend.Features.Loyalty
                 {
                     return (true, "Reward claimed successfully!");
                 }
-                
+
                 var error = await response.Content.ReadAsStringAsync();
                 _logger.LogWarning($"Failed to claim reward {rewardId} for user {externalUserId}: {error}");
-                
-                try {
+
+                try
+                {
                     var errorDoc = JsonDocument.Parse(error);
-                    if (errorDoc.RootElement.TryGetProperty("message", out var msgElement)) {
+                    if (errorDoc.RootElement.TryGetProperty("message", out var msgElement))
+                    {
                         return (false, msgElement.GetString() ?? "Failed to claim reward.");
                     }
-                } catch { }
+                }
+                catch { }
 
                 return (false, string.IsNullOrEmpty(error) ? "Failed to claim reward." : error);
             }
@@ -181,7 +191,7 @@ namespace Backend.Features.Loyalty
                 {
                     var rawJson = await response.Content.ReadAsStringAsync();
                     _logger.LogInformation($"Raw Pending Redemptions JSON: {rawJson}");
-                    
+
                     var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                     return JsonSerializer.Deserialize<IEnumerable<LoyaltyRedemptionDto>>(rawJson, options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
                 }
@@ -226,12 +236,86 @@ namespace Backend.Features.Loyalty
                 return false;
             }
         }
+
+        public async Task<IEnumerable<PointHistoryEntryDto>> GetPointsHistoryAsync(string accountId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"/api/v1/accounts/{accountId}/history");
+                if (response.IsSuccessStatusCode)
+                {
+                    var rawJson = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation("Raw Points History JSON for account {AccountId}: {Json}", accountId, rawJson);
+
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    return JsonSerializer.Deserialize<IEnumerable<PointHistoryEntryDto>>(rawJson, options) ?? Enumerable.Empty<PointHistoryEntryDto>();
+                }
+                
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Points history request failed for account {AccountId}. Status={Status}. Body={Body}", accountId, response.StatusCode, error);
+                return Enumerable.Empty<PointHistoryEntryDto>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching points history for account {accountId}.");
+                return Enumerable.Empty<PointHistoryEntryDto>();
+            }
+        }
+
+        public async Task<IEnumerable<PointHistoryEntryDto>> GetAllMembersPointsHistoryAsync()
+        {
+            return Enumerable.Empty<PointHistoryEntryDto>();
+        }
+    }
+
+    public class PointHistoryEntryDto
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        [JsonPropertyName("accountId")]
+        public string AccountId { get; set; } = string.Empty;
+
+        [JsonPropertyName("externalUserId")]
+        public string? ExternalUserId { get; set; }
+
+        [JsonPropertyName("pointDelta")]
+        public double PointDelta { get; set; }
+
+        [JsonPropertyName("eventKey")]
+        public string EventKey { get; set; } = string.Empty;
+
+        [JsonPropertyName("description")]
+        public string Description { get; set; } = string.Empty;
+
+        [JsonPropertyName("referenceId")]
+        public string? ReferenceId { get; set; }
+
+        [JsonPropertyName("createdAt")]
+        public DateTime CreatedAt { get; set; }
+
+        // Optional redemption-related fields (present for REDEEM events)
+        [JsonPropertyName("rewardId")]
+        public string? RewardId { get; set; }
+
+        [JsonPropertyName("rewardName")]
+        public string? RewardName { get; set; }
+
+        [JsonPropertyName("redemptionStatus")]
+        public string? RedemptionStatus { get; set; }
+
+        [JsonPropertyName("redeemedAt")]
+        public DateTime? RedeemedAt { get; set; }
     }
 
     public class AccountLookupResponse
     {
         [JsonPropertyName("id")]
         public string Id { get; set; } = string.Empty;
+
+        // Some loyalty API versions return `accountId` instead of `id`.
+        [JsonPropertyName("accountId")]
+        public string? AccountId { get; set; }
 
         [JsonPropertyName("externalUserId")]
         public string ExternalUserId { get; set; } = string.Empty;
