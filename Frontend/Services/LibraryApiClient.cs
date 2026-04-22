@@ -54,9 +54,10 @@ namespace Frontend.Services
         #endregion
 
         #region Books
-        public async Task<IEnumerable<BookDto>> GetBooksAsync()
+        public async Task<IEnumerable<BookDto>> GetBooksAsync(int? categoryId = null)
         {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<BookDto>>("api/books") ?? Enumerable.Empty<BookDto>();
+            var url = categoryId.HasValue ? $"api/books?categoryId={categoryId}" : "api/books";
+            return await _httpClient.GetFromJsonAsync<IEnumerable<BookDto>>(url) ?? Enumerable.Empty<BookDto>();
         }
 
         public async Task<BookDto?> GetBookAsync(int id)
@@ -111,6 +112,11 @@ namespace Frontend.Services
         public async Task<IEnumerable<CategoryDto>> GetCategoriesAsync()
         {
             return await _httpClient.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/categories") ?? Enumerable.Empty<CategoryDto>();
+        }
+
+        public async Task<IEnumerable<CategoryDto>> GetCategoriesWithBooksAsync()
+        {
+            return await _httpClient.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/categories/with-books") ?? Enumerable.Empty<CategoryDto>();
         }
 
         public async Task<CategoryDto?> CreateCategoryAsync(CategoryCreateRequest request)

@@ -5,7 +5,7 @@ namespace Backend.Features.Books
 {
     public interface IBookService
     {
-        Task<IEnumerable<BookDto>> GetAllBooksAsync();
+        Task<IEnumerable<BookDto>> GetAllBooksAsync(int? categoryId = null);
         Task<BookDto?> GetBookByIdAsync(int id);
         Task<BookDto> CreateBookAsync(BookCreateRequest request);
         Task<BookDto?> UpdateBookAsync(int id, BookUpdateRequest request);
@@ -21,17 +21,26 @@ namespace Backend.Features.Books
             _context = context;
         }
 
-        public async Task<IEnumerable<BookDto>> GetAllBooksAsync()
+        public async Task<IEnumerable<BookDto>> GetAllBooksAsync(int? categoryId = null)
         {
-            return await _context.Books
-                .Where(b => b.IsActive)
-                .Select(b => MapToDto(b))
-                .ToListAsync();
+            var query = _context.Books
+                .Include(b => b.Categories)
+                .Where(b => b.IsActive);
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(b => b.Categories.Any(c => c.Id == categoryId.Value));
+            }
+
+            var books = await query.ToListAsync();
+            return books.Select(b => MapToDto(b));
         }
 
         public async Task<BookDto?> GetBookByIdAsync(int id)
         {
-            var book = await _context.Books.FindAsync(id);
+            var book = await _context.Books
+                .Include(b => b.Categories)
+                .FirstOrDefaultAsync(b => b.Id == id);
             if (book == null || !book.IsActive) return null;
             return MapToDto(book);
         }
@@ -56,6 +65,16 @@ namespace Backend.Features.Books
                 CreatedAt = DateTime.UtcNow
             };
 
+            // Attach selected categories
+            if (request.CategoryIds != null && request.CategoryIds.Any())
+            {
+                var categories = await _context.Categories
+                    .Where(c => request.CategoryIds.Contains(c.Id))
+                    .ToListAsync();
+                foreach (var cat in categories)
+                    book.Categories.Add(cat);
+            }
+
             _context.Books.Add(book);
             await _context.SaveChangesAsync();
 
@@ -64,7 +83,9 @@ namespace Backend.Features.Books
 
         public async Task<BookDto?> UpdateBookAsync(int id, BookUpdateRequest request)
         {
-            var book = await _context.Books.FindAsync(id);
+            var book = await _context.Books
+                .Include(b => b.Categories)
+                .FirstOrDefaultAsync(b => b.Id == id);
             if (book == null || !book.IsActive) return null;
 
             book.Title = request.Title;
@@ -80,6 +101,17 @@ namespace Backend.Features.Books
             book.Status = book.AvailableCopies > 0 ? "Available" : "Out Of Stock";
             
             book.UpdatedAt = DateTime.UtcNow;
+
+            // Sync categories: replace existing with new selection
+            book.Categories.Clear();
+            if (request.CategoryIds != null && request.CategoryIds.Any())
+            {
+                var categories = await _context.Categories
+                    .Where(c => request.CategoryIds.Contains(c.Id))
+                    .ToListAsync();
+                foreach (var cat in categories)
+                    book.Categories.Add(cat);
+            }
 
             await _context.SaveChangesAsync();
             return MapToDto(book);
@@ -111,7 +143,8 @@ namespace Backend.Features.Books
                 TotalCopies = book.TotalCopies,
                 AvailableCopies = book.AvailableCopies,
                 CreatedAt = book.CreatedAt,
-                UpdatedAt = book.UpdatedAt
+                UpdatedAt = book.UpdatedAt,
+                Categories = book.Categories.Select(c => new BookCategoryDto { Id = c.Id, Name = c.Name }).ToList()
             };
         }
     }
@@ -129,6 +162,13 @@ namespace Backend.Features.Books
         public int AvailableCopies { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public List<BookCategoryDto> Categories { get; set; } = new();
+    }
+
+    public class BookCategoryDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 
     public class BookCreateRequest
@@ -138,6 +178,7 @@ namespace Backend.Features.Books
         public string Author { get; set; } = string.Empty;
         public string? Description { get; set; }
         public int TotalCopies { get; set; }
+        public List<int>? CategoryIds { get; set; }
     }
 
     public class BookUpdateRequest
@@ -146,5 +187,6 @@ namespace Backend.Features.Books
         public string Author { get; set; } = string.Empty;
         public string? Description { get; set; }
         public int TotalCopies { get; set; }
+        public List<int>? CategoryIds { get; set; }
     }
 }

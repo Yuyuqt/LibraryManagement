@@ -41,6 +41,13 @@ namespace Frontend.Models.Dtos
         public int AvailableCopies { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public List<BookCategoryDto> Categories { get; set; } = new();
+    }
+
+    public class BookCategoryDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 
     public class BookCreateRequest
@@ -50,6 +57,7 @@ namespace Frontend.Models.Dtos
         public string Author { get; set; } = string.Empty;
         public string? Description { get; set; }
         public int TotalCopies { get; set; }
+        public List<int>? CategoryIds { get; set; }
     }
 
     public class BookUpdateRequest
@@ -58,6 +66,7 @@ namespace Frontend.Models.Dtos
         public string Author { get; set; } = string.Empty;
         public string? Description { get; set; }
         public int TotalCopies { get; set; }
+        public List<int>? CategoryIds { get; set; }
     }
 
     // Borrowing DTOs

@@ -16,9 +16,9 @@ namespace Backend.Features.Books
 
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<BookDto>>> GetBooks()
+        public async Task<ActionResult<IEnumerable<BookDto>>> GetBooks([FromQuery] int? categoryId = null)
         {
-            var books = await _bookService.GetAllBooksAsync();
+            var books = await _bookService.GetAllBooksAsync(categoryId);
             return Ok(books);
         }
 

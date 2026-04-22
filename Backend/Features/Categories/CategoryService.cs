@@ -6,6 +6,7 @@ namespace Backend.Features.Categories
     public interface ICategoryService
     {
         Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync();
+        Task<IEnumerable<CategoryDto>> GetCategoriesWithBooksAsync();
         Task<CategoryDto> CreateCategoryAsync(CategoryCreateRequest request);
         Task<bool> DeleteCategoryAsync(int id);
     }
@@ -22,6 +23,15 @@ namespace Backend.Features.Categories
         public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
         {
             return await _context.Categories
+                .Select(c => new CategoryDto { Id = c.Id, Name = c.Name })
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<CategoryDto>> GetCategoriesWithBooksAsync()
+        {
+            // Only return categories that have at least one active book in BookCategories
+            return await _context.Categories
+                .Where(c => c.Books.Any(b => b.IsActive))
                 .Select(c => new CategoryDto { Id = c.Id, Name = c.Name })
                 .ToListAsync();
         }

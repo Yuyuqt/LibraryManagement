@@ -22,6 +22,13 @@ namespace Backend.Features.Categories
             return Ok(categories);
         }
 
+        [HttpGet("with-books")]
+        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategoriesWithBooks()
+        {
+            var categories = await _categoryService.GetCategoriesWithBooksAsync();
+            return Ok(categories);
+        }
+
         [HttpPost]
         //[Authorize(Roles = "Librarian")]
         public async Task<ActionResult<CategoryDto>> CreateCategory([FromBody] CategoryCreateRequest request)

@@ -13,10 +13,10 @@ namespace Frontend.Controllers
             _apiClient = apiClient;
         }
 
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(int page = 1, int? categoryId = null)
         {
             const int pageSize = 8;
-            var allBooks = await _apiClient.GetBooksAsync() ?? Enumerable.Empty<BookDto>();
+            var allBooks = await _apiClient.GetBooksAsync(categoryId) ?? Enumerable.Empty<BookDto>();
             var totalCount = allBooks.Count();
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
@@ -29,6 +29,9 @@ namespace Frontend.Controllers
                 TotalCount = totalCount,
                 PageSize = pageSize
             };
+
+            ViewBag.Categories = await _apiClient.GetCategoriesWithBooksAsync();
+            ViewBag.SelectedCategoryId = categoryId;
 
             return View(pagedResult);
         }
@@ -80,7 +83,8 @@ namespace Frontend.Controllers
                 Title = book.Title, 
                 Author = book.Author, 
                 Description = book.Description,
-                TotalCopies = book.TotalCopies
+                TotalCopies = book.TotalCopies,
+                CategoryIds = book.Categories.Select(c => c.Id).ToList()
             });
         }
 

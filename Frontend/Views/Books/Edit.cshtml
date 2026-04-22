@@ -58,6 +58,33 @@
                             <span asp-validation-for="Description" class="mt-1 text-xs text-rose-500"></span>
                         </div>
                     </div>
+
+                    <!-- Categories -->
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Categories</label>
+                        @{
+                            var allCategories = ViewBag.Categories as IEnumerable<Frontend.Models.Dtos.CategoryDto>;
+                            var selectedIds = Model.CategoryIds ?? new List<int>();
+                        }
+                        @if (allCategories != null && allCategories.Any())
+                        {
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                @foreach (var cat in allCategories)
+                                {
+                                    <label class="flex items-center gap-2 px-3 py-2 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 cursor-pointer text-sm text-slate-700 transition-colors">
+                                        <input type="checkbox" name="CategoryIds" value="@cat.Id"
+                                               class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                                               @(selectedIds.Contains(cat.Id) ? "checked" : "") />
+                                        @cat.Name
+                                    </label>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-sm text-slate-400 italic">No categories available. Add some first.</p>
+                        }
+                    </div>
                 </div>
 
                 <div class="pt-5 border-t border-slate-100 flex justify-end gap-3">
