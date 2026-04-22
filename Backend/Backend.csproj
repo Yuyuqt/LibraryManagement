@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Database\Database.csproj" />
+    <ProjectReference Include="..\DbConnect\DbConnect.csproj" />
   </ItemGroup>
 
 </Project>

@@ -24,7 +24,7 @@ namespace Backend.Features.Borrowings
                 var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
 
-                var userId = int.Parse(userIdStr);
+                var userId = Guid.Parse(userIdStr);
                 var borrowing = await _borrowingService.BorrowBookAsync(userId, request.BookId);
                 return Ok(borrowing);
             }
@@ -36,7 +36,7 @@ namespace Backend.Features.Borrowings
 
         [HttpPost("return-request/{id}")]
         [Authorize]
-        public async Task<ActionResult<BorrowingDto>> RequestReturn(int id)
+        public async Task<ActionResult<BorrowingDto>> RequestReturn(Guid id)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace Backend.Features.Borrowings
 
         [HttpPost("return/{id}")]
         [Authorize(Roles = "Librarian")]
-        public async Task<ActionResult<BorrowingDto>> ReturnBook(int id)
+        public async Task<ActionResult<BorrowingDto>> ReturnBook(Guid id)
         {
             try
             {
@@ -71,7 +71,7 @@ namespace Backend.Features.Borrowings
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
 
-            var userId = int.Parse(userIdStr);
+            var userId = Guid.Parse(userIdStr);
             var borrowings = await _borrowingService.GetUserBorrowingsAsync(userId);
             return Ok(borrowings);
         }

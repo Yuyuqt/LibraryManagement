@@ -35,7 +35,7 @@ namespace Frontend.Controllers
             return View(pagedResult);
         }
 
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(Guid id)
         {
             var user = await _apiClient.GetUserAsync(id);
             if (user == null) return NotFound();
@@ -54,7 +54,7 @@ namespace Frontend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AssignSubscription(int id, int membershipId)
+        public async Task<IActionResult> AssignSubscription(Guid id, int membershipId)
         {
             var request = new AdminSubscribeRequest { UserId = id, MembershipId = membershipId };
             var result = await _apiClient.AdminSubscribeAsync(request);
@@ -92,7 +92,7 @@ namespace Frontend.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(Guid id)
         {
             var user = await _apiClient.GetUserAsync(id);
             if (user == null) return NotFound();
@@ -107,7 +107,7 @@ namespace Frontend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, UserUpdateRequest request)
+        public async Task<IActionResult> Edit(Guid id, UserUpdateRequest request)
         {
             if (!ModelState.IsValid) return View(request);
 
@@ -123,7 +123,7 @@ namespace Frontend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             var success = await _apiClient.DeleteUserAsync(id);
             if (success)
@@ -138,7 +138,7 @@ namespace Frontend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateRole(int id, string role)
+        public async Task<IActionResult> UpdateRole(Guid id, string role)
         {
             var success = await _apiClient.UpdateUserRoleAsync(id, role);
             if (success)

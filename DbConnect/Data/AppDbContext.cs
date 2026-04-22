@@ -1,16 +1,17 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Database.Models;
+namespace DbConnect.Data;
 
-public partial class LibraryManagementContext : DbContext
+public partial class AppDbContext : DbContext
 {
-    public LibraryManagementContext()
+    public AppDbContext()
     {
     }
 
-    public LibraryManagementContext(DbContextOptions<LibraryManagementContext> options)
+    public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
     }
@@ -27,7 +28,9 @@ public partial class LibraryManagementContext : DbContext
 
     public virtual DbSet<UserSubscription> UserSubscriptions { get; set; }
 
-    public virtual DbSet<Wishlist> Wishlists { get; set; }
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=.;Database=LibraryManagement;User Id=sa;Password=sasa@123;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,6 +41,7 @@ public partial class LibraryManagementContext : DbContext
             entity.HasIndex(e => e.Isbn, "UQ__Books__447D36EA79CF66CE").IsUnique();
 
             entity.Property(e => e.Author).HasMaxLength(100);
+            entity.Property(e => e.AvailableCopies).HasDefaultValue(1);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -50,7 +54,6 @@ public partial class LibraryManagementContext : DbContext
                 .HasDefaultValue("Available");
             entity.Property(e => e.Title).HasMaxLength(200);
             entity.Property(e => e.TotalCopies).HasDefaultValue(1);
-            entity.Property(e => e.AvailableCopies).HasDefaultValue(1);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
             entity.HasMany(d => d.Categories).WithMany(p => p.Books)
@@ -71,8 +74,7 @@ public partial class LibraryManagementContext : DbContext
 
         modelBuilder.Entity<Borrowing>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Borrowin__3214EC07EA26D8CD");
-
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.BorrowDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -110,15 +112,15 @@ public partial class LibraryManagementContext : DbContext
             entity.HasIndex(e => e.Type, "IX_Memberships_Type").IsUnique();
 
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.RewardId).HasMaxLength(100);
             entity.Property(e => e.Type).HasMaxLength(50);
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Users__3214EC0771D7BED2");
+            entity.HasIndex(e => e.Email, "UQ_Users_Email").IsUnique();
 
-            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534F91FFF73").IsUnique();
-
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.Address).HasMaxLength(255);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -129,7 +131,7 @@ public partial class LibraryManagementContext : DbContext
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
             entity.Property(e => e.Role)
                 .HasMaxLength(20)
-                .HasDefaultValue("Member");
+                .HasDefaultValue("User");
             entity.Property(e => e.StudentId).HasMaxLength(20);
             entity.Property(e => e.SuspensionEndDate).HasColumnType("datetime");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
@@ -137,11 +139,14 @@ public partial class LibraryManagementContext : DbContext
 
         modelBuilder.Entity<UserSubscription>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__UserSubs__3214EC07E3FBC0EC");
-
+            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
             entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
+            entity.Property(e => e.ExternalRedemptionId).HasMaxLength(100);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.StartDate).HasColumnType("datetime");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("Active");
 
             entity.HasOne(d => d.Membership).WithMany(p => p.UserSubscriptions)
                 .HasForeignKey(d => d.MembershipId)
@@ -152,19 +157,6 @@ public partial class LibraryManagementContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserSubscriptions_Users");
-        });
-
-        modelBuilder.Entity<Wishlist>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Wishlist__3214EC07F63D8F81");
-
-            entity.HasOne(d => d.Book).WithMany(p => p.Wishlists)
-                .HasForeignKey(d => d.BookId)
-                .HasConstraintName("FK_Wishlists_Books");
-
-            entity.HasOne(d => d.User).WithMany(p => p.Wishlists)
-                .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK_Wishlists_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);

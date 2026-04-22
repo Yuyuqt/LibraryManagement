@@ -1,4 +1,5 @@
-using Database.Models;
+using DbConnect.Data;
+using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Features.Books
@@ -14,9 +15,9 @@ namespace Backend.Features.Books
 
     public class BookService : IBookService
     {
-        private readonly LibraryManagementContext _context;
+        private readonly AppDbContext _context;
 
-        public BookService(LibraryManagementContext context)
+        public BookService(AppDbContext context)
         {
             _context = context;
         }

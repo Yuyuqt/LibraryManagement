@@ -1,5 +1,5 @@
 <Solution>
   <Project Path="Backend/Backend.csproj" Id="82e311b1-ce76-4235-9d5f-0d06a942d038" />
-  <Project Path="Database/Database.csproj" Id="1ec23dc7-355d-4456-a503-cfd0fb81cd5c" />
+  <Project Path="DbConnect/DbConnect.csproj" Id="9923b718-c896-438d-ba4b-a2065f91c8ab" />
   <Project Path="Frontend/Frontend.csproj" Id="824d7fed-4fd3-41c5-8c5e-acd458ccbcdb" />
 </Solution>

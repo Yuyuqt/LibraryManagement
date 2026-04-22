@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database.Models;
+namespace DbConnect.Entities;
 
 public partial class User
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     public string FullName { get; set; } = null!;
 
@@ -34,6 +34,4 @@ public partial class User
     public virtual ICollection<Borrowing> Borrowings { get; set; } = new List<Borrowing>();
 
     public virtual ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
-
-    public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
 }

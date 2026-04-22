@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database.Models;
+namespace DbConnect.Entities;
 
 public partial class Borrowing
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
 
     public int BookId { get; set; }
 

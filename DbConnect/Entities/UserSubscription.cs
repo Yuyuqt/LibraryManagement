@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database.Models;
+namespace DbConnect.Entities;
 
 public partial class UserSubscription
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
 
     public int MembershipId { get; set; }
 
@@ -16,6 +16,10 @@ public partial class UserSubscription
     public DateTime ExpiryDate { get; set; }
 
     public bool IsActive { get; set; }
+
+    public string Status { get; set; } = null!;
+
+    public string? ExternalRedemptionId { get; set; }
 
     public virtual Membership Membership { get; set; } = null!;
 

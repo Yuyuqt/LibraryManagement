@@ -1,4 +1,5 @@
-using Database.Models;
+using DbConnect.Data;
+using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -18,12 +19,12 @@ namespace Backend.Features.Auth
 
     public class AuthService : IAuthService
     {
-        private readonly LibraryManagementContext _context;
+        private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly ISubscriptionService _subscriptionService;
         private readonly ILoyaltyService _loyaltyService;
 
-        public AuthService(LibraryManagementContext context, IConfiguration configuration, ISubscriptionService subscriptionService, ILoyaltyService loyaltyService)
+        public AuthService(AppDbContext context, IConfiguration configuration, ISubscriptionService subscriptionService, ILoyaltyService loyaltyService)
         {
             _context = context;
             _configuration = configuration;

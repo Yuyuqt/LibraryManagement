@@ -24,7 +24,7 @@ namespace Backend.Features.Users
 
         [HttpGet("{id}")]
         [Authorize(Roles = "Librarian")]
-        public async Task<ActionResult<UserDto>> GetUser(int id)
+        public async Task<ActionResult<UserDto>> GetUser(Guid id)
         {
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound();
@@ -48,7 +48,7 @@ namespace Backend.Features.Users
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Librarian")]
-        public async Task<ActionResult<UserDto>> UpdateUser(int id, [FromBody] UserUpdateRequest request)
+        public async Task<ActionResult<UserDto>> UpdateUser(Guid id, [FromBody] UserUpdateRequest request)
         {
             var updatedUser = await _userService.UpdateUserAsync(id, request);
             if (updatedUser == null) return NotFound();
@@ -57,7 +57,7 @@ namespace Backend.Features.Users
 
         [HttpPatch("{id}/role")]
         [Authorize(Roles = "Librarian")]
-        public async Task<IActionResult> UpdateUserRole(int id, [FromBody] UserRoleUpdateRequest request)
+        public async Task<IActionResult> UpdateUserRole(Guid id, [FromBody] UserRoleUpdateRequest request)
         {
             var success = await _userService.UpdateUserRoleAsync(id, request.Role);
             if (!success) return NotFound();
@@ -66,7 +66,7 @@ namespace Backend.Features.Users
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Librarian")]
-        public async Task<IActionResult> DeleteUser(int id)
+        public async Task<IActionResult> DeleteUser(Guid id)
         {
             var success = await _userService.DeleteUserAsync(id);
             if (!success) return NotFound();

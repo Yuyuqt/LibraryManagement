@@ -1,5 +1,6 @@
 using System.Text;
-using Database.Models;
+using DbConnect.Data;
+using DbConnect.Entities;
 using Backend.Features.Auth;
 using Backend.Features.Users;
 using Backend.Features.Books;
@@ -46,7 +47,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddDbContext<LibraryManagementContext>(options =>
+builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MssqlConnection")));
 
 // Register Services

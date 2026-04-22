@@ -91,7 +91,7 @@ namespace Frontend.Services
             return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<BorrowingDto>() : null;
         }
 
-        public async Task<BorrowingDto?> ReturnBookAsync(int id)
+        public async Task<BorrowingDto?> ReturnBookAsync(Guid id)
         {
             var response = await _httpClient.PostAsync($"api/borrowings/return/{id}", null);
             return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<BorrowingDto>() : null;
@@ -158,7 +158,7 @@ namespace Frontend.Services
             return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<SubscriptionDto>() : null;
         }
 
-        public async Task<SubscriptionDto?> GetUserSubscriptionAsync(int userId)
+        public async Task<SubscriptionDto?> GetUserSubscriptionAsync(Guid userId)
         {
             try {
                 return await _httpClient.GetFromJsonAsync<SubscriptionDto>($"api/subscriptions/user/{userId}");
@@ -208,7 +208,7 @@ namespace Frontend.Services
             } catch { return Enumerable.Empty<LoyaltyRedemptionDto>(); }
         }
 
-        public async Task<bool> RequestReturnAsync(int borrowingId)
+        public async Task<bool> RequestReturnAsync(Guid borrowingId)
         {
             var response = await _httpClient.PostAsync($"api/borrowings/return-request/{borrowingId}", null);
             return response.IsSuccessStatusCode;
@@ -269,7 +269,7 @@ namespace Frontend.Services
             return await _httpClient.GetFromJsonAsync<IEnumerable<UserDto>>("api/users") ?? Enumerable.Empty<UserDto>();
         }
 
-        public async Task<UserDto?> GetUserAsync(int id)
+        public async Task<UserDto?> GetUserAsync(Guid id)
         {
             return await _httpClient.GetFromJsonAsync<UserDto>($"api/users/{id}");
         }
@@ -280,19 +280,19 @@ namespace Frontend.Services
             return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<UserDto>() : null;
         }
 
-        public async Task<UserDto?> UpdateUserAsync(int id, UserUpdateRequest request)
+        public async Task<UserDto?> UpdateUserAsync(Guid id, UserUpdateRequest request)
         {
             var response = await _httpClient.PutAsJsonAsync($"api/users/{id}", request);
             return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<UserDto>() : null;
         }
 
-        public async Task<bool> UpdateUserRoleAsync(int id, string role)
+        public async Task<bool> UpdateUserRoleAsync(Guid id, string role)
         {
             var response = await _httpClient.PutAsJsonAsync($"api/users/role/{id}", new UserRoleUpdateRequest { Role = role });
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> DeleteUserAsync(int id)
+        public async Task<bool> DeleteUserAsync(Guid id)
         {
             var response = await _httpClient.DeleteAsync($"api/users/{id}");
             return response.IsSuccessStatusCode;

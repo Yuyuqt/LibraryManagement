@@ -1,4 +1,5 @@
-using Database.Models;
+using DbConnect.Data;
+using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
 using Backend.Features.Loyalty;
 
@@ -7,19 +8,19 @@ namespace Backend.Features.Subscriptions
     public interface ISubscriptionService
     {
         Task<IEnumerable<MembershipDto>> GetMembershipsAsync();
-        Task<SubscriptionDto?> GetUserSubscriptionAsync(int userId);
-        Task<IEnumerable<SubscriptionDto>> GetUserAllSubscriptionsAsync(int userId);
-        Task<bool> HandleLoyaltyRedemptionAsync(int userId, string rewardId, string rewardName, string redemptionId);
-        Task<SubscriptionDto> SubscribeUserAsync(int userId, int membershipId);
+        Task<SubscriptionDto?> GetUserSubscriptionAsync(Guid userId);
+        Task<IEnumerable<SubscriptionDto>> GetUserAllSubscriptionsAsync(Guid userId);
+        Task<bool> HandleLoyaltyRedemptionAsync(Guid userId, string rewardId, string rewardName, string redemptionId);
+        Task<SubscriptionDto> SubscribeUserAsync(Guid userId, int membershipId);
         Task<IEnumerable<SubscriptionDto>> GetAllSubscriptionsAsync();
     }
 
     public class SubscriptionService : ISubscriptionService
     {
-        private readonly LibraryManagementContext _context;
+        private readonly AppDbContext _context;
         private readonly ILoyaltyService _loyaltyService;
 
-        public SubscriptionService(LibraryManagementContext context, ILoyaltyService loyaltyService)
+        public SubscriptionService(AppDbContext context, ILoyaltyService loyaltyService)
         {
             _context = context;
             _loyaltyService = loyaltyService;
@@ -40,7 +41,7 @@ namespace Backend.Features.Subscriptions
                 }).ToListAsync();
         }
 
-        public async Task<SubscriptionDto?> GetUserSubscriptionAsync(int userId)
+        public async Task<SubscriptionDto?> GetUserSubscriptionAsync(Guid userId)
         {
             var subscription = await _context.UserSubscriptions
                 .Include(s => s.Membership)
@@ -53,7 +54,7 @@ namespace Backend.Features.Subscriptions
             return MapToDto(subscription);
         }
 
-        public async Task<IEnumerable<SubscriptionDto>> GetUserAllSubscriptionsAsync(int userId)
+        public async Task<IEnumerable<SubscriptionDto>> GetUserAllSubscriptionsAsync(Guid userId)
         {
             var subscriptions = await _context.UserSubscriptions
                 .Include(s => s.Membership)
@@ -65,7 +66,7 @@ namespace Backend.Features.Subscriptions
             return subscriptions.Select(MapToDto);
         }
 
-        public async Task<bool> HandleLoyaltyRedemptionAsync(int userId, string rewardId, string rewardName, string redemptionId)
+        public async Task<bool> HandleLoyaltyRedemptionAsync(Guid userId, string rewardId, string rewardName, string redemptionId)
         {
             try
             {
@@ -112,7 +113,7 @@ namespace Backend.Features.Subscriptions
             }
         }
 
-        public async Task<SubscriptionDto> SubscribeUserAsync(int userId, int membershipId)
+        public async Task<SubscriptionDto> SubscribeUserAsync(Guid userId, int membershipId)
         {
             var membership = await _context.Memberships.FindAsync(membershipId);
             if (membership == null) throw new Exception("Membership plan not found.");

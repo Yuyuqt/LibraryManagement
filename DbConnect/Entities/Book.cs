@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace Database.Models;
+namespace DbConnect.Entities;
 
 public partial class Book
 {
@@ -20,16 +20,16 @@ public partial class Book
     public DateTime CreatedAt { get; set; }
 
     public string? Description { get; set; }
-    
+
+    public string? CoverUrl { get; set; }
+
     public int TotalCopies { get; set; }
-    
+
     public int AvailableCopies { get; set; }
-    
+
     public DateTime? UpdatedAt { get; set; }
 
     public virtual ICollection<Borrowing> Borrowings { get; set; } = new List<Borrowing>();
-
-    public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
 
     public virtual ICollection<Category> Categories { get; set; } = new List<Category>();
 }

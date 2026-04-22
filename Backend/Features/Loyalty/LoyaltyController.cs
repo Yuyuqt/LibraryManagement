@@ -101,7 +101,7 @@ namespace Backend.Features.Loyalty
 
             // 3. side effect: Grant membership in the library system
             bool membershipGranted = false;
-            if (int.TryParse(redemption.ExternalUserId?.Trim(), out int userId))
+            if (Guid.TryParse(redemption.ExternalUserId?.Trim(), out Guid userId))
             {
                 System.Diagnostics.Debug.WriteLine($"Fulfilling redemption {id} for user {userId}. RewardId: '{redemption.RewardId}', RewardName: '{redemption.RewardName}'");
                 membershipGranted = await _subscriptionService.HandleLoyaltyRedemptionAsync(userId, redemption.RewardId, redemption.RewardName, redemption.Id);

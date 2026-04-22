@@ -72,8 +72,8 @@ namespace Frontend.Models.Dtos
     // Borrowing DTOs
     public class BorrowingDto
     {
-        public int Id { get; set; }
-        public int UserId { get; set; }
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
         public string UserEmail { get; set; } = string.Empty;
         public int BookId { get; set; }
         public string BookTitle { get; set; } = string.Empty;
@@ -116,8 +116,8 @@ namespace Frontend.Models.Dtos
 
     public class SubscriptionDto
     {
-        public int Id { get; set; }
-        public int UserId { get; set; }
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
         public int MembershipId { get; set; }
         public string MembershipType { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
@@ -135,7 +135,7 @@ namespace Frontend.Models.Dtos
 
     public class AdminSubscribeRequest
     {
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
         public int MembershipId { get; set; }
     }
 
@@ -188,7 +188,7 @@ namespace Frontend.Models.Dtos
     // User DTOs
     public class UserDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string? PhoneNumber { get; set; }

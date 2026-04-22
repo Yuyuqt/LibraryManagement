@@ -1,4 +1,5 @@
-using Database.Models;
+using DbConnect.Data;
+using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
 using Backend.Features.Loyalty;
 
@@ -6,26 +7,26 @@ namespace Backend.Features.Borrowings
 {
     public interface IBorrowingService
     {
-        Task<BorrowingDto> BorrowBookAsync(int userId, int bookId);
-        Task<BorrowingDto> RequestReturnAsync(int borrowingId);
-        Task<BorrowingDto> ReturnBookAsync(int borrowingId);
-        Task<IEnumerable<BorrowingDto>> GetUserBorrowingsAsync(int userId);
+        Task<BorrowingDto> BorrowBookAsync(Guid userId, int bookId);
+        Task<BorrowingDto> RequestReturnAsync(Guid borrowingId);
+        Task<BorrowingDto> ReturnBookAsync(Guid borrowingId);
+        Task<IEnumerable<BorrowingDto>> GetUserBorrowingsAsync(Guid userId);
         Task<IEnumerable<BorrowingDto>> GetAllBorrowingsAsync();
     }
 
     public class BorrowingService : IBorrowingService
     {
-        private readonly LibraryManagementContext _context;
+        private readonly AppDbContext _context;
         private readonly ILoyaltyService _loyaltyService;
         private const decimal FinePerDay = 500;
 
-        public BorrowingService(LibraryManagementContext context, ILoyaltyService loyaltyService)
+        public BorrowingService(AppDbContext context, ILoyaltyService loyaltyService)
         {
             _context = context;
             _loyaltyService = loyaltyService;
         }
 
-        public async Task<BorrowingDto> BorrowBookAsync(int userId, int bookId)
+        public async Task<BorrowingDto> BorrowBookAsync(Guid userId, int bookId)
         {
             // 1. Check for Active Membership
             var subscription = await _context.UserSubscriptions
@@ -95,7 +96,7 @@ namespace Backend.Features.Borrowings
             return MapToDto(borrowing);
         }
 
-        public async Task<BorrowingDto> RequestReturnAsync(int borrowingId)
+        public async Task<BorrowingDto> RequestReturnAsync(Guid borrowingId)
         {
             var borrowing = await _context.Borrowings
                 .Include(b => b.Book)
@@ -110,7 +111,7 @@ namespace Backend.Features.Borrowings
             return MapToDto(borrowing);
         }
 
-        public async Task<BorrowingDto> ReturnBookAsync(int borrowingId)
+        public async Task<BorrowingDto> ReturnBookAsync(Guid borrowingId)
         {
             var borrowing = await _context.Borrowings
                 .Include(b => b.Book)
@@ -159,7 +160,7 @@ namespace Backend.Features.Borrowings
             return MapToDto(borrowing);
         }
 
-        public async Task<IEnumerable<BorrowingDto>> GetUserBorrowingsAsync(int userId)
+        public async Task<IEnumerable<BorrowingDto>> GetUserBorrowingsAsync(Guid userId)
         {
             var borrowings = await _context.Borrowings
                 .Include(b => b.Book)

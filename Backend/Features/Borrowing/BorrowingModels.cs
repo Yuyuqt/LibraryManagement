@@ -4,8 +4,8 @@ namespace Backend.Features.Borrowings
 {
     public class BorrowingDto
     {
-        public int Id { get; set; }
-        public int UserId { get; set; }
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
         public string UserEmail { get; set; } = string.Empty;
         public int BookId { get; set; }
         public string BookTitle { get; set; } = string.Empty;

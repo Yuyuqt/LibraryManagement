@@ -1,4 +1,5 @@
-using Database.Models;
+using DbConnect.Data;
+using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
 using Backend.Features.Subscriptions;
 using Backend.Features.Loyalty;
@@ -12,20 +13,20 @@ namespace Backend.Features.Users
     public interface IUserService
     {
         Task<IEnumerable<UserDto>> GetAllUsersAsync();
-        Task<UserDto?> GetUserByIdAsync(int id);
+        Task<UserDto?> GetUserByIdAsync(Guid id);
         Task<UserDto> CreateUserAsync(UserCreateRequest request);
-        Task<UserDto?> UpdateUserAsync(int id, UserUpdateRequest request);
-        Task<bool> UpdateUserRoleAsync(int id, string role);
-        Task<bool> DeleteUserAsync(int id);
+        Task<UserDto?> UpdateUserAsync(Guid id, UserUpdateRequest request);
+        Task<bool> UpdateUserRoleAsync(Guid id, string role);
+        Task<bool> DeleteUserAsync(Guid id);
     }
 
     public class UserService : IUserService
     {
-        private readonly LibraryManagementContext _context;
+        private readonly AppDbContext _context;
         private readonly ISubscriptionService _subscriptionService;
         private readonly ILoyaltyService _loyaltyService;
 
-        public UserService(LibraryManagementContext context, ISubscriptionService subscriptionService, ILoyaltyService loyaltyService)
+        public UserService(AppDbContext context, ISubscriptionService subscriptionService, ILoyaltyService loyaltyService)
         {
             _context = context;
             _subscriptionService = subscriptionService;
@@ -38,7 +39,7 @@ namespace Backend.Features.Users
             return users.Select(MapToDto);
         }
 
-        public async Task<UserDto?> GetUserByIdAsync(int id)
+        public async Task<UserDto?> GetUserByIdAsync(Guid id)
         {
             var user = await _context.Users.FindAsync(id);
             return user == null ? null : MapToDto(user);
@@ -89,7 +90,7 @@ namespace Backend.Features.Users
             return MapToDto(user);
         }
 
-        public async Task<UserDto?> UpdateUserAsync(int id, UserUpdateRequest request)
+        public async Task<UserDto?> UpdateUserAsync(Guid id, UserUpdateRequest request)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null) return null;
@@ -112,7 +113,7 @@ namespace Backend.Features.Users
             return MapToDto(user);
         }
 
-        public async Task<bool> UpdateUserRoleAsync(int id, string role)
+        public async Task<bool> UpdateUserRoleAsync(Guid id, string role)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null) return false;
@@ -124,7 +125,7 @@ namespace Backend.Features.Users
             return true;
         }
 
-        public async Task<bool> DeleteUserAsync(int id)
+        public async Task<bool> DeleteUserAsync(Guid id)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null) return false;
@@ -159,7 +160,7 @@ namespace Backend.Features.Users
 
     public class UserDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Name => FullName;
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;

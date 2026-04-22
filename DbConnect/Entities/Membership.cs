@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace Database.Models;
+namespace DbConnect.Entities;
 
 public partial class Membership
 {
@@ -16,6 +16,7 @@ public partial class Membership
     public decimal Price { get; set; }
 
     public int DurationMonths { get; set; }
+
     public string? RewardId { get; set; }
 
     public virtual ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();

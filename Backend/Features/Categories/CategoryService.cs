@@ -1,4 +1,5 @@
-using Database.Models;
+using DbConnect.Data;
+using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Features.Categories
@@ -13,9 +14,9 @@ namespace Backend.Features.Categories
 
     public class CategoryService : ICategoryService
     {
-        private readonly LibraryManagementContext _context;
+        private readonly AppDbContext _context;
 
-        public CategoryService(LibraryManagementContext context)
+        public CategoryService(AppDbContext context)
         {
             _context = context;
         }

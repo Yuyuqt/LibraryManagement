@@ -22,7 +22,7 @@ namespace Frontend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> RequestReturn(int id)
+        public async Task<IActionResult> RequestReturn(Guid id)
         {
             var success = await _apiClient.RequestReturnAsync(id);
             if (success)
@@ -76,7 +76,7 @@ namespace Frontend.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Librarian")]
-        public async Task<IActionResult> Return(int id, bool fromManage = false)
+        public async Task<IActionResult> Return(Guid id, bool fromManage = false)
         {
             var result = await _apiClient.ReturnBookAsync(id);
             if (result != null)

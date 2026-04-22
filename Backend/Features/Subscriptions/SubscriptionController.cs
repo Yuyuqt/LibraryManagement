@@ -29,7 +29,7 @@ namespace Backend.Features.Subscriptions
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
 
-            var userId = int.Parse(userIdStr);
+            var userId = Guid.Parse(userIdStr);
             var subscription = await _subscriptionService.GetUserSubscriptionAsync(userId);
             
             if (subscription == null) return NotFound(new { message = "No active subscription found." });
@@ -44,7 +44,7 @@ namespace Backend.Features.Subscriptions
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
 
-            var userId = int.Parse(userIdStr);
+            var userId = Guid.Parse(userIdStr);
             var subscriptions = await _subscriptionService.GetUserAllSubscriptionsAsync(userId);
             return Ok(subscriptions);
         }
@@ -58,7 +58,7 @@ namespace Backend.Features.Subscriptions
                 var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
 
-                var userId = int.Parse(userIdStr);
+                var userId = Guid.Parse(userIdStr);
                 var subscription = await _subscriptionService.SubscribeUserAsync(userId, request.MembershipId);
                 return Ok(subscription);
             }
@@ -70,7 +70,7 @@ namespace Backend.Features.Subscriptions
 
         [HttpGet("subscriptions/user/{userId}")]
         [Authorize(Roles = "Librarian")]
-        public async Task<ActionResult<SubscriptionDto>> GetUserSubscription(int userId)
+        public async Task<ActionResult<SubscriptionDto>> GetUserSubscription(Guid userId)
         {
             var subscription = await _subscriptionService.GetUserSubscriptionAsync(userId);
             if (subscription == null) return NotFound(new { message = "No active subscription found." });
