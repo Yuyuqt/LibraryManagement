@@ -1,6 +1,7 @@
 using DbConnect.Data;
 using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace Backend.Features.Books
 {
@@ -166,6 +167,7 @@ namespace Backend.Features.Books
         public int AvailableCopies { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        [JsonPropertyName("coverUrl")]
         public string? CoverUrl { get; set; }
         public List<BookCategoryDto> Categories { get; set; } = new();
     }
