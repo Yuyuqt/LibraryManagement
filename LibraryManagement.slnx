@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="Backend/Backend.csproj" Id="82e311b1-ce76-4235-9d5f-0d06a942d038" />
+  <Project Path="BlazorFrontend/BlazorFrontend.csproj" Id="4e49ee14-3e94-4f8a-8f43-e487ddfe77a3" />
   <Project Path="DbConnect/DbConnect.csproj" Id="9923b718-c896-438d-ba4b-a2065f91c8ab" />
   <Project Path="Frontend/Frontend.csproj" Id="824d7fed-4fd3-41c5-8c5e-acd458ccbcdb" />
 </Solution>
