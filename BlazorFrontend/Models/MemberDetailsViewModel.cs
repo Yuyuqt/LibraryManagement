@@ -1,0 +1,12 @@
+using BlazorFrontend.Models.Dtos;
+using System.Collections.Generic;
+
+namespace BlazorFrontend.Models
+{
+    public class MemberDetailsViewModel
+    {
+        public UserDto User { get; set; } = new();
+        public SubscriptionDto? CurrentSubscription { get; set; }
+        public List<MembershipDto> AvailableMemberships { get; set; } = new();
+    }
+}

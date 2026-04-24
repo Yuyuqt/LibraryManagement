@@ -1,0 +1,112 @@
+@page "/register"
+
+@using BlazorFrontend.Services
+@using BlazorFrontend.Providers
+@using BlazorFrontend.Models.Dtos
+@using Microsoft.AspNetCore.Components.Authorization
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Register</PageTitle>
+
+<div class="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl border border-slate-200 shadow-xl">
+        <div>
+            <div class="mx-auto h-12 w-12 bg-slate-900 rounded-xl flex items-center justify-center text-white mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            </div>
+            <h2 class="text-center text-3xl font-extrabold text-slate-900 tracking-tight">Join our Library</h2>
+            <p class="mt-2 text-center text-sm text-slate-500">
+                Start your reading journey today.
+            </p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <div class="bg-red-50 text-red-600 p-3 rounded-lg border border-red-200 text-sm mb-4">
+                @_errorMessage
+            </div>
+        }
+
+        <EditForm Model="@_registerRequest" OnValidSubmit="HandleRegister" FormName="registerForm" class="mt-8 space-y-6">
+            <DataAnnotationsValidator />
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                    <InputText @bind-Value="_registerRequest.FullName" required class="appearance-none relative block w-full px-3 py-2 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-md focus:outline-none focus:ring-slate-900 focus:border-slate-900 focus:z-10 sm:text-sm" placeholder="John Doe" />
+                    <ValidationMessage For="@(() => _registerRequest.FullName)" class="text-xs text-red-500 mt-1" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                    <InputText type="email" @bind-Value="_registerRequest.Email" required class="appearance-none relative block w-full px-3 py-2 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-md focus:outline-none focus:ring-slate-900 focus:border-slate-900 focus:z-10 sm:text-sm" placeholder="name@example.com" />
+                    <ValidationMessage For="@(() => _registerRequest.Email)" class="text-xs text-red-500 mt-1" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+                    <InputText type="tel" @bind-Value="_registerRequest.PhoneNumber" class="appearance-none relative block w-full px-3 py-2 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-md focus:outline-none focus:ring-slate-900 focus:border-slate-900 focus:z-10 sm:text-sm" placeholder="09123456789" />
+                    <ValidationMessage For="@(() => _registerRequest.PhoneNumber)" class="text-xs text-red-500 mt-1" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                    <InputText type="password" @bind-Value="_registerRequest.Password" required class="appearance-none relative block w-full px-3 py-2 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-md focus:outline-none focus:ring-slate-900 focus:border-slate-900 focus:z-10 sm:text-sm" placeholder="••••••••" />
+                    <ValidationMessage For="@(() => _registerRequest.Password)" class="text-xs text-red-500 mt-1" />
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" disabled="@_isLoading" class="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all disabled:opacity-50">
+                    @if (_isLoading)
+                    {
+                        <span>Creating account...</span>
+                    }
+                    else
+                    {
+                        <span>Create Account</span>
+                    }
+                </button>
+            </div>
+            
+            <div class="text-center">
+                <span class="text-sm text-slate-500">Already have an account?</span>
+                <a href="/login" class="text-sm font-medium text-slate-900 hover:underline ml-1">Sign in</a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private RegisterRequest _registerRequest { get; set; } = new();
+    
+    private string? _errorMessage;
+    private bool _isLoading;
+
+    private async Task HandleRegister()
+    {
+        try
+        {
+            _isLoading = true;
+            _errorMessage = null;
+
+            var res = await Http.PostAsJsonAsync("api/auth/register", _registerRequest);
+            
+            if (res.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                _errorMessage = "Registration failed. This email might already be in use.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "An error occurred: " + ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

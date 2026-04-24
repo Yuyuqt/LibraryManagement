@@ -1,0 +1,20 @@
+@page "/logout"
+@using BlazorFrontend.Providers
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Logging out...</PageTitle>
+
+<div class="text-center mt-10">
+    <p class="text-slate-600">Signing you out...</p>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var jwtProvider = (JwtAuthenticationStateProvider)AuthStateProvider;
+        await jwtProvider.LogoutAsync();
+        Navigation.NavigateTo("/login");
+    }
+}

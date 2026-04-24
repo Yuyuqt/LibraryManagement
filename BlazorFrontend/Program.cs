@@ -1,10 +1,33 @@
 using BlazorFrontend.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using BlazorFrontend.Providers;
+using BlazorFrontend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<JwtAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<JwtAuthenticationStateProvider>());
+builder.Services.AddAuthorizationCore();
+
+builder.Services.AddScoped<AuthHeaderHandler>();
+
+builder.Services.AddScoped(sp => 
+{
+    var handler = sp.GetRequiredService<AuthHeaderHandler>();
+    handler.InnerHandler = new HttpClientHandler();
+    return new HttpClient(handler)
+    {
+        BaseAddress = new Uri("https://localhost:7028/")
+    };
+});
+
+
+builder.Services.AddScoped<LibraryApiClient>();
 
 var app = builder.Build();
 

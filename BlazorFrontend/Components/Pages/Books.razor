@@ -1,4 +1,8 @@
 @page "/Books"
+@using BlazorFrontend.Services
+@using BlazorFrontend.Models.Dtos
+@inject HttpClient Http
+
 
 <PageTitle>Books Catalog</PageTitle>
 
@@ -7,6 +11,78 @@
     <p class="text-sm text-slate-500 mt-1">Browse and search our collection of books.</p>
 </div>
 
-<div class="card p-6">
-    <p class="text-slate-600">Books list will be displayed here.</p>
-</div>
+@if (_books == null)
+{
+    <div class="card p-6 text-center">
+        <p class="text-slate-600">Loading books...</p>
+    </div>
+}
+else if (!_books.Any())
+{
+    <div class="card p-6 text-center">
+        <p class="text-slate-600">No books found in the catalog.</p>
+    </div>
+}
+else
+{
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        @foreach (var book in _books)
+        {
+            <div class="card flex flex-col h-full hover:shadow-md transition-shadow">
+                <div class="p-5 flex-grow">
+                    <h3 class="font-semibold text-lg text-slate-900 line-clamp-2">@book.Title</h3>
+                    <p class="text-sm text-slate-500 mt-1">By @book.Author</p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        @if (book.Categories != null && book.Categories.Any())
+                        {
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                                @string.Join(", ", book.Categories.Select(c => c.Name))
+                            </span>
+                        }
+                        @if (book.AvailableCopies > 0)
+                        {
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Available (@book.AvailableCopies)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Checked Out
+                            </span>
+                        }
+                    </div>
+                </div>
+                <div class="px-5 py-4 border-t border-slate-100 mt-auto">
+                    <AuthorizeView>
+                        <Authorized>
+                            <button class="w-full btn-primary py-2" disabled="@(book.AvailableCopies <= 0)">
+                                Borrow Book
+                            </button>
+                        </Authorized>
+                        <NotAuthorized>
+                            <a href="/login" class="w-full btn-secondary py-2 block text-center">Sign In to Borrow</a>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private IEnumerable<BookDto>? _books;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _books = await Http.GetFromJsonAsync<IEnumerable<BookDto>>("api/books");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error fetching books: " + ex.Message);
+            _books = new List<BookDto>();
+        }
+    }
+}

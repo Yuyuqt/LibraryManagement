@@ -1,4 +1,7 @@
 @page "/"
+@using BlazorFrontend.Services
+@using BlazorFrontend.Models.Dtos
+@inject HttpClient Http
 
 <PageTitle>Dashboard</PageTitle>
 
@@ -10,14 +13,62 @@
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     <div class="card p-6">
         <h3 class="text-lg font-medium text-slate-900">Total Books</h3>
-        <p class="text-3xl font-bold text-slate-700 mt-2">--</p>
+        <p class="text-3xl font-bold text-slate-700 mt-2">@_totalBooks</p>
     </div>
     <div class="card p-6">
-        <h3 class="text-lg font-medium text-slate-900">Active Loans</h3>
-        <p class="text-3xl font-bold text-slate-700 mt-2">--</p>
+        <h3 class="text-lg font-medium text-slate-900">Categories</h3>
+        <p class="text-3xl font-bold text-slate-700 mt-2">@_totalCategories</p>
     </div>
-    <div class="card p-6">
-        <h3 class="text-lg font-medium text-slate-900">Members</h3>
-        <p class="text-3xl font-bold text-slate-700 mt-2">--</p>
-    </div>
+    <AuthorizeView Roles="Librarian">
+        <Authorized>
+            <div class="card p-6">
+                <h3 class="text-lg font-medium text-slate-900">Total Users</h3>
+                <p class="text-3xl font-bold text-slate-700 mt-2">@_totalUsers</p>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <div class="card p-6">
+                <h3 class="text-lg font-medium text-slate-900">My Active Loans</h3>
+                <p class="text-3xl font-bold text-slate-700 mt-2">@_myLoans</p>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
 </div>
+
+@code {
+    private string _totalBooks = "--";
+    private string _totalCategories = "--";
+    private string _totalUsers = "--";
+    private string _myLoans = "--";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var books = await Http.GetFromJsonAsync<IEnumerable<BookDto>>("api/books");
+            _totalBooks = books?.Count().ToString() ?? "0";
+
+            var categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/categories");
+            _totalCategories = categories?.Count().ToString() ?? "0";
+
+            // These endpoints might require auth, we catch exceptions if the user is unauthenticated or unauthorized
+            try 
+            {
+                var users = await Http.GetFromJsonAsync<IEnumerable<UserDto>>("api/users");
+                _totalUsers = users?.Count().ToString() ?? "0";
+            } 
+            catch { }
+
+            try
+            {
+                var loans = await Http.GetFromJsonAsync<IEnumerable<BorrowingDto>>("api/borrowings/me");
+                _myLoans = loans?.Count().ToString() ?? "0";
+            }
+            catch { }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error fetching dashboard data: " + ex.Message);
+        }
+    }
+}
