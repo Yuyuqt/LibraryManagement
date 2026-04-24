@@ -28,6 +28,7 @@ builder.Services.AddScoped(sp =>
 
 
 builder.Services.AddScoped<LibraryApiClient>();
+builder.Services.AddScoped<WishlistService>();
 
 var app = builder.Build();
 

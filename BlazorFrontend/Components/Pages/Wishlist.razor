@@ -1,0 +1,192 @@
+@page "/Wishlist"
+@using BlazorFrontend.Services
+@using BlazorFrontend.Models.Dtos
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Member")]
+@inject WishlistService WishlistService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>My Wishlist & Favourites</PageTitle>
+
+<div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+    <div>
+        <h1 class="text-3xl font-extrabold tracking-tight text-mystic-900">My Collections</h1>
+        <p class="text-mystic-600 mt-1">Track books you want to borrow and your all-time favourites.</p>
+    </div>
+</div>
+
+<div class="mb-6 border-b border-mystic-200">
+    <nav class="-mb-px flex gap-6">
+        <button @onclick='() => _activeTab = "wishlist"'
+                class='pb-3 text-sm font-semibold border-b-2 transition-all @(_activeTab == "wishlist" ? "border-amber-500 text-amber-600" : "border-transparent text-mystic-400 hover:text-amber-500")'>
+            <span class="inline-flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                Wishlist
+                @if (_wishlist.Any())
+                {
+                    <span class="ml-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px]">@_wishlist.Count</span>
+                }
+            </span>
+        </button>
+        <button @onclick='() => _activeTab = "favourites"'
+                class='pb-3 text-sm font-semibold border-b-2 transition-all @(_activeTab == "favourites" ? "border-rose-500 text-rose-600" : "border-transparent text-mystic-400 hover:text-rose-500")'>
+            <span class="inline-flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                Favourites
+                @if (_favourites.Any())
+                {
+                    <span class="ml-1 px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px]">@_favourites.Count</span>
+                }
+            </span>
+        </button>
+    </nav>
+</div>
+
+@if (_isLoading)
+{
+    <div class="py-20 flex justify-center">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-mystic-900"></div>
+    </div>
+}
+else
+{
+    <div class="animate-in fade-in duration-300">
+        @if (_activeTab == "wishlist")
+        {
+            @if (!_wishlist.Any())
+            {
+                <div class="py-20 text-center bg-mystic-50 rounded-3xl border-2 border-dashed border-mystic-200">
+                    <p class="text-mystic-400 font-medium">Your wishlist is empty. Add books that are currently out of stock!</p>
+                    <a href="Books" class="inline-block mt-4 text-sm font-bold text-mystic-900 hover:underline underline-offset-4">Browse Catalog →</a>
+                </div>
+            }
+            else
+            {
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach (var book in _wishlist)
+                    {
+                        <div class="card p-4 flex gap-4 group hover:shadow-md transition-shadow relative">
+                            <div class="w-20 h-28 bg-mystic-100 rounded-lg flex-shrink-0 flex items-center justify-center text-mystic-300 overflow-hidden border border-mystic-100">
+                                @if (!string.IsNullOrWhiteSpace(book.CoverUrl))
+                                {
+                                    <img src="@book.CoverUrl" alt="@book.Title" class="w-full h-full object-cover" />
+                                }
+                                else
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                                }
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <h3 class="text-sm font-bold text-mystic-900 truncate">@book.Title</h3>
+                                <p class="text-xs text-mystic-500 mt-0.5 truncate">@book.Author</p>
+                                <div class="mt-2">
+                                    <span class="inline-flex items-center rounded-full @(book.AvailableCopies > 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700") px-2 py-0.5 text-[10px] font-bold">
+                                        @(book.AvailableCopies > 0 ? "Now Available" : "Out of Stock")
+                                    </span>
+                                </div>
+                                <div class="mt-4 flex items-center gap-2">
+                                    <button @onclick='() => Navigation.NavigateTo($"/Books")' class="text-[10px] font-bold text-mystic-600 hover:text-mystic-900 uppercase tracking-tight">View Info</button>
+                                    <span class="text-mystic-200">|</span>
+                                    <button @onclick="() => RemoveFromWishlist(book.Id)" class="text-[10px] font-bold text-rose-600 hover:text-rose-700 uppercase tracking-tight">Remove</button>
+                                </div>
+                            </div>
+                            @if (book.AvailableCopies > 0)
+                            {
+                                <div class="absolute -top-2 -right-2 bg-emerald-500 text-white p-1 rounded-full shadow-sm animate-bounce">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="mt-8 p-4 bg-mystic-900 rounded-2xl text-white flex items-center gap-4">
+                    <div class="p-2 bg-mystic-800 rounded-lg">
+                        <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <p class="text-xs font-medium">We'll notify you via Firebase when out-of-stock items become available!</p>
+                </div>
+            }
+        }
+        else
+        {
+            @if (!_favourites.Any())
+            {
+                <div class="py-20 text-center bg-mystic-50 rounded-3xl border-2 border-dashed border-mystic-200">
+                    <p class="text-mystic-400 font-medium">You haven't added any favourites yet.</p>
+                    <a href="Books" class="inline-block mt-4 text-sm font-bold text-mystic-900 hover:underline underline-offset-4">Browse Catalog →</a>
+                </div>
+            }
+            else
+            {
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach (var book in _favourites)
+                    {
+                        <div class="card p-4 flex gap-4 group hover:shadow-md transition-shadow">
+                            <div class="w-20 h-28 bg-mystic-100 rounded-lg flex-shrink-0 flex items-center justify-center text-mystic-300 overflow-hidden border border-mystic-100">
+                                @if (!string.IsNullOrWhiteSpace(book.CoverUrl))
+                                {
+                                    <img src="@book.CoverUrl" alt="@book.Title" class="w-full h-full object-cover" />
+                                }
+                                else
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                                }
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <h3 class="text-sm font-bold text-mystic-900 truncate">@book.Title</h3>
+                                <p class="text-xs text-mystic-500 mt-0.5 truncate">@book.Author</p>
+                                <div class="mt-4 flex items-center gap-2">
+                                    <button @onclick='() => Navigation.NavigateTo($"/Books")' class="text-[10px] font-bold text-mystic-600 hover:text-mystic-900 uppercase tracking-tight">View Info</button>
+                                    <span class="text-mystic-200">|</span>
+                                    <button @onclick="() => RemoveFromFavourite(book.Id)" class="text-[10px] font-bold text-rose-600 hover:text-rose-700 uppercase tracking-tight">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+}
+
+@code {
+    private string _activeTab = "wishlist";
+    private bool _isLoading = true;
+    private List<BookDto> _wishlist = new();
+    private List<BookDto> _favourites = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadDataAsync();
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _wishlist = await WishlistService.GetWishlistAsync();
+        _favourites = await WishlistService.GetFavouritesAsync();
+    }
+
+    private async Task RemoveFromWishlist(int id)
+    {
+        await WishlistService.RemoveFromWishlistAsync(id);
+        await LoadDataAsync();
+        await JS.InvokeVoidAsync("showToast", "Removed from wishlist", "success");
+    }
+
+    private async Task RemoveFromFavourite(int id)
+    {
+        await WishlistService.RemoveFromFavouriteAsync(id);
+        await LoadDataAsync();
+        await JS.InvokeVoidAsync("showToast", "Removed from favourites", "success");
+    }
+}
