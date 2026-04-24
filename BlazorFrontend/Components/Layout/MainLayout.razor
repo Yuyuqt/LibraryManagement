@@ -6,9 +6,9 @@
 <div class="flex h-full overflow-hidden">
     <!-- Sidebar -->
     <aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-50">
-        <div class="flex flex-col flex-grow border-r border-slate-200 bg-white pt-5 pb-4 overflow-y-auto">
+        <div class="flex flex-col flex-grow border-r border-mystic-200 bg-white pt-5 pb-4 overflow-y-auto">
             <div class="flex items-center flex-shrink-0 px-4 gap-2">
-                <div class="bg-slate-900 rounded-lg p-1.5 text-white">
+                <div class="bg-mystic-900 rounded-lg p-1.5 text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/><path d="M4 12V4l4 4"/><path d="m12 6 4 4"/></svg>
                 </div>
                 <span class="text-lg font-bold tracking-tight">Library OS</span>
@@ -71,27 +71,27 @@
                     </AuthorizeView>
                 </nav>
             </div>
-            <div class="px-4 py-4 border-t border-slate-100">
+            <div class="px-4 py-4 border-t border-mystic-100">
                 <AuthorizeView>
                     <Authorized Context="authContext">
                         <div class="flex items-center gap-3">
-                            <div class="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-xs uppercase">
+                            <div class="h-8 w-8 rounded-full bg-mystic-900 flex items-center justify-center text-white font-bold text-xs uppercase">
                                 @(authContext.User.Identity?.Name?.Substring(0, 2) ?? "US")
                             </div>
                             <div class="flex flex-col">
                                 <span class="text-sm font-medium">@authContext.User.Identity?.Name</span>
-                                <span class="text-xs text-slate-500">@authContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role || c.Type == "role")?.Value</span>
+                                <span class="text-xs text-mystic-500">@authContext.User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role || c.Type == "role")?.Value</span>
                             </div>
                         </div>
                     </Authorized>
                     <NotAuthorized>
                         <div class="flex items-center gap-3">
-                            <div class="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-xs uppercase">
+                            <div class="h-8 w-8 rounded-full bg-mystic-900 flex items-center justify-center text-white font-bold text-xs uppercase">
                                 GU
                             </div>
                             <div class="flex flex-col">
                                 <span class="text-sm font-medium">Guest User</span>
-                                <span class="text-xs text-slate-500">Sign in to borrow</span>
+                                <span class="text-xs text-mystic-500">Sign in to borrow</span>
                             </div>
                         </div>
                     </NotAuthorized>
@@ -103,23 +103,23 @@
     <!-- Main Content Wrapper -->
     <div class="md:pl-64 flex flex-col flex-1 w-0">
         <!-- Topbar -->
-        <header class="flex-shrink-0 flex h-16 bg-white border-b border-slate-200">
+        <header class="flex-shrink-0 flex h-16 bg-white border-b border-mystic-200">
             <div class="flex-1 px-4 flex justify-between">
                 <div class="flex-1 flex items-center">
                     <div class="w-full max-w-sm">
                         <label for="search" class="sr-only">Search</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <svg class="h-4 w-4 text-mystic-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
                                 </svg>
                             </div>
-                            <input id="search" name="search" class="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-md leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900 sm:text-sm transition-all" placeholder="Search books, authors, ISBN..." type="search">
+                            <input id="search" name="search" class="block w-full pl-10 pr-3 py-2 border border-mystic-200 rounded-md leading-5 bg-mystic-50 placeholder-mystic-400 focus:outline-none focus:ring-1 focus:ring-mystic-900 focus:border-mystic-900 sm:text-sm transition-all" placeholder="Search books, authors, ISBN..." type="search">
                         </div>
                     </div>
                 </div>
                 <div class="ml-4 flex items-center md:ml-6 gap-4">
-                    <button type="button" class="bg-white p-1 rounded-full text-slate-400 hover:text-slate-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900">
+                    <button type="button" class="bg-white p-1 rounded-full text-mystic-400 hover:text-mystic-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mystic-900">
                         <span class="sr-only">View notifications</span>
                         <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -147,7 +147,7 @@
                 else
                 {
                     <div class="flex items-center justify-center h-64">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div>
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-mystic-900"></div>
                     </div>
                 }
             </div>

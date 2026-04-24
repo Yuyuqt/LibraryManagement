@@ -11,7 +11,7 @@
 @if (_isLoading)
 {
     <div class="flex items-center justify-center min-h-[400px]">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div>
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-mystic-900"></div>
     </div>
 }
 else if (_viewModel != null)
@@ -20,21 +20,21 @@ else if (_viewModel != null)
 
     <div class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <!-- Header with Loyalty Summary -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-2xl shadow-sm border border-mystic-100">
             <div>
-                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Membership</h1>
-                <p class="text-slate-500 mt-1">Manage your subscription and library benefits</p>
+                <h1 class="text-3xl font-extrabold text-mystic-900 tracking-tight">Membership</h1>
+                <p class="text-mystic-500 mt-1">Manage your subscription and library benefits</p>
             </div>
             
             @if (_viewModel.LoyaltyAccount != null)
             {
-                <div class="flex items-center gap-4 bg-slate-50 px-6 py-4 rounded-xl border border-slate-200/60">
+                <div class="flex items-center gap-4 bg-mystic-50 px-6 py-4 rounded-xl border border-mystic-200/60">
                     <div class="bg-amber-100 p-2.5 rounded-lg text-amber-600">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>
                     </div>
                     <div>
-                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Available Points</div>
-                        <div class="text-2xl font-black text-slate-900 leading-none">@_viewModel.LoyaltyAccount.CurrentBalance.ToString("N0")</div>
+                        <div class="text-xs font-bold text-mystic-400 uppercase tracking-widest">Available Points</div>
+                        <div class="text-2xl font-black text-mystic-900 leading-none">@_viewModel.LoyaltyAccount.CurrentBalance.ToString("N0")</div>
                     </div>
                 </div>
             }
@@ -51,7 +51,7 @@ else if (_viewModel != null)
                     
                     @if (hasActiveSub && _viewModel.CurrentSubscription != null)
                     {
-                        <div class="relative overflow-hidden bg-slate-900 rounded-3xl p-8 text-white group shadow-xl">
+                        <div class="relative overflow-hidden bg-mystic-900 rounded-3xl p-8 text-white group shadow-xl">
                             <!-- Decorative element -->
                             <div class="absolute -right-20 -top-20 w-64 h-64 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors duration-500"></div>
                             
@@ -68,16 +68,16 @@ else if (_viewModel != null)
                                 
                                 <div class="grid grid-cols-2 gap-8 py-8 border-t border-white/10">
                                     <div>
-                                        <div class="text-slate-400 text-sm font-medium mb-1">Start Date</div>
+                                        <div class="text-mystic-400 text-sm font-medium mb-1">Start Date</div>
                                         <div class="text-lg font-bold">@_viewModel.CurrentSubscription.StartDate.ToString("MMM dd, yyyy")</div>
                                     </div>
                                     <div>
-                                        <div class="text-slate-400 text-sm font-medium mb-1">Expiry Date</div>
+                                        <div class="text-mystic-400 text-sm font-medium mb-1">Expiry Date</div>
                                         <div class="text-lg font-bold">@_viewModel.CurrentSubscription.ExpiryDate.ToString("MMM dd, yyyy")</div>
                                     </div>
                                 </div>
                                 
-                                <div class="pt-6 flex items-center gap-2 text-slate-400 text-sm italic">
+                                <div class="pt-6 flex items-center gap-2 text-mystic-400 text-sm italic">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                                     Pro-tip: Maintain your subscription to earn loyalty points every month!
                                 </div>
@@ -86,13 +86,13 @@ else if (_viewModel != null)
                     }
                     else
                     {
-                        <div class="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center">
-                            <div class="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                        <div class="bg-white border-2 border-dashed border-mystic-200 rounded-3xl p-12 text-center">
+                            <div class="bg-mystic-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-mystic-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                             </div>
-                            <h3 class="text-xl font-bold text-slate-900">No Active Subscription</h3>
-                            <p class="text-slate-500 mt-2 mb-8 max-w-xs mx-auto">Get a membership to borrow books and unlock premium library features.</p>
-                            <a href="Membership#plans" class="btn-primary px-8 py-3 rounded-xl shadow-lg shadow-slate-900/10">Browse Plans</a>
+                            <h3 class="text-xl font-bold text-mystic-900">No Active Subscription</h3>
+                            <p class="text-mystic-500 mt-2 mb-8 max-w-xs mx-auto">Get a membership to borrow books and unlock premium library features.</p>
+                            <a href="Membership#plans" class="btn-primary px-8 py-3 rounded-xl shadow-lg shadow-mystic-900/10">Browse Plans</a>
                         </div>
                     }
                 </section>
@@ -101,7 +101,7 @@ else if (_viewModel != null)
                 @if (_viewModel.QueuedMemberships.Any())
                 {
                     <section>
-                        <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <h2 class="text-xl font-bold text-mystic-900 mb-4 flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><path d="M10 10 2.5 2.5"/><path d="M21.5 2.5 14 10"/><path d="m21.5 21.5-7.5-7.5"/><path d="M10 14 2.5 21.5"/><circle cx="12" cy="12" r="3"/></svg>
                             Queued Memberships (@_viewModel.QueuedMemberships.Count)
                         </h2>
@@ -114,15 +114,15 @@ else if (_viewModel != null)
                                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                                         </div>
                                         <div>
-                                            <div class="font-bold text-slate-900">@queued.MembershipType Membership</div>
-                                            <div class="text-sm text-slate-500">
+                                            <div class="font-bold text-mystic-900">@queued.MembershipType Membership</div>
+                                            <div class="text-sm text-mystic-500">
                                                 Activates on @queued.StartDate.ToString("MMM dd, yyyy") &bull; Expires @queued.ExpiryDate.ToString("MMM dd, yyyy")
                                             </div>
                                         </div>
                                     </div>
                                     <div class="text-right">
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200 uppercase tracking-wider">Queued</span>
-                                        <div class="text-xs text-slate-400 mt-1">Will activate automatically</div>
+                                        <div class="text-xs text-mystic-400 mt-1">Will activate automatically</div>
                                     </div>
                                 </div>
                             }
@@ -133,8 +133,8 @@ else if (_viewModel != null)
 
             <!-- Right Side Panel: Benefits -->
             <div class="space-y-8">
-                <div class="bg-white border border-slate-100 rounded-3xl p-8 shadow-sm">
-                    <h3 class="text-lg font-bold text-slate-900 mb-6">Your Benefits</h3>
+                <div class="bg-white border border-mystic-100 rounded-3xl p-8 shadow-sm">
+                    <h3 class="text-lg font-bold text-mystic-900 mb-6">Your Benefits</h3>
                     <ul class="space-y-6">
                         @{
                             var currentPlan = _viewModel.AvailableMemberships.FirstOrDefault(m => hasActiveSub && _viewModel.CurrentSubscription != null && m.Type == _viewModel.CurrentSubscription.MembershipType);
@@ -142,15 +142,15 @@ else if (_viewModel != null)
                         <li class="flex gap-4">
                             <div class="shrink-0 h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">@((currentPlan?.MaxBooks ?? 1))</div>
                             <div>
-                                <div class="font-bold text-slate-900">Max Books</div>
-                                <div class="text-sm text-slate-500">Number of books you can borrow simultaneously.</div>
+                                <div class="font-bold text-mystic-900">Max Books</div>
+                                <div class="text-sm text-mystic-500">Number of books you can borrow simultaneously.</div>
                             </div>
                         </li>
                         <li class="flex gap-4">
                             <div class="shrink-0 h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-bold">@((currentPlan?.BorrowingDays ?? 14))</div>
                             <div>
-                                <div class="font-bold text-slate-900">Borrowing Days</div>
-                                <div class="text-sm text-slate-500">Duration you can keep each borrowed book.</div>
+                                <div class="font-bold text-mystic-900">Borrowing Days</div>
+                                <div class="text-sm text-mystic-500">Duration you can keep each borrowed book.</div>
                             </div>
                         </li>
                         <li class="flex gap-4">
@@ -158,13 +158,13 @@ else if (_viewModel != null)
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
                             </div>
                             <div>
-                                <div class="font-bold text-slate-900">Digital Access</div>
-                                <div class="text-sm text-slate-500">Browse and search the full library catalog online.</div>
+                                <div class="font-bold text-mystic-900">Digital Access</div>
+                                <div class="text-sm text-mystic-500">Browse and search the full library catalog online.</div>
                             </div>
                         </li>
                     </ul>
                     
-                    <div class="mt-10 p-5 bg-slate-900 rounded-2xl text-white text-center">
+                    <div class="mt-10 p-5 bg-mystic-900 rounded-2xl text-white text-center">
                         <p class="text-sm font-medium mb-3">Want more books?</p>
                         <a href="Membership#plans" class="text-sm font-bold text-indigo-400 hover:text-indigo-300 transition-colors">Upgrade Plan &rarr;</a>
                     </div>
@@ -175,8 +175,8 @@ else if (_viewModel != null)
         <!-- Explore All Plans Section -->
         <section id="plans" class="pt-10">
             <div class="text-center mb-10">
-                <h2 class="text-3xl font-black text-slate-900">Explore Membership Plans</h2>
-                <p class="text-slate-500 mt-2">Find the perfect library experience for your reading habits</p>
+                <h2 class="text-3xl font-black text-mystic-900">Explore Membership Plans</h2>
+                <p class="text-mystic-500 mt-2">Find the perfect library experience for your reading habits</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -184,33 +184,33 @@ else if (_viewModel != null)
                 {
                     var isCurrent = hasActiveSub && _viewModel.CurrentSubscription != null && plan.Type == _viewModel.CurrentSubscription.MembershipType;
                     
-                    <div class="group relative bg-white border @(isCurrent ? "border-slate-900 ring-2 ring-slate-900 ring-offset-2" : "border-slate-200") rounded-3xl p-8 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
+                    <div class="group relative bg-white border @(isCurrent ? "border-mystic-900 ring-2 ring-mystic-900 ring-offset-2" : "border-mystic-200") rounded-3xl p-8 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                         @if (isCurrent)
                         {
-                            <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">Current Plan</div>
+                            <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-mystic-900 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">Current Plan</div>
                         }
 
                         <div class="mb-8">
-                            <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-2">@plan.Type</h3>
+                            <h3 class="text-sm font-black text-mystic-400 uppercase tracking-widest mb-2">@plan.Type</h3>
                             <div class="flex items-baseline">
-                                <span class="text-3xl font-black text-slate-900">@plan.Price.ToString("N0")</span>
-                                <span class="text-slate-500 font-bold ml-1 text-sm uppercase">MMK</span>
+                                <span class="text-3xl font-black text-mystic-900">@plan.Price.ToString("N0")</span>
+                                <span class="text-mystic-500 font-bold ml-1 text-sm uppercase">MMK</span>
                             </div>
-                            <div class="text-slate-400 text-xs font-bold mt-1">/ @(plan.DurationMonths == 1 ? "Month" : $"{plan.DurationMonths} Months")</div>
+                            <div class="text-mystic-400 text-xs font-bold mt-1">/ @(plan.DurationMonths == 1 ? "Month" : $"{plan.DurationMonths} Months")</div>
                         </div>
 
                         <ul class="space-y-4 mb-10">
                             <li class="flex items-center gap-3 text-sm">
-                                <div class="h-5 w-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-900">
+                                <div class="h-5 w-5 rounded-full bg-mystic-100 flex items-center justify-center text-mystic-900">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                 </div>
-                                <span class="text-slate-600 font-bold">@plan.MaxBooks Books limit</span>
+                                <span class="text-mystic-600 font-bold">@plan.MaxBooks Books limit</span>
                             </li>
                             <li class="flex items-center gap-3 text-sm">
-                                <div class="h-5 w-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-900">
+                                <div class="h-5 w-5 rounded-full bg-mystic-100 flex items-center justify-center text-mystic-900">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                 </div>
-                                <span class="text-slate-600 font-bold">@plan.BorrowingDays Days keep</span>
+                                <span class="text-mystic-600 font-bold">@plan.BorrowingDays Days keep</span>
                             </li>
                             @if (!string.IsNullOrEmpty(plan.RewardId) && _viewModel.RewardPointCosts.TryGetValue(plan.RewardId, out var pointCost))
                             {
@@ -225,17 +225,17 @@ else if (_viewModel != null)
 
                         @if (isCurrent)
                         {
-                            <button disabled class="w-full py-4 rounded-2xl bg-slate-100 text-slate-400 font-bold text-sm cursor-not-allowed">Active Now</button>
+                            <button disabled class="w-full py-4 rounded-2xl bg-mystic-100 text-mystic-400 font-bold text-sm cursor-not-allowed">Active Now</button>
                         }
                         else
                         {
                             <div class="space-y-3">
-                                <a href="Borrowings" class="block w-full py-4 rounded-2xl bg-white border-2 border-slate-900 text-slate-900 text-center font-bold text-sm transition-all duration-200 hover:bg-slate-900 hover:text-white">Pay Cash</a>
+                                <a href="Borrowings" class="block w-full py-4 rounded-2xl bg-white border-2 border-mystic-900 text-mystic-900 text-center font-bold text-sm transition-all duration-200 hover:bg-mystic-900 hover:text-white">Pay Cash</a>
                                 
                                 @if (!string.IsNullOrEmpty(plan.RewardId) && _viewModel.RewardPointCosts.ContainsKey(plan.RewardId))
                                 {
                                     <button @onclick="() => RedeemMembership(plan.RewardId, plan.Type, _viewModel.RewardPointCosts[plan.RewardId])" 
-                                            class="w-full py-4 rounded-2xl bg-amber-400 text-slate-900 font-black text-sm hover:bg-amber-500 transition-all shadow-lg shadow-amber-400/20">
+                                            class="w-full py-4 rounded-2xl bg-amber-400 text-mystic-900 font-black text-sm hover:bg-amber-500 transition-all shadow-lg shadow-amber-400/20">
                                         Redeem with Points
                                     </button>
                                 }

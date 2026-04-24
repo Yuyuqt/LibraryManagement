@@ -21,18 +21,31 @@
                         sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
+                        mystic: {
+                            50: '#fcfbff',
+                            100: '#e3dfff', // Main Soft Lavender
+                            200: '#d3c0cd', // Muted Rose
+                            300: '#c1acb9',
+                            400: '#b19994', // Warm Taupe
+                            500: '#a3877d',
+                            600: '#937666', // Muted Brown
+                            700: '#7a5f51',
+                            800: '#5a4b5d',
+                            900: '#3d3a4b', // Dark Slate Purple
+                            950: '#2a2736',
+                        },
                         primary: {
-                            50: '#f8fafc',
-                            100: '#f1f5f9',
-                            200: '#e2e8f0',
-                            300: '#cbd5e1',
-                            400: '#94a3b8',
-                            500: '#64748b',
-                            600: '#475569',
-                            700: '#334155',
-                            800: '#1e293b',
-                            900: '#0f172a',
-                            950: '#020617',
+                            50: '#f4f4f6',
+                            100: '#e9e9ed',
+                            200: '#d3d2db',
+                            300: '#bdbcc9',
+                            400: '#908fa7',
+                            500: '#646285',
+                            600: '#5a5878',
+                            700: '#4b4a64',
+                            800: '#3d3a4b', // Using mystic-900 as primary base
+                            900: '#32303d',
+                            950: '#2a2736',
                         },
                     },
                 }
@@ -42,15 +55,16 @@
     
     <style type="text/tailwindcss">
         @@layer base {
-            body { @@apply text-slate-900 antialiased h-full; }
+            body { @@apply text-mystic-900 antialiased h-full bg-mystic-100/30; }
+            html { @@apply bg-mystic-100/30; }
         }
         @@layer components {
-            .nav-link { @@apply flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100; }
-            .nav-link.active { @@apply bg-slate-900 text-white hover:bg-slate-900 hover:text-white; }
+            .nav-link { @@apply flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors text-mystic-600 hover:text-mystic-900 hover:bg-mystic-200/50; }
+            .nav-link.active { @@apply bg-mystic-900 text-white hover:bg-mystic-900 hover:text-white; }
             
-            .card { @@apply bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden; }
-            .btn-primary { @@apply inline-flex items-center justify-center rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-slate-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50; }
-            .btn-secondary { @@apply inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50; }
+            .card { @@apply bg-white border border-mystic-200 rounded-xl shadow-sm overflow-hidden; }
+            .btn-primary { @@apply inline-flex items-center justify-center rounded-md bg-mystic-900 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-mystic-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-mystic-950 disabled:pointer-events-none disabled:opacity-50; }
+            .btn-secondary { @@apply inline-flex items-center justify-center rounded-md border border-mystic-200 bg-white px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-mystic-100 hover:text-mystic-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-mystic-950 disabled:pointer-events-none disabled:opacity-50; }
         }
     </style>
     
@@ -70,7 +84,7 @@
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             
-            const bgColor = type === 'success' ? 'bg-slate-900' : 'bg-red-600';
+            const bgColor = type === 'success' ? 'bg-mystic-900' : 'bg-red-600';
             const icon = type === 'success' 
                 ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
                 : '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';

@@ -11,13 +11,13 @@
 <PageTitle>Sign In</PageTitle>
 
 <div class="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl border border-slate-200 shadow-xl">
+    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl border border-mystic-200 shadow-xl">
         <div>
-            <div class="mx-auto h-12 w-12 bg-slate-900 rounded-xl flex items-center justify-center text-white mb-4">
+            <div class="mx-auto h-12 w-12 bg-mystic-900 rounded-xl flex items-center justify-center text-white mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
             </div>
-            <h2 class="text-center text-3xl font-extrabold text-slate-900 tracking-tight">Welcome back</h2>
-            <p class="mt-2 text-center text-sm text-slate-500">
+            <h2 class="text-center text-3xl font-extrabold text-mystic-900 tracking-tight">Welcome back</h2>
+            <p class="mt-2 text-center text-sm text-mystic-500">
                 Continue where you left off.
             </p>
         </div>
@@ -34,21 +34,21 @@
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
-                    <InputText @bind-Value="_loginRequest.Email" type="email" required class="appearance-none relative block w-full px-3 py-2 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-md focus:outline-none focus:ring-slate-900 focus:border-slate-900 focus:z-10 sm:text-sm" placeholder="name@example.com" />
+                    <label class="block text-sm font-medium text-mystic-700 mb-1">Email Address</label>
+                    <InputText @bind-Value="_loginRequest.Email" type="email" required class="appearance-none relative block w-full px-3 py-2 border border-mystic-300 placeholder-mystic-400 text-mystic-900 rounded-md focus:outline-none focus:ring-mystic-900 focus:border-mystic-900 focus:z-10 sm:text-sm" placeholder="name@example.com" />
                     <ValidationMessage For="@(() => _loginRequest.Email)" class="text-xs text-red-500 mt-1" />
                 </div>
                 <div>
                     <div class="flex items-center justify-between mb-1">
-                        <label class="block text-sm font-medium text-slate-700">Password</label>
+                        <label class="block text-sm font-medium text-mystic-700">Password</label>
                     </div>
-                    <InputText type="password" @bind-Value="_loginRequest.Password" required class="appearance-none relative block w-full px-3 py-2 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-md focus:outline-none focus:ring-slate-900 focus:border-slate-900 focus:z-10 sm:text-sm" placeholder="••••••••" />
+                    <InputText type="password" @bind-Value="_loginRequest.Password" required class="appearance-none relative block w-full px-3 py-2 border border-mystic-300 placeholder-mystic-400 text-mystic-900 rounded-md focus:outline-none focus:ring-mystic-900 focus:border-mystic-900 focus:z-10 sm:text-sm" placeholder="••••••••" />
                     <ValidationMessage For="@(() => _loginRequest.Password)" class="text-xs text-red-500 mt-1" />
                 </div>
             </div>
 
             <div>
-                <button type="submit" disabled="@_isLoading" class="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all disabled:opacity-50">
+                <button type="submit" disabled="@_isLoading" class="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-mystic-900 hover:bg-mystic-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mystic-900 transition-all disabled:opacity-50">
                     @if (_isLoading)
                     {
                         <span>Signing in...</span>
@@ -61,8 +61,8 @@
             </div>
             
             <div class="text-center">
-                <span class="text-sm text-slate-500">Don't have an account?</span>
-                <a href="/register" class="text-sm font-medium text-slate-900 hover:underline ml-1">Create one for free</a>
+                <span class="text-sm text-mystic-500">Don't have an account?</span>
+                <a href="/register" class="text-sm font-medium text-mystic-900 hover:underline ml-1">Create one for free</a>
             </div>
         </EditForm>
     </div>

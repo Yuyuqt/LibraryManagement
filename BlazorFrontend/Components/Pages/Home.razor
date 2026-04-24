@@ -9,14 +9,14 @@
 <PageTitle>Dashboard</PageTitle>
 
 <div class="mb-10 animate-in fade-in slide-in-from-top-4 duration-500">
-    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 border-b border-slate-100 pb-4 mb-2">Welcome Back</h1>
-    <p class="text-slate-500 font-medium">Here's what's happening with the library today.</p>
+    <h1 class="text-3xl font-extrabold tracking-tight text-mystic-900 border-b border-mystic-100 pb-4 mb-2">Welcome Back</h1>
+    <p class="text-mystic-500 font-medium">Here's what's happening with the library today.</p>
 </div>
 
 @if (_isLoading)
 {
     <div class="flex items-center justify-center min-h-[400px]">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div>
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-mystic-900"></div>
     </div>
 }
 else
@@ -56,38 +56,38 @@ else
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <div class="card p-6 flex flex-col gap-3 group hover:border-slate-300 transition-all duration-300">
+        <div class="card p-6 flex flex-col gap-3 group hover:border-mystic-300 transition-all duration-300">
             <div class="flex items-center justify-between">
-                <div class="p-2 bg-slate-50 rounded-lg group-hover:bg-slate-100 transition-colors">
-                    <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <div class="p-2 bg-mystic-50 rounded-lg group-hover:bg-mystic-100 transition-colors">
+                    <svg class="w-5 h-5 text-mystic-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                 </div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Books</span>
+                <span class="text-[10px] font-bold text-mystic-400 uppercase tracking-widest">Books</span>
             </div>
             <div>
-                <div class="text-3xl font-bold text-slate-900">@_totalBooks</div>
-                <div class="text-xs text-slate-500 mt-1 font-medium italic">Total in catalog</div>
+                <div class="text-3xl font-bold text-mystic-900">@_totalBooks</div>
+                <div class="text-xs text-mystic-500 mt-1 font-medium italic">Total in catalog</div>
             </div>
         </div>
 
-        <div class="card p-6 flex flex-col gap-3 group hover:border-slate-300 transition-all duration-300">
+        <div class="card p-6 flex flex-col gap-3 group hover:border-mystic-300 transition-all duration-300">
             <div class="flex items-center justify-between">
                 <div class="p-2 bg-emerald-50 rounded-lg group-hover:bg-emerald-100 transition-colors">
                     <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
                 </div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Loans</span>
+                <span class="text-[10px] font-bold text-mystic-400 uppercase tracking-widest">Active Loans</span>
             </div>
             <div>
-                <div class="text-3xl font-bold text-slate-900">@_activeLoans</div>
-                <div class="text-xs text-slate-500 mt-1 font-medium italic">Checking out right now</div>
+                <div class="text-3xl font-bold text-mystic-900">@_activeLoans</div>
+                <div class="text-xs text-mystic-500 mt-1 font-medium italic">Checking out right now</div>
             </div>
         </div>
 
-        <div class="card p-6 flex flex-col gap-3 group hover:border-slate-300 border-l-4 border-l-rose-500 transition-all duration-300">
+        <div class="card p-6 flex flex-col gap-3 group hover:border-mystic-300 border-l-4 border-l-rose-500 transition-all duration-300">
             <div class="flex items-center justify-between">
                 <div class="p-2 bg-rose-50 rounded-lg group-hover:bg-rose-100 transition-colors">
                     <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-rose-500">Overdue</span>
+                <span class="text-[10px] font-bold text-mystic-400 uppercase tracking-widest text-rose-500">Overdue</span>
             </div>
             <div>
                 <div class="text-3xl font-bold text-rose-600">@_overdueLoans</div>
@@ -95,16 +95,16 @@ else
             </div>
         </div>
 
-        <div class="card p-6 flex flex-col gap-3 group hover:border-slate-300 transition-all duration-300">
+        <div class="card p-6 flex flex-col gap-3 group hover:border-mystic-300 transition-all duration-300">
             <div class="flex items-center justify-between">
                 <div class="p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
                     <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                 </div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Members</span>
+                <span class="text-[10px] font-bold text-mystic-400 uppercase tracking-widest">Active Members</span>
             </div>
             <div>
-                <div class="text-3xl font-bold text-slate-900">@_totalMembers</div>
-                <div class="text-xs text-slate-500 mt-1 font-medium italic">In the community</div>
+                <div class="text-3xl font-bold text-mystic-900">@_totalMembers</div>
+                <div class="text-xs text-mystic-500 mt-1 font-medium italic">In the community</div>
             </div>
         </div>
     </div>
@@ -114,8 +114,8 @@ else
     {
         <div class="mb-12 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150">
             <div class="flex items-center justify-between mb-8">
-                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Recent Arrivals</h2>
-                <a href="Books" class="text-sm font-bold text-slate-500 hover:text-slate-900 flex items-center group">
+                <h2 class="text-2xl font-bold text-mystic-900 tracking-tight">Recent Arrivals</h2>
+                <a href="Books" class="text-sm font-bold text-mystic-500 hover:text-mystic-900 flex items-center group">
                     Browse All 
                     <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </a>
@@ -126,17 +126,17 @@ else
                 {
                     <div class="group cursor-pointer">
                         <a href="Books">
-                            <div class="aspect-[2/3] w-full bg-slate-100 rounded-xl mb-3 flex items-center justify-center text-slate-300 group-hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+                            <div class="aspect-[2/3] w-full bg-mystic-100 rounded-xl mb-3 flex items-center justify-center text-mystic-300 group-hover:shadow-lg transition-all duration-300 relative overflow-hidden">
                                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                                 @if (book.AvailableCopies <= 0)
                                 {
-                                    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center">
-                                        <span class="bg-white text-slate-900 text-[8px] font-bold uppercase px-2 py-1 rounded">Out</span>
+                                    <div class="absolute inset-0 bg-mystic-900/40 backdrop-blur-[1px] flex items-center justify-center">
+                                        <span class="bg-white text-mystic-900 text-[8px] font-bold uppercase px-2 py-1 rounded">Out</span>
                                     </div>
                                 }
                             </div>
-                            <h3 class="text-xs font-bold text-slate-900 truncate group-hover:text-amber-600 transition-colors">@book.Title</h3>
-                            <p class="text-[10px] text-slate-500 truncate mt-0.5 font-medium">@book.Author</p>
+                            <h3 class="text-xs font-bold text-mystic-900 truncate group-hover:text-mystic-600 transition-colors">@book.Title</h3>
+                            <p class="text-[10px] text-mystic-500 truncate mt-0.5 font-medium">@book.Author</p>
                         </a>
                     </div>
                 }
@@ -146,26 +146,26 @@ else
 
     <!-- Quick Actions -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-        <div class="bg-slate-900 text-white rounded-3xl p-8 flex flex-col justify-between overflow-hidden relative group">
+        <div class="bg-mystic-900 text-white rounded-3xl p-8 flex flex-col justify-between overflow-hidden relative group">
             <div class="relative z-10">
                 <h2 class="text-2xl font-bold mb-2">Explore the Library</h2>
-                <p class="text-slate-400 text-sm max-w-[280px]">Access thousands of books across all categories with a premium member account.</p>
+                <p class="text-mystic-400 text-sm max-w-[280px]">Access thousands of books across all categories with a premium member account.</p>
             </div>
             <div class="mt-8 relative z-10">
-                <a href="Books" class="inline-flex items-center bg-white text-slate-900 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-slate-100 transition-colors">
+                <a href="Books" class="inline-flex items-center bg-white text-mystic-900 px-6 py-2.5 rounded-full text-sm font-bold hover:bg-mystic-100 transition-colors">
                     View Catalog
                 </a>
             </div>
-            <svg class="absolute bottom-0 right-0 w-48 h-48 text-slate-800 -mb-12 -mr-12 opacity-50 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            <svg class="absolute bottom-0 right-0 w-48 h-48 text-mystic-800 -mb-12 -mr-12 opacity-50 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
         </div>
 
-        <div class="bg-amber-50 rounded-3xl p-8 flex flex-col justify-between group border border-amber-100">
+        <div class="bg-mystic-50 rounded-3xl p-8 flex flex-col justify-between group border border-mystic-100">
             <div>
-                <h2 class="text-2xl font-bold text-slate-900 mb-2">My Current Loans</h2>
-                <p class="text-slate-600 text-sm max-w-[280px]">Don't forget to return your books on time to avoid late fees.</p>
+                <h2 class="text-2xl font-bold text-mystic-900 mb-2">My Current Loans</h2>
+                <p class="text-mystic-600 text-sm max-w-[280px]">Don't forget to return your books on time to avoid late fees.</p>
             </div>
             <div class="mt-8">
-                <a href="Borrowings" class="inline-flex items-center text-slate-900 px-6 py-2.5 rounded-full text-sm font-bold border-2 border-slate-900 hover:bg-slate-900 hover:text-white transition-all">
+                <a href="Borrowings" class="inline-flex items-center text-mystic-900 px-6 py-2.5 rounded-full text-sm font-bold border-2 border-mystic-900 hover:bg-mystic-900 hover:text-white transition-all">
                     Manage My Loans
                 </a>
             </div>

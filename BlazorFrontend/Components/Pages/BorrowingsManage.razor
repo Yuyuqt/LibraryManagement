@@ -11,13 +11,13 @@
 <div class="mb-10 animate-in fade-in slide-in-from-top-4 duration-500">
     <div class="flex items-center justify-between mb-4">
         <div>
-            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 border-b border-slate-100 pb-4 mb-2">Manage All Borrowings</h1>
-            <p class="text-slate-500 font-medium">Monitor and process library loans across all members.</p>
+            <h1 class="text-3xl font-extrabold tracking-tight text-mystic-900 border-b border-mystic-100 pb-4 mb-2">Manage All Borrowings</h1>
+            <p class="text-mystic-500 font-medium">Monitor and process library loans across all members.</p>
         </div>
         <div class="flex gap-3">
-            <div class="card px-4 py-2 flex items-center gap-2 bg-slate-50 border-slate-200">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Active:</span>
-                <span class="text-lg font-bold text-slate-900">@_borrowings.Count(m => m.Status == "Borrowed")</span>
+            <div class="card px-4 py-2 flex items-center gap-2 bg-mystic-50 border-mystic-200">
+                <span class="text-xs font-bold text-mystic-400 uppercase tracking-widest">Total Active:</span>
+                <span class="text-lg font-bold text-mystic-900">@_borrowings.Count(m => m.Status == "Borrowed")</span>
             </div>
         </div>
     </div>
@@ -26,7 +26,7 @@
 @if (_isLoading)
 {
     <div class="py-20 flex justify-center">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-slate-900"></div>
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-mystic-900"></div>
     </div>
 }
 else
@@ -35,52 +35,52 @@ else
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200">
-                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Book & Loan Info</th>
-                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Member Details</th>
-                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Loan Dates</th>
-                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Status</th>
-                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fines</th>
-                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                    <tr class="bg-mystic-50 border-b border-mystic-200">
+                        <th class="px-6 py-4 text-[10px] font-bold text-mystic-400 uppercase tracking-widest">Book & Loan Info</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-mystic-400 uppercase tracking-widest">Member Details</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-mystic-400 uppercase tracking-widest">Loan Dates</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-mystic-400 uppercase tracking-widest text-center">Status</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-mystic-400 uppercase tracking-widest">Fines</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-mystic-400 uppercase tracking-widest text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-mystic-100">
                     @if (!_borrowings.Any())
                     {
                         <tr>
-                            <td colspan="6" class="px-6 py-16 text-center text-slate-400 italic bg-white">
+                            <td colspan="6" class="px-6 py-16 text-center text-mystic-400 italic bg-white">
                                 No borrowing records found in the system.
                             </td>
                         </tr>
                     }
                     @foreach (var loan in _borrowings.OrderByDescending(l => l.BorrowDate))
                     {
-                        <tr class="hover:bg-slate-50/80 transition-colors">
+                        <tr class="hover:bg-mystic-50/80 transition-colors">
                             <td class="px-6 py-5">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-10 h-14 bg-slate-900/5 rounded-lg flex items-center justify-center text-slate-400 border border-slate-100">
+                                    <div class="w-10 h-14 bg-mystic-900/5 rounded-lg flex items-center justify-center text-mystic-400 border border-mystic-100">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="text-sm font-bold text-slate-900 truncate mb-0.5">@loan.BookTitle</p>
-                                        <p class="text-[10px] font-mono text-slate-400 uppercase tracking-tight">ID: #@loan.Id</p>
+                                        <p class="text-sm font-bold text-mystic-900 truncate mb-0.5">@loan.BookTitle</p>
+                                        <p class="text-[10px] font-mono text-mystic-400 uppercase tracking-tight">ID: #@loan.Id</p>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-5">
                                 <div class="flex flex-col gap-1">
-                                    <p class="text-sm font-semibold text-slate-800">@loan.UserEmail</p>
-                                    <p class="text-[10px] text-slate-500 font-medium tracking-wide">UID: #@loan.UserId</p>
+                                    <p class="text-sm font-semibold text-mystic-800">@loan.UserEmail</p>
+                                    <p class="text-[10px] text-mystic-500 font-medium tracking-wide">UID: #@loan.UserId</p>
                                 </div>
                             </td>
                             <td class="px-6 py-5">
                                 <div class="grid gap-1">
                                     <div class="flex items-center gap-2 text-[11px]">
-                                        <span class="text-slate-400 w-12">Out:</span>
-                                        <span class="font-bold text-slate-700">@loan.BorrowDate.ToString("MMM dd, yyyy")</span>
+                                        <span class="text-mystic-400 w-12">Out:</span>
+                                        <span class="font-bold text-mystic-700">@loan.BorrowDate.ToString("MMM dd, yyyy")</span>
                                     </div>
                                     <div class="flex items-center gap-2 text-[11px]">
-                                        <span class="text-slate-400 w-12">Due:</span>
+                                        <span class="text-mystic-400 w-12">Due:</span>
                                         @{
                                             var isOverdue = loan.DueDate < DateTime.Now && loan.Status == "Borrowed";
                                         }
@@ -89,7 +89,7 @@ else
                                     @if (loan.ReturnDate.HasValue)
                                     {
                                         <div class="flex items-center gap-2 text-[11px]">
-                                            <span class="text-slate-400 w-12">Back:</span>
+                                            <span class="text-mystic-400 w-12">Back:</span>
                                             <span class="font-bold text-emerald-600">@loan.ReturnDate.Value.ToString("MMM dd, yyyy")</span>
                                         </div>
                                     }
@@ -107,7 +107,7 @@ else
                                 @if (loan.FineAmount > 0)
                                 {
                                     <div class="flex flex-col">
-                                        <span class="text-sm font-extrabold @(loan.IsFinePaid ? "text-slate-400 line-through" : "text-rose-600")">
+                                        <span class="text-sm font-extrabold @(loan.IsFinePaid ? "text-mystic-400 line-through" : "text-rose-600")">
                                             MMK @loan.FineAmount.ToString("N0")
                                         </span>
                                         @if (loan.IsFinePaid)
@@ -122,7 +122,7 @@ else
                                 }
                                 else
                                 {
-                                    <span class="text-[10px] text-slate-300 font-bold italic">No Fines</span>
+                                    <span class="text-[10px] text-mystic-300 font-bold italic">No Fines</span>
                                 }
                             </td>
                             <td class="px-6 py-5 text-right">
@@ -137,7 +137,7 @@ else
                                 else if (loan.Status == "Borrowed")
                                 {
                                     <button @onclick="() => ForceReturnAsync(loan)"
-                                            class="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-800 transition-all shadow-sm active:scale-95">
+                                            class="inline-flex items-center gap-2 bg-mystic-900 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-mystic-800 transition-all shadow-sm active:scale-95">
                                         Process Return
                                     </button>
                                 }

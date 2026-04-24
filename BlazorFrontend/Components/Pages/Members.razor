@@ -14,10 +14,10 @@
 {
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
         <div>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900">Members Directory</h1>
-            <p class="mt-2 text-slate-500">
+            <h1 class="text-3xl font-bold tracking-tight text-mystic-900">Members Directory</h1>
+            <p class="mt-2 text-mystic-500">
                 Manage library members and administrator accounts.
-                <span class="ml-2 text-xs text-slate-400">(@(_allUsers?.Count() ?? 0) total)</span>
+                <span class="ml-2 text-xs text-mystic-400">(@(_allUsers?.Count() ?? 0) total)</span>
             </p>
         </div>
         <div class="flex items-center gap-3">
@@ -31,46 +31,46 @@
     @if (_isLoading)
     {
         <div class="flex items-center justify-center min-h-[400px]">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-mystic-900"></div>
         </div>
     }
     else if (_pagedResult != null)
     {
         <div class="card overflow-hidden animate-in fade-in duration-700">
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200">
-                    <thead class="bg-slate-50">
+                <table class="min-w-full divide-y divide-mystic-200">
+                    <thead class="bg-mystic-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Member</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Role</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-mystic-500 uppercase tracking-wider">Member</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-mystic-500 uppercase tracking-wider">Contact</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-mystic-500 uppercase tracking-wider">Role</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-mystic-500 uppercase tracking-wider">Status</th>
                             <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-slate-200">
+                    <tbody class="bg-white divide-y divide-mystic-200">
                         @foreach (var user in _pagedResult.Items)
                         {
-                            <tr class="hover:bg-slate-50 transition-colors">
+                            <tr class="hover:bg-mystic-50 transition-colors">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <div class="h-10 w-10 flex-shrink-0 rounded-full bg-slate-900 flex items-center justify-center text-white font-bold text-sm">
+                                        <div class="h-10 w-10 flex-shrink-0 rounded-full bg-mystic-900 flex items-center justify-center text-white font-bold text-sm">
                                             @(user.FullName?.Substring(0, Math.Min(2, user.FullName.Length)).ToUpper() ?? "U")
                                         </div>
                                         <div class="ml-4">
-                                            <div class="text-sm font-medium text-slate-900">
+                                            <div class="text-sm font-medium text-mystic-900">
                                                 <button @onclick="() => ShowDetails(user.Id)" class="hover:underline text-left">@user.FullName</button>
                                             </div>
                                             @if (!string.IsNullOrEmpty(user.StudentId))
                                             {
-                                                <div class="text-xs text-slate-500">ID: @user.StudentId</div>
+                                                <div class="text-xs text-mystic-500">ID: @user.StudentId</div>
                                             }
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-slate-900">@user.Email</div>
-                                    <div class="text-xs text-slate-500">@(string.IsNullOrEmpty(user.PhoneNumber) ? "No phone" : user.PhoneNumber)</div>
+                                    <div class="text-sm text-mystic-900">@user.Email</div>
+                                    <div class="text-xs text-mystic-500">@(string.IsNullOrEmpty(user.PhoneNumber) ? "No phone" : user.PhoneNumber)</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 @(user.Role == "Admin" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800")">
@@ -92,14 +92,14 @@
                                     }
                                     else
                                     {
-                                        <span class="inline-flex rounded-full bg-slate-100 px-2 text-xs font-semibold leading-5 text-slate-800">
+                                        <span class="inline-flex rounded-full bg-mystic-100 px-2 text-xs font-semibold leading-5 text-mystic-800">
                                             Inactive
                                         </span>
                                     }
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex items-center justify-end gap-3">
-                                        <button @onclick="() => ShowDetails(user.Id)" class="text-slate-600 hover:text-slate-900 transition-colors">Details</button>
+                                        <button @onclick="() => ShowDetails(user.Id)" class="text-mystic-600 hover:text-mystic-900 transition-colors">Details</button>
                                         <button @onclick="() => ShowEdit(user.Id)" class="text-indigo-600 hover:text-indigo-900 transition-colors">Edit</button>
                                     </div>
                                 </td>
@@ -112,17 +112,17 @@
             @* Pagination *@
             @if (_pagedResult.TotalPages > 1)
             {
-                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-white">
-                    <p class="text-sm text-slate-500">
-                        Showing <span class="font-medium text-slate-700">@((_pagedResult.CurrentPage - 1) * _pagedResult.PageSize + 1)</span>
+                <div class="px-6 py-4 border-t border-mystic-200 flex items-center justify-between bg-white">
+                    <p class="text-sm text-mystic-500">
+                        Showing <span class="font-medium text-mystic-700">@((_pagedResult.CurrentPage - 1) * _pagedResult.PageSize + 1)</span>
                         –
-                        <span class="font-medium text-slate-700">@(Math.Min(_pagedResult.CurrentPage * _pagedResult.PageSize, _pagedResult.TotalCount))</span>
-                        of <span class="font-medium text-slate-700">@_pagedResult.TotalCount</span> members
+                        <span class="font-medium text-mystic-700">@(Math.Min(_pagedResult.CurrentPage * _pagedResult.PageSize, _pagedResult.TotalCount))</span>
+                        of <span class="font-medium text-mystic-700">@_pagedResult.TotalCount</span> members
                     </p>
                     <nav class="flex items-center gap-1" aria-label="Pagination">
                         @* Previous *@
                         <button @onclick="() => ChangePage(_pagedResult.CurrentPage - 1)" disabled="@(!_pagedResult.HasPreviousPage)"
-                                class="inline-flex items-center px-3 py-1.5 rounded-md border @(_pagedResult.HasPreviousPage ? "border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900" : "border-slate-100 text-slate-300 cursor-not-allowed") text-sm font-medium transition-colors">
+                                class="inline-flex items-center px-3 py-1.5 rounded-md border @(_pagedResult.HasPreviousPage ? "border-mystic-200 text-mystic-600 hover:bg-mystic-50 hover:text-mystic-900" : "border-mystic-100 text-mystic-300 cursor-not-allowed") text-sm font-medium transition-colors">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                             </svg>
@@ -135,22 +135,22 @@
                             var pageNumber = p;
                             if (p == _pagedResult.CurrentPage)
                             {
-                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-slate-900 text-white text-sm font-semibold">@p</span>
+                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-mystic-900 text-white text-sm font-semibold">@p</span>
                             }
                             else if (p == 1 || p == _pagedResult.TotalPages || (p >= _pagedResult.CurrentPage - 2 && p <= _pagedResult.CurrentPage + 2))
                             {
                                 <button @onclick="() => ChangePage(pageNumber)"
-                                        class="inline-flex items-center justify-center w-8 h-8 rounded-md border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">@p</button>
+                                        class="inline-flex items-center justify-center w-8 h-8 rounded-md border border-mystic-200 text-sm font-medium text-mystic-600 hover:bg-mystic-50 hover:text-mystic-900 transition-colors">@p</button>
                             }
                             else if (p == _pagedResult.CurrentPage - 3 || p == _pagedResult.CurrentPage + 3)
                             {
-                                <span class="inline-flex items-center justify-center w-8 h-8 text-sm text-slate-400">…</span>
+                                <span class="inline-flex items-center justify-center w-8 h-8 text-sm text-mystic-400">…</span>
                             }
                         }
 
                         @* Next *@
                         <button @onclick="() => ChangePage(_pagedResult.CurrentPage + 1)" disabled="@(!_pagedResult.HasNextPage)"
-                                class="inline-flex items-center px-3 py-1.5 rounded-md border @(_pagedResult.HasNextPage ? "border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900" : "border-slate-100 text-slate-300 cursor-not-allowed") text-sm font-medium transition-colors">
+                                class="inline-flex items-center px-3 py-1.5 rounded-md border @(_pagedResult.HasNextPage ? "border-mystic-200 text-mystic-600 hover:bg-mystic-50 hover:text-mystic-900" : "border-mystic-100 text-mystic-300 cursor-not-allowed") text-sm font-medium transition-colors">
                             Next
                             <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -165,14 +165,14 @@
 else if (_currentView == ViewMode.Details && _selectedUser != null)
 {
     <div class="animate-in fade-in slide-in-from-left-4 duration-500">
-        <button @onclick="BackToList" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 mb-6 group">
+        <button @onclick="BackToList" class="inline-flex items-center text-sm font-medium text-mystic-500 hover:text-mystic-900 mb-6 group">
             <svg class="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Back to Directory
         </button>
         
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
             <div class="lg:col-span-1">
-                <div class="aspect-square w-full rounded-2xl bg-slate-900 flex flex-col items-center justify-center text-white p-6 shadow-xl">
+                <div class="aspect-square w-full rounded-2xl bg-mystic-900 flex flex-col items-center justify-center text-white p-6 shadow-xl">
                     <div class="text-6xl font-black mb-4 tracking-tighter">
                         @(_selectedUser.User.FullName?.Substring(0, Math.Min(2, _selectedUser.User.FullName.Length)).ToUpper() ?? "U")
                     </div>
@@ -185,7 +185,7 @@ else if (_currentView == ViewMode.Details && _selectedUser != null)
 
             <div class="lg:col-span-2 space-y-8">
                 <div>
-                    <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Member Profile</h1>
+                    <h1 class="text-4xl font-extrabold text-mystic-900 tracking-tight mb-2">Member Profile</h1>
                     <div class="flex items-center gap-3">
                         @if (_selectedUser.User.BanStatus == true)
                         {
@@ -198,31 +198,31 @@ else if (_currentView == ViewMode.Details && _selectedUser != null)
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 border-y border-slate-100 py-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 border-y border-mystic-100 py-6">
                     <div>
-                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Email</h4>
-                        <p class="text-sm font-semibold text-slate-900">@_selectedUser.User.Email</p>
+                        <h4 class="text-[10px] font-bold text-mystic-400 uppercase tracking-widest mb-1">Email</h4>
+                        <p class="text-sm font-semibold text-mystic-900">@_selectedUser.User.Email</p>
                     </div>
                     <div>
-                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Phone</h4>
-                        <p class="text-sm font-semibold text-slate-900">@(string.IsNullOrEmpty(_selectedUser.User.PhoneNumber) ? "-" : _selectedUser.User.PhoneNumber)</p>
+                        <h4 class="text-[10px] font-bold text-mystic-400 uppercase tracking-widest mb-1">Phone</h4>
+                        <p class="text-sm font-semibold text-mystic-900">@(string.IsNullOrEmpty(_selectedUser.User.PhoneNumber) ? "-" : _selectedUser.User.PhoneNumber)</p>
                     </div>
                     <div>
-                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Student ID</h4>
-                        <p class="text-sm font-semibold text-slate-900">@(string.IsNullOrEmpty(_selectedUser.User.StudentId) ? "-" : _selectedUser.User.StudentId)</p>
+                        <h4 class="text-[10px] font-bold text-mystic-400 uppercase tracking-widest mb-1">Student ID</h4>
+                        <p class="text-sm font-semibold text-mystic-900">@(string.IsNullOrEmpty(_selectedUser.User.StudentId) ? "-" : _selectedUser.User.StudentId)</p>
                     </div>
                     <div>
-                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Joined</h4>
-                        <p class="text-sm font-semibold text-slate-900">@_selectedUser.User.CreatedAt.ToString("MMM dd, yyyy")</p>
+                        <h4 class="text-[10px] font-bold text-mystic-400 uppercase tracking-widest mb-1">Joined</h4>
+                        <p class="text-sm font-semibold text-mystic-900">@_selectedUser.User.CreatedAt.ToString("MMM dd, yyyy")</p>
                     </div>
                     <div class="sm:col-span-2">
-                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Address</h4>
-                        <p class="text-sm font-semibold text-slate-900">@(string.IsNullOrEmpty(_selectedUser.User.Address) ? "-" : _selectedUser.User.Address)</p>
+                        <h4 class="text-[10px] font-bold text-mystic-400 uppercase tracking-widest mb-1">Address</h4>
+                        <p class="text-sm font-semibold text-mystic-900">@(string.IsNullOrEmpty(_selectedUser.User.Address) ? "-" : _selectedUser.User.Address)</p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-4 pt-4 flex-wrap">
-                    <button @onclick="() => ShowEdit(_selectedUser.User.Id)" class="btn-primary py-3 px-8 text-base shadow-lg shadow-slate-200">Edit Details</button>
+                    <button @onclick="() => ShowEdit(_selectedUser.User.Id)" class="btn-primary py-3 px-8 text-base shadow-lg shadow-mystic-200">Edit Details</button>
                     
                     <button @onclick="UpdateRole" class="btn-secondary py-3 px-8 text-base">
                         Make @(_selectedUser.User.Role == "Admin" ? "Member" : "Admin")
@@ -234,8 +234,8 @@ else if (_currentView == ViewMode.Details && _selectedUser != null)
                 </div>
                 
                 <!-- Subscription Management -->
-                <div class="mt-8 pt-8 border-t border-slate-100">
-                    <h3 class="text-2xl font-bold text-slate-900 mb-6">Manage Subscription</h3>
+                <div class="mt-8 pt-8 border-t border-mystic-100">
+                    <h3 class="text-2xl font-bold text-mystic-900 mb-6">Manage Subscription</h3>
                     
                     @if (_selectedUser.CurrentSubscription != null && _selectedUser.CurrentSubscription.IsActive)
                     {
@@ -254,23 +254,23 @@ else if (_currentView == ViewMode.Details && _selectedUser != null)
                     }
                     else
                     {
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
-                            <p class="text-slate-600 font-medium">No active subscription for this member.</p>
+                        <div class="bg-mystic-50 border border-mystic-200 rounded-xl p-4 mb-6">
+                            <p class="text-mystic-600 font-medium">No active subscription for this member.</p>
                         </div>
                     }
 
-                    <h4 class="text-lg font-semibold text-slate-900 mb-4">Assign New Plan</h4>
+                    <h4 class="text-lg font-semibold text-mystic-900 mb-4">Assign New Plan</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                         @foreach (var plan in _selectedUser.AvailableMemberships)
                         {
                             var isCurrent = _selectedUser.CurrentSubscription?.IsActive == true && _selectedUser.CurrentSubscription.MembershipId == plan.Id;
-                            <div class="card p-4 relative @(isCurrent ? "ring-2 ring-slate-900 border-slate-900" : "")">
+                            <div class="card p-4 relative @(isCurrent ? "ring-2 ring-mystic-900 border-mystic-900" : "")">
                                 @if (isCurrent)
                                 {
-                                    <div class="absolute top-0 right-0 -mt-2 -mr-2 bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded-md">Current</div>
+                                    <div class="absolute top-0 right-0 -mt-2 -mr-2 bg-mystic-900 text-white text-xs font-bold px-2 py-1 rounded-md">Current</div>
                                 }
-                                <h5 class="font-bold text-slate-900 text-lg mb-1">@plan.Type</h5>
-                                <p class="text-slate-500 font-medium text-sm mb-4">@plan.Price.ToString("N0") MMK / @plan.DurationMonths mo</p>
+                                <h5 class="font-bold text-mystic-900 text-lg mb-1">@plan.Type</h5>
+                                <p class="text-mystic-500 font-medium text-sm mb-4">@plan.Price.ToString("N0") MMK / @plan.DurationMonths mo</p>
                                 
                                 @if (!isCurrent)
                                 {
@@ -291,15 +291,15 @@ else if (_currentView == ViewMode.Details && _selectedUser != null)
 else if (_currentView == ViewMode.Create || _currentView == ViewMode.Edit)
 {
     <div class="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <button @onclick="BackToList" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 mb-6 group">
+        <button @onclick="BackToList" class="inline-flex items-center text-sm font-medium text-mystic-500 hover:text-mystic-900 mb-6 group">
             <svg class="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Back to Directory
         </button>
 
         <div class="max-w-3xl mx-auto">
             <div class="mb-8">
-                <h1 class="text-3xl font-bold tracking-tight text-slate-900">@(_currentView == ViewMode.Create ? "Add New Member" : "Edit Member Details")</h1>
-                <p class="mt-2 text-slate-500">@(_currentView == ViewMode.Create ? "Register a new member to the library system." : $"Update details for {_editUser?.FullName}.")</p>
+                <h1 class="text-3xl font-bold tracking-tight text-mystic-900">@(_currentView == ViewMode.Create ? "Add New Member" : "Edit Member Details")</h1>
+                <p class="mt-2 text-mystic-500">@(_currentView == ViewMode.Create ? "Register a new member to the library system." : $"Update details for {_editUser?.FullName}.")</p>
             </div>
 
             <div class="card p-6 sm:p-8">
@@ -309,46 +309,46 @@ else if (_currentView == ViewMode.Create || _currentView == ViewMode.Edit)
                         <DataAnnotationsValidator />
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div class="sm:col-span-2">
-                                <label class="block text-sm font-medium text-slate-700">Full Name <span class="text-rose-500">*</span></label>
+                                <label class="block text-sm font-medium text-mystic-700">Full Name <span class="text-rose-500">*</span></label>
                                 <div class="mt-1">
-                                    <InputText @bind-Value="_createRequest.FullName" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" placeholder="John Doe" />
+                                    <InputText @bind-Value="_createRequest.FullName" class="block w-full rounded-md border-mystic-300 shadow-sm focus:border-mystic-900 focus:ring-mystic-900 sm:text-sm px-3 py-2 border bg-white" placeholder="John Doe" />
                                     <ValidationMessage For="@(() => _createRequest.FullName)" class="mt-1 text-xs text-rose-500" />
                                 </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700">Email Address <span class="text-rose-500">*</span></label>
+                             <div>
+                                <label class="block text-sm font-medium text-mystic-700">Email Address <span class="text-rose-500">*</span></label>
                                 <div class="mt-1">
-                                    <InputText @bind-Value="_createRequest.Email" type="email" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" placeholder="you@domain.com" />
+                                    <InputText @bind-Value="_createRequest.Email" type="email" class="block w-full rounded-md border-mystic-300 shadow-sm focus:border-mystic-900 focus:ring-mystic-900 sm:text-sm px-3 py-2 border bg-white" placeholder="you@domain.com" />
                                     <ValidationMessage For="@(() => _createRequest.Email)" class="mt-1 text-xs text-rose-500" />
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700">Password <span class="text-rose-500">*</span></label>
+                                <label class="block text-sm font-medium text-mystic-700">Password <span class="text-rose-500">*</span></label>
                                 <div class="mt-1">
-                                    <InputText @bind-Value="_createRequest.Password" type="password" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" />
+                                    <InputText @bind-Value="_createRequest.Password" type="password" class="block w-full rounded-md border-mystic-300 shadow-sm focus:border-mystic-900 focus:ring-mystic-900 sm:text-sm px-3 py-2 border bg-white" />
                                     <ValidationMessage For="@(() => _createRequest.Password)" class="mt-1 text-xs text-rose-500" />
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700">Phone Number</label>
+                                <label class="block text-sm font-medium text-mystic-700">Phone Number</label>
                                 <div class="mt-1">
-                                    <InputText @bind-Value="_createRequest.PhoneNumber" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" placeholder="+123456789" />
+                                    <InputText @bind-Value="_createRequest.PhoneNumber" class="block w-full rounded-md border-mystic-300 shadow-sm focus:border-mystic-900 focus:ring-mystic-900 sm:text-sm px-3 py-2 border bg-white" placeholder="+123456789" />
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700">Student ID</label>
+                                <label class="block text-sm font-medium text-mystic-700">Student ID</label>
                                 <div class="mt-1">
-                                    <InputText @bind-Value="_createRequest.StudentId" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" placeholder="Optional" />
+                                    <InputText @bind-Value="_createRequest.StudentId" class="block w-full rounded-md border-mystic-300 shadow-sm focus:border-mystic-900 focus:ring-mystic-900 sm:text-sm px-3 py-2 border bg-white" placeholder="Optional" />
                                 </div>
                             </div>
                             <div class="sm:col-span-2">
-                                <label class="block text-sm font-medium text-slate-700">Address</label>
+                                <label class="block text-sm font-medium text-mystic-700">Address</label>
                                 <div class="mt-1">
-                                    <InputTextArea @bind-Value="_createRequest.Address" rows="3" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" placeholder="Full address details" />
+                                    <InputTextArea @bind-Value="_createRequest.Address" rows="3" class="block w-full rounded-md border-mystic-300 shadow-sm focus:border-mystic-900 focus:ring-mystic-900 sm:text-sm px-3 py-2 border bg-white" placeholder="Full address details" />
                                 </div>
                             </div>
                         </div>
-                        <div class="pt-5 border-t border-slate-100 flex justify-end gap-3">
+                        <div class="pt-5 border-t border-mystic-100 flex justify-end gap-3">
                             <button type="button" @onclick="BackToList" class="btn-secondary">Cancel</button>
                             <button type="submit" class="btn-primary">Create Member</button>
                         </div>
@@ -360,32 +360,32 @@ else if (_currentView == ViewMode.Create || _currentView == ViewMode.Edit)
                         <DataAnnotationsValidator />
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div class="sm:col-span-2">
-                                <label class="block text-sm font-medium text-slate-700">Full Name <span class="text-rose-500">*</span></label>
+                                <label class="block text-sm font-medium text-mystic-700">Full Name <span class="text-rose-500">*</span></label>
                                 <div class="mt-1">
-                                    <InputText @bind-Value="_updateRequest.FullName" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" />
+                                    <InputText @bind-Value="_updateRequest.FullName" class="block w-full rounded-md border-mystic-300 shadow-sm focus:border-mystic-900 focus:ring-mystic-900 sm:text-sm px-3 py-2 border bg-white" />
                                     <ValidationMessage For="@(() => _updateRequest.FullName)" class="mt-1 text-xs text-rose-500" />
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700">Phone Number</label>
+                                <label class="block text-sm font-medium text-mystic-700">Phone Number</label>
                                 <div class="mt-1">
-                                    <InputText @bind-Value="_updateRequest.PhoneNumber" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" />
+                                    <InputText @bind-Value="_updateRequest.PhoneNumber" class="block w-full rounded-md border-mystic-300 shadow-sm focus:border-mystic-900 focus:ring-mystic-900 sm:text-sm px-3 py-2 border bg-white" />
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700">Student ID</label>
+                                <label class="block text-sm font-medium text-mystic-700">Student ID</label>
                                 <div class="mt-1">
-                                    <InputText @bind-Value="_updateRequest.StudentId" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" />
+                                    <InputText @bind-Value="_updateRequest.StudentId" class="block w-full rounded-md border-mystic-300 shadow-sm focus:border-mystic-900 focus:ring-mystic-900 sm:text-sm px-3 py-2 border bg-white" />
                                 </div>
                             </div>
                             <div class="sm:col-span-2">
-                                <label class="block text-sm font-medium text-slate-700">Address</label>
+                                <label class="block text-sm font-medium text-mystic-700">Address</label>
                                 <div class="mt-1">
-                                    <InputTextArea @bind-Value="_updateRequest.Address" rows="3" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm px-3 py-2 border bg-white" />
+                                    <InputTextArea @bind-Value="_updateRequest.Address" rows="3" class="block w-full rounded-md border-mystic-300 shadow-sm focus:border-mystic-900 focus:ring-mystic-900 sm:text-sm px-3 py-2 border bg-white" />
                                 </div>
                             </div>
                         </div>
-                        <div class="pt-5 border-t border-slate-100 flex justify-end gap-3">
+                        <div class="pt-5 border-t border-mystic-100 flex justify-end gap-3">
                             <button type="button" @onclick="BackToList" class="btn-secondary">Cancel</button>
                             <button type="submit" class="btn-primary">Update Member</button>
                         </div>
