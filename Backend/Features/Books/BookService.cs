@@ -61,6 +61,7 @@ namespace Backend.Features.Books
                 Description = request.Description,
                 TotalCopies = request.TotalCopies,
                 AvailableCopies = request.TotalCopies,
+                CoverUrl = request.CoverUrl,
                 Status = request.TotalCopies > 0 ? "Available" : "Out Of Stock",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -92,6 +93,7 @@ namespace Backend.Features.Books
             book.Title = request.Title;
             book.Author = request.Author;
             book.Description = request.Description;
+            book.CoverUrl = request.CoverUrl;
             
             // Basic logic to sync availability when total copies change
             int difference = request.TotalCopies - book.TotalCopies;
@@ -145,6 +147,7 @@ namespace Backend.Features.Books
                 AvailableCopies = book.AvailableCopies,
                 CreatedAt = book.CreatedAt,
                 UpdatedAt = book.UpdatedAt,
+                CoverUrl = book.CoverUrl,
                 Categories = book.Categories.Select(c => new BookCategoryDto { Id = c.Id, Name = c.Name }).ToList()
             };
         }
@@ -163,6 +166,7 @@ namespace Backend.Features.Books
         public int AvailableCopies { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public string? CoverUrl { get; set; }
         public List<BookCategoryDto> Categories { get; set; } = new();
     }
 
@@ -179,6 +183,7 @@ namespace Backend.Features.Books
         public string Author { get; set; } = string.Empty;
         public string? Description { get; set; }
         public int TotalCopies { get; set; }
+        public string? CoverUrl { get; set; }
         public List<int>? CategoryIds { get; set; }
     }
 
@@ -188,6 +193,7 @@ namespace Backend.Features.Books
         public string Author { get; set; } = string.Empty;
         public string? Description { get; set; }
         public int TotalCopies { get; set; }
+        public string? CoverUrl { get; set; }
         public List<int>? CategoryIds { get; set; }
     }
 }

@@ -27,7 +27,16 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
             var handler = new JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(Token);
 
-            var identity = new ClaimsIdentity(jwt.Claims, "jwt");
+            // JwtSecurityTokenHandler maps standard ClaimTypes to short names (unique_name, role) in the JWT payload.
+            // When reading back raw claims, we need to specify which claim types to use for the Identity properties.
+            var identity = new ClaimsIdentity(jwt.Claims, "jwt", "unique_name", "role");
+            
+            // If unique_name is not present, fallback to "name" or default ClaimTypes.Name
+            if (identity.Name == null)
+            {
+                identity = new ClaimsIdentity(jwt.Claims, "jwt", "name", "role");
+            }
+
             var user = new ClaimsPrincipal(identity);
 
             return Task.FromResult(new AuthenticationState(user));
