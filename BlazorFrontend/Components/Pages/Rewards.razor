@@ -14,10 +14,10 @@
     @if (_account != null)
     {
         <div class="flex items-center gap-4">
-            <div class="text-center bg-amber-50 border border-amber-200 px-6 py-3 rounded-2xl shadow-sm">
-                <p class="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Balance</p>
-                <p class="text-2xl font-black text-mystic-900">@_account.CurrentBalance.ToString("N0")</p>
-                <p class="text-xs text-amber-600 font-semibold">Points</p>
+            <div class="text-center bg-mystic-900 text-white px-6 py-3 rounded-2xl shadow-lg border border-white/5">
+                <p class="text-[10px] font-bold text-mystic-200 uppercase tracking-widest">Balance</p>
+                <p class="text-2xl font-black">@_account.CurrentBalance.ToString("N0")</p>
+                <p class="text-xs text-mystic-300 font-semibold">Points</p>
             </div>
             <div class="text-center bg-mystic-50 border border-mystic-200 px-6 py-3 rounded-2xl shadow-sm">
                 <p class="text-[10px] font-bold text-mystic-500 uppercase tracking-widest">Tier</p>
@@ -48,7 +48,7 @@
             </span>
             @if (_pendingRedemptions.Any())
             {
-                <span class="ml-1 inline-flex items-center justify-center w-5 h-5 text-[10px] font-black rounded-full bg-amber-400 text-mystic-900">@_pendingRedemptions.Count()</span>
+                <span class="ml-1 inline-flex items-center justify-center w-5 h-5 text-[10px] font-black rounded-full bg-mystic-900 text-white">@_pendingRedemptions.Count()</span>
             }
         </button>
         <button @onclick='() => _activeTab = "history"'
@@ -87,10 +87,10 @@ else
                     {
                         var canAfford = _account != null && _account.CurrentBalance >= reward.PointCost;
                         <div class="group relative bg-white border border-mystic-200 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-                            <div class="h-1.5 @(canAfford ? "bg-gradient-to-r from-amber-400 to-orange-400" : "bg-mystic-200")"></div>
+                            <div class="h-1.5 @(canAfford ? "bg-gradient-to-r from-mystic-600 to-mystic-900" : "bg-mystic-200")"></div>
                             <div class="p-6">
                                 <div class="flex justify-between items-start mb-4">
-                                    <div class="p-3 @(canAfford ? "bg-amber-50 text-amber-600" : "bg-mystic-100 text-mystic-400") rounded-xl">
+                                    <div class="p-3 @(canAfford ? "bg-mystic-50 text-mystic-600" : "bg-mystic-100 text-mystic-400") rounded-xl">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
                                     </div>
                                     <div class="text-right">
@@ -105,7 +105,7 @@ else
                                     @if (canAfford)
                                     {
                                         <button @onclick="() => RedeemAsync(reward)"
-                                                class="bg-mystic-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-amber-500 transition-all active:scale-95">
+                                                class="bg-mystic-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-mystic-700 transition-all active:scale-95 shadow-md">
                                             Redeem
                                         </button>
                                     }
@@ -128,7 +128,7 @@ else
                     <h2 class="text-lg font-bold mb-1">How to earn more points?</h2>
                     <p class="text-mystic-400 text-sm">Borrow books, subscribe, and return on time to earn points!</p>
                 </div>
-                <a href="Books" class="bg-amber-400 text-mystic-900 px-6 py-3 rounded-2xl font-black hover:bg-amber-300 transition-all text-sm whitespace-nowrap">Browse Books →</a>
+                <a href="Books" class="bg-white text-mystic-900 px-6 py-3 rounded-2xl font-black hover:bg-mystic-50 transition-all text-sm whitespace-nowrap shadow-sm">Browse Books →</a>
             </div>
         </div>
     }
@@ -146,9 +146,9 @@ else
                 <div class="space-y-3">
                     @foreach (var r in _pendingRedemptions)
                     {
-                        <div class="flex items-center justify-between bg-white border border-amber-100 rounded-2xl px-6 py-4 shadow-sm">
+                        <div class="flex items-center justify-between bg-white border border-mystic-100 rounded-2xl px-6 py-4 shadow-sm">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500 flex-shrink-0">
+                                <div class="w-10 h-10 rounded-xl bg-mystic-50 flex items-center justify-center text-mystic-600 flex-shrink-0">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
                                 </div>
                                 <div>
@@ -156,8 +156,8 @@ else
                                     <p class="text-xs text-mystic-400">Claimed @r.RedeemedAt.ToString("MMM dd, yyyy") · @r.PointCost.ToString("N0") pts</p>
                                 </div>
                             </div>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-mystic-50 text-mystic-700 border border-mystic-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-mystic-900 animate-pulse"></span>
                                 Awaiting Fulfillment
                             </span>
                         </div>

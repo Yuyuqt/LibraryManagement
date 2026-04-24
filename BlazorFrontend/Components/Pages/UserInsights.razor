@@ -1,0 +1,273 @@
+@page "/Insights"
+@using BlazorFrontend.Services
+@using BlazorFrontend.Models.Dtos
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Librarian")]
+@inject LibraryApiClient ApiClient
+
+<PageTitle>User Insights</PageTitle>
+
+<div class="mb-10 animate-in fade-in slide-in-from-top-4 duration-500">
+    <h1 class="text-4xl font-extrabold tracking-tight text-mystic-900 border-b border-mystic-100 pb-4 mb-2">User Insights</h1>
+    <p class="text-mystic-500 font-medium">Discover top-performing library members and engagement trends.</p>
+</div>
+
+@if (_isLoading)
+{
+    <div class="py-20 flex flex-col items-center justify-center gap-4">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-mystic-900"></div>
+        <p class="text-mystic-400 font-medium animate-pulse">Calculating insights...</p>
+    </div>
+}
+else
+{
+    <!-- Tabs -->
+    <div class="flex p-1 bg-mystic-100 rounded-2xl mb-12 max-w-2xl mx-auto shadow-inner">
+        <button @onclick='() => _activeTab = "Subscribers"' 
+                class='flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all @(_activeTab == "Subscribers" ? "bg-white text-mystic-900 shadow-sm" : "text-mystic-500 hover:text-mystic-700")'>
+            Top Subscribers
+        </button>
+        <button @onclick='() => _activeTab = "Loyalty"' 
+                class='flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all @(_activeTab == "Loyalty" ? "bg-white text-mystic-900 shadow-sm" : "text-mystic-500 hover:text-mystic-700")'>
+            Top Loyalty
+        </button>
+        <button @onclick='() => _activeTab = "Active"' 
+                class='flex-1 py-3 px-6 rounded-xl text-sm font-bold transition-all @(_activeTab == "Active" ? "bg-white text-mystic-900 shadow-sm" : "text-mystic-500 hover:text-mystic-700")'>
+            Most Active
+        </button>
+    </div>
+
+    <!-- Insight Content -->
+    <div class="animate-in fade-in zoom-in-95 duration-700">
+        @if (CurrentInsightData.Any())
+        {
+            <!-- Podium -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-end mb-16 max-w-5xl mx-auto px-4">
+                @* 2nd Place *@
+                @if (CurrentInsightData.Count() > 1)
+                {
+                    var user = CurrentInsightData.ElementAt(1);
+                    <div class="flex flex-col items-center animate-in slide-in-from-bottom-8 duration-700 delay-100">
+                        <div class="relative mb-4">
+                            <div class="w-24 h-24 rounded-2xl bg-mystic-100 border-2 border-mystic-200 flex items-center justify-center text-mystic-400 text-3xl font-black shadow-lg">
+                                @(user.Name.Substring(0, Math.Min(2, user.Name.Length)).ToUpper())
+                            </div>
+                            <div class="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-slate-300 border-4 border-white flex items-center justify-center text-white font-bold shadow-md">2</div>
+                        </div>
+                        <h3 class="text-lg font-bold text-mystic-900 text-center truncate w-full">@user.Name</h3>
+                        <p class="text-mystic-500 font-bold text-sm">@user.ValueLabel</p>
+                        <div class="mt-4 h-32 w-full bg-gradient-to-t from-mystic-100 to-transparent rounded-t-3xl border-x border-t border-mystic-200/50"></div>
+                    </div>
+                }
+
+                @* 1st Place *@
+                @if (CurrentInsightData.Any())
+                {
+                    var user = CurrentInsightData.ElementAt(0);
+                    <div class="flex flex-col items-center relative z-10 animate-in slide-in-from-bottom-12 duration-700">
+                        <div class="relative mb-6">
+                            <div class="w-32 h-32 rounded-3xl bg-mystic-900 flex items-center justify-center text-white text-4xl font-black shadow-2xl ring-4 ring-mystic-900/10 scale-110">
+                                @(user.Name.Substring(0, Math.Min(2, user.Name.Length)).ToUpper())
+                            </div>
+                            <div class="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-mystic-900 border-4 border-white flex items-center justify-center text-white text-xl font-bold shadow-xl">1</div>
+                            <div class="absolute -top-12 left-1/2 -translate-x-1/2 text-mystic-900 font-black tracking-tighter">
+                                <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5Z"></path></svg>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-black text-mystic-900 text-center truncate w-full">@user.Name</h3>
+                        <p class="text-mystic-700 font-black text-lg">@user.ValueLabel</p>
+                        <div class="mt-6 h-48 w-full bg-gradient-to-t from-mystic-200 to-transparent rounded-t-[2.5rem] border-x border-t border-mystic-300/30 shadow-2xl shadow-mystic-900/5"></div>
+                    </div>
+                }
+
+                @* 3rd Place *@
+                @if (CurrentInsightData.Count() > 2)
+                {
+                    var user = CurrentInsightData.ElementAt(2);
+                    <div class="flex flex-col items-center animate-in slide-in-from-bottom-6 duration-700 delay-200">
+                        <div class="relative mb-4">
+                            <div class="w-20 h-20 rounded-2xl bg-mystic-50 border-2 border-mystic-100 flex items-center justify-center text-mystic-300 text-2xl font-black shadow-md">
+                                @(user.Name.Substring(0, Math.Min(2, user.Name.Length)).ToUpper())
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-mystic-500 border-4 border-white flex items-center justify-center text-white font-bold shadow-md">3</div>
+                        </div>
+                        <h3 class="text-base font-bold text-mystic-900 text-center truncate w-full">@user.Name</h3>
+                        <p class="text-mystic-400 font-bold text-xs">@user.ValueLabel</p>
+                        <div class="mt-4 h-24 w-full bg-gradient-to-t from-mystic-50 to-transparent rounded-t-2xl border-x border-t border-mystic-100/30"></div>
+                    </div>
+                }
+            </div>
+
+            <!-- Full List Table -->
+            <div class="card overflow-hidden">
+                <div class="p-6 border-b border-mystic-100 bg-mystic-50/50">
+                    <h3 class="text-lg font-bold text-mystic-900">Rankings Overview</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white border-b border-mystic-100">
+                                <th class="px-6 py-4 text-[10px] font-bold text-mystic-400 uppercase tracking-widest">Rank</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-mystic-400 uppercase tracking-widest">Member</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-mystic-400 uppercase tracking-widest">Performance</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-mystic-400 uppercase tracking-widest text-right">Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-mystic-100">
+                            @foreach (var (user, index) in CurrentInsightData.Select((u, i) => (u, i)))
+                            {
+                                <tr class="hover:bg-mystic-50/50 transition-colors group">
+                                    <td class="px-6 py-5">
+                                        <div class='w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black @(index == 0 ? "bg-mystic-900 text-white shadow-md" : index == 1 ? "bg-mystic-600 text-white" : index == 2 ? "bg-mystic-300 text-mystic-900" : "text-mystic-400")'>
+                                            #@(index + 1)
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-full bg-mystic-900/5 flex items-center justify-center text-mystic-600 font-bold text-xs border border-mystic-100">
+                                                @(user.Name.Substring(0, Math.Min(2, user.Name.Length)).ToUpper())
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-bold text-mystic-900 group-hover:text-mystic-600 transition-colors">@user.Name</p>
+                                                <p class="text-[10px] text-mystic-400 font-medium">Member since @user.JoinedDate.ToString("MMM yyyy")</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex flex-col">
+                                            <span class="text-sm font-extrabold text-mystic-900">@user.ValueLabel</span>
+                                            <span class="text-[10px] text-mystic-500 font-medium">Lifetime Achievement</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="w-full bg-mystic-100 h-1.5 rounded-full overflow-hidden max-w-[120px] ml-auto">
+                                            <div class="bg-mystic-900 h-full transition-all duration-1000" 
+                                                 style="width: @(CalculatePercentage(user.RawValue))%"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="py-20 text-center bg-mystic-50 rounded-3xl border-2 border-dashed border-mystic-200">
+                <p class="text-mystic-400 font-medium italic">No data available for this insight yet.</p>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool _isLoading = true;
+    private string _activeTab = "Subscribers";
+    
+    private List<InsightItem> _subscribers = new();
+    private List<InsightItem> _loyalty = new();
+    private List<InsightItem> _activeReaders = new();
+
+    private IEnumerable<InsightItem> CurrentInsightData => _activeTab switch
+    {
+        "Subscribers" => _subscribers,
+        "Loyalty" => _loyalty,
+        "Active" => _activeReaders,
+        _ => Enumerable.Empty<InsightItem>()
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInsightsAsync();
+    }
+
+    private async Task LoadInsightsAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var users = await ApiClient.GetUsersAsync();
+            var borrowings = await ApiClient.GetAllBorrowingsAsync();
+            var subscriptions = await ApiClient.GetAllSubscriptionsAsync();
+            var memberships = await ApiClient.GetMembershipsAsync();
+            var loyaltyHistory = await ApiClient.GetAllMembersPointsHistoryAsync();
+
+            // 1. Top Subscribers (Total Spent)
+            var membershipPriceMap = memberships.ToDictionary(m => m.Id, m => m.Price);
+            _subscribers = subscriptions
+                .GroupBy(s => s.UserId)
+                .Select(g => {
+                    var user = users.FirstOrDefault(u => u.Id == g.Key);
+                    var totalSpent = g.Sum(s => membershipPriceMap.TryGetValue(s.MembershipId, out var price) ? price : 0);
+                    return new InsightItem {
+                        UserId = g.Key,
+                        Name = user?.FullName ?? "Unknown User",
+                        JoinedDate = user?.CreatedAt ?? DateTime.MinValue,
+                        RawValue = (double)totalSpent,
+                        ValueLabel = $"MMK {totalSpent:N0}"
+                    };
+                })
+                .OrderByDescending(i => i.RawValue)
+                .ToList();
+
+            // 2. Top Loyalty (Earned Points only)
+            _loyalty = loyaltyHistory
+                .Select(lh => {
+                    var user = users.FirstOrDefault(u => u.Id == lh.UserId);
+                    var totalEarned = lh.History.Where(h => h.PointDelta > 0).Sum(h => h.PointDelta);
+                    return new InsightItem {
+                        UserId = lh.UserId,
+                        Name = user?.FullName ?? lh.UserName,
+                        JoinedDate = user?.CreatedAt ?? DateTime.MinValue,
+                        RawValue = totalEarned,
+                        ValueLabel = $"{totalEarned:N0} Points"
+                    };
+                })
+                .OrderByDescending(i => i.RawValue)
+                .ToList();
+
+            // 3. Most Active (Approved Returns only)
+            _activeReaders = borrowings
+                .Where(b => b.Status == "Returned")
+                .GroupBy(b => b.UserId)
+                .Select(g => {
+                    var user = users.FirstOrDefault(u => u.Id == g.Key);
+                    var count = g.Count();
+                    return new InsightItem {
+                        UserId = g.Key,
+                        Name = user?.FullName ?? "Unknown User",
+                        JoinedDate = user?.CreatedAt ?? DateTime.MinValue,
+                        RawValue = count,
+                        ValueLabel = $"{count} Completed"
+                    };
+                })
+                .OrderByDescending(i => i.RawValue)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading insights: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private double CalculatePercentage(double value)
+    {
+        var max = CurrentInsightData.Any() ? CurrentInsightData.Max(i => i.RawValue) : 1;
+        if (max == 0) return 0;
+        return (value / max) * 100;
+    }
+
+    private class InsightItem
+    {
+        public Guid UserId { get; set; }
+        public string Name { get; set; } = "";
+        public DateTime JoinedDate { get; set; }
+        public double RawValue { get; set; }
+        public string ValueLabel { get; set; } = "";
+    }
+}
