@@ -43,21 +43,56 @@
             </div>
         </div>
     </div>
+    
+    <!-- Quick Filters -->
+    <div class="flex flex-wrap items-center gap-3 mb-4 animate-in fade-in duration-700">
+        <button @onclick='() => SetQuickFilter("All")'
+           class='inline-flex items-center px-5 py-2.5 rounded-full text-sm font-bold border transition-all @(_activeQuickFilter == "All" ? "bg-mystic-900 text-white border-mystic-900 shadow-md" : "bg-white text-mystic-600 border-mystic-200 hover:border-mystic-400 hover:text-mystic-900")'>
+            All Books
+        </button>
+        <button @onclick='() => SetQuickFilter("New Arrivals")'
+           class='inline-flex items-center px-5 py-2.5 rounded-full text-sm font-bold border transition-all @(_activeQuickFilter == "New Arrivals" ? "bg-mystic-900 text-white border-mystic-900 shadow-md" : "bg-white text-mystic-600 border-mystic-200 hover:border-mystic-400 hover:text-mystic-900")'>
+             New Arrivals
+        </button>
+        <button @onclick='() => SetQuickFilter("Trending")'
+           class='inline-flex items-center px-5 py-2.5 rounded-full text-sm font-bold border transition-all @(_activeQuickFilter == "Trending" ? "bg-mystic-900 text-white border-mystic-900 shadow-md" : "bg-white text-mystic-600 border-mystic-200 hover:border-mystic-400 hover:text-mystic-900")'>
+             Trending
+        </button>
+        <button @onclick='() => SetQuickFilter("Recommended")'
+           class='inline-flex items-center px-5 py-2.5 rounded-full text-sm font-bold border transition-all @(_activeQuickFilter == "Recommended" ? "bg-mystic-900 text-white border-mystic-900 shadow-md" : "bg-white text-mystic-600 border-mystic-200 hover:border-mystic-400 hover:text-mystic-900")'>
+             Recommended for You
+        </button>
+    </div>
 
     @if (_categories.Any())
     {
-        <div class="flex flex-wrap items-center gap-2 mb-8 animate-in fade-in duration-700">
-            <span class="text-xs font-semibold text-mystic-400 uppercase tracking-wider mr-1">Filter:</span>
-            <button @onclick="() => FilterByCategory(null)"
-               class='inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border transition-colors @(_selectedCategoryId == null ? "bg-mystic-900 text-white border-mystic-900" : "bg-white text-mystic-600 border-mystic-200 hover:border-mystic-400 hover:text-mystic-900")'>
-                All
+        <div class="mb-8 animate-in fade-in duration-700">
+            <button @onclick="ToggleCategoryDropdown" class="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-mystic-400 hover:text-mystic-900 transition-colors">
+                <div class="w-6 h-6 rounded-lg bg-mystic-50 flex items-center justify-center group-hover:bg-mystic-100 transition-colors">
+                    <svg class="w-3.5 h-3.5 transition-transform duration-300 @(_isCategoryDropdownOpen ? "rotate-90" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+                <span>Browse by Category</span>
+                @if (_selectedCategoryId != null)
+                {
+                    <span class="ml-2 px-2 py-0.5 bg-mystic-900 text-white text-[10px] rounded-full">@SelectedCategoryName</span>
+                }
             </button>
-            @foreach (var cat in _categories)
+            
+            @if (_isCategoryDropdownOpen)
             {
-                <button @onclick="() => FilterByCategory(cat.Id)"
-                   class='inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border transition-colors @(_selectedCategoryId == cat.Id ? "bg-mystic-900 text-white border-mystic-900" : "bg-white text-mystic-600 border-mystic-200 hover:border-mystic-400 hover:text-mystic-900")'>
-                    @cat.Name
-                </button>
+                <div class="flex flex-wrap items-center gap-2 mt-4 animate-in slide-in-from-top-2 duration-300">
+                    <button @onclick="() => FilterByCategory(null)"
+                       class='inline-flex items-center px-4 py-1.5 rounded-full text-[11px] font-bold border transition-all @(_selectedCategoryId == null ? "bg-mystic-900 text-white border-mystic-900 shadow-sm" : "bg-white text-mystic-600 border-mystic-200 hover:border-mystic-400 hover:text-mystic-900")'>
+                        All
+                    </button>
+                    @foreach (var cat in _categories)
+                    {
+                        <button @onclick="() => FilterByCategory(cat.Id)"
+                           class='inline-flex items-center px-4 py-1.5 rounded-full text-[11px] font-bold border transition-all @(_selectedCategoryId == cat.Id ? "bg-mystic-900 text-white border-mystic-900 shadow-sm" : "bg-white text-mystic-600 border-mystic-200 hover:border-mystic-400 hover:text-mystic-900")'>
+                            @cat.Name
+                        </button>
+                    }
+                </div>
             }
         </div>
     }
@@ -78,7 +113,7 @@
     else
     {
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            @foreach (var book in FilteredBooks)
+            @foreach (var book in PaginatedBooks)
             {
                 <div class="group card hover:shadow-lg transition-all duration-300 flex flex-col h-full">
                     <div @onclick="() => ShowDetails(book.Id)" class="relative aspect-[2/3] w-full bg-mystic-100 flex items-center justify-center text-mystic-300 overflow-hidden text-center cursor-pointer group-hover:scale-105 transition-transform duration-500">
@@ -160,6 +195,30 @@
                 </div>
             }
         </div>
+
+        @if (TotalPages > 1)
+        {
+            <div class="mt-12 flex items-center justify-center gap-2">
+                <button disabled="@(_currentPage == 1)" @onclick="() => _currentPage--" 
+                        class="p-2 rounded-lg border border-mystic-200 text-mystic-600 hover:bg-mystic-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                
+                @for (int i = 1; i <= TotalPages; i++)
+                {
+                    var pageNumber = i;
+                    <button @onclick="() => _currentPage = pageNumber" 
+                            class='w-10 h-10 rounded-lg border text-sm font-bold transition-all @(_currentPage == pageNumber ? "bg-mystic-900 border-mystic-900 text-white shadow-md" : "bg-white border-mystic-200 text-mystic-600 hover:border-mystic-400 hover:text-mystic-900")'>
+                        @pageNumber
+                    </button>
+                }
+
+                <button disabled="@(_currentPage == TotalPages)" @onclick="() => _currentPage++" 
+                        class="p-2 rounded-lg border border-mystic-200 text-mystic-600 hover:bg-mystic-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        }
     }
 }
 else if (_viewMode == ViewMode.Details && _selectedBook != null)
@@ -343,9 +402,17 @@ else if (_viewMode == ViewMode.Create || _viewMode == ViewMode.Edit)
     private bool _isSubmitting = false;
     private string _searchQuery = "";
     private int? _selectedCategoryId;
+    private string _activeQuickFilter = "All";
+    private bool _isCategoryDropdownOpen = false;
+    
+    // Pagination
+    private int _currentPage = 1;
+    private int _pageSize = 12;
 
     private IEnumerable<BookDto> _books = Enumerable.Empty<BookDto>();
     private IEnumerable<CategoryDto> _categories = Enumerable.Empty<CategoryDto>();
+    private IEnumerable<BorrowingDto> _myBorrowings = Enumerable.Empty<BorrowingDto>();
+    private IEnumerable<BorrowingDto> _allBorrowings = Enumerable.Empty<BorrowingDto>();
     private BookDto? _selectedBook;
 
     // Form Model
@@ -363,6 +430,14 @@ else if (_viewMode == ViewMode.Create || _viewMode == ViewMode.Edit)
         {
             _books = await ApiClient.GetBooksAsync();
             _categories = await ApiClient.GetCategoriesAsync();
+            
+            // Fetch borrowings for Trending and Recommended
+            _myBorrowings = await ApiClient.GetMyBorrowingsAsync();
+            try {
+                _allBorrowings = await ApiClient.GetAllBorrowingsAsync();
+            } catch { }
+            
+            _currentPage = 1;
         }
         catch (Exception ex)
         {
@@ -374,14 +449,85 @@ else if (_viewMode == ViewMode.Create || _viewMode == ViewMode.Edit)
         }
     }
 
-    private IEnumerable<BookDto> FilteredBooks => _books
-        .Where(b => (string.IsNullOrWhiteSpace(_searchQuery) || 
-                    b.Title.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) || 
-                    b.Author.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) || 
-                    b.Isbn.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase)) &&
-                    (_selectedCategoryId == null || b.Categories.Any(c => c.Id == _selectedCategoryId)));
+    private IEnumerable<BookDto> FilteredBooks
+    {
+        get
+        {
+            var books = _books;
 
-    private void FilterByCategory(int? id) => _selectedCategoryId = id;
+            // Apply Search
+            if (!string.IsNullOrWhiteSpace(_searchQuery))
+            {
+                books = books.Where(b => b.Title.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) || 
+                                         b.Author.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) || 
+                                         b.Isbn.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply Category Filter
+            if (_selectedCategoryId != null)
+            {
+                books = books.Where(b => b.Categories.Any(c => c.Id == _selectedCategoryId));
+            }
+
+            // Apply Quick Filter
+            switch (_activeQuickFilter)
+            {
+                case "New Arrivals":
+                    books = books.Where(b => b.CreatedAt >= DateTime.UtcNow.AddDays(-7));
+                    break;
+                case "Trending":
+                    var trendingIds = _allBorrowings
+                        .Where(br => br.BorrowDate >= DateTime.UtcNow.AddDays(-7))
+                        .GroupBy(br => br.BookId)
+                        .OrderByDescending(g => g.Count())
+                        .Select(g => g.Key)
+                        .Take(12)
+                        .ToList();
+                    
+                    if (trendingIds.Any())
+                        books = books.Where(b => trendingIds.Contains(b.Id));
+                    else
+                        books = Enumerable.Empty<BookDto>(); // Or show nothing if no data
+                    break;
+                case "Recommended":
+                    var myCategoryIds = _myBorrowings.SelectMany(br => _books.FirstOrDefault(b => b.Id == br.BookId)?.Categories.Select(c => c.Id) ?? Enumerable.Empty<int>())
+                        .Concat(_favourites.SelectMany(b => b.Categories.Select(c => c.Id)))
+                        .Concat(_wishlist.SelectMany(b => b.Categories.Select(c => c.Id)))
+                        .Distinct()
+                        .ToList();
+                    
+                    if (myCategoryIds.Any())
+                        books = books.Where(b => b.Categories.Any(c => myCategoryIds.Contains(c.Id))).Take(8);
+                    break;
+            }
+
+            return books;
+        }
+    }
+
+    private IEnumerable<BookDto> PaginatedBooks => FilteredBooks
+        .Skip((_currentPage - 1) * _pageSize)
+        .Take(_pageSize);
+
+    private int TotalPages => (int)Math.Ceiling(FilteredBooks.Count() / (double)_pageSize);
+
+    private string? SelectedCategoryName => _categories.FirstOrDefault(c => c.Id == _selectedCategoryId)?.Name;
+
+    private void ToggleCategoryDropdown() => _isCategoryDropdownOpen = !_isCategoryDropdownOpen;
+
+    private void SetQuickFilter(string filter)
+    {
+        _activeQuickFilter = filter;
+        _selectedCategoryId = null; // Clear category when switching quick filters
+        _currentPage = 1;
+        _isCategoryDropdownOpen = false;
+    }
+
+    private void FilterByCategory(int? id)
+    {
+        _selectedCategoryId = id;
+        _currentPage = 1;
+    }
 
     private void ShowList()
     {

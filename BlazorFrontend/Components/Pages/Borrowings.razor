@@ -40,7 +40,7 @@ else
                             </td>
                         </tr>
                     }
-                    @foreach (var loan in _borrowings)
+                    @foreach (var loan in PaginatedBorrowings)
                     {
                         <tr class="hover:bg-mystic-50 transition-colors group">
                             <td class="px-6 py-4">
@@ -112,12 +112,46 @@ else
                 </tbody>
             </table>
         </div>
+
+        @if (TotalPages > 1)
+        {
+            <div class="p-6 bg-mystic-50/30 border-t border-mystic-100 flex items-center justify-between">
+                <p class="text-xs text-mystic-500">
+                    Showing <span class="font-bold text-mystic-900">@((_currentPage - 1) * _pageSize + 1)</span> to 
+                    <span class="font-bold text-mystic-900">@(Math.Min(_currentPage * _pageSize, _borrowings.Count()))</span> of 
+                    <span class="font-bold text-mystic-900">@_borrowings.Count()</span> records
+                </p>
+                <div class="flex items-center gap-2">
+                    <button disabled="@(_currentPage == 1)" @onclick="() => _currentPage--" 
+                            class="p-2 rounded-lg border border-mystic-200 text-mystic-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    
+                    <span class="text-xs font-bold text-mystic-900 px-2">Page @_currentPage of @TotalPages</span>
+
+                    <button disabled="@(_currentPage == TotalPages)" @onclick="() => _currentPage++" 
+                            class="p-2 rounded-lg border border-mystic-200 text-mystic-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        }
     </div>
 }
 
 @code {
     private bool _isLoading = true;
     private IEnumerable<BorrowingDto> _borrowings = Enumerable.Empty<BorrowingDto>();
+    
+    // Pagination
+    private int _currentPage = 1;
+    private int _pageSize = 10;
+    
+    private IEnumerable<BorrowingDto> PaginatedBorrowings => _borrowings
+        .Skip((_currentPage - 1) * _pageSize)
+        .Take(_pageSize);
+        
+    private int TotalPages => (int)Math.Ceiling(_borrowings.Count() / (double)_pageSize);
 
     protected override async Task OnInitializedAsync()
     {
@@ -130,6 +164,7 @@ else
         try
         {
             _borrowings = await ApiClient.GetMyBorrowingsAsync();
+            _currentPage = 1;
         }
         catch (Exception ex)
         {
