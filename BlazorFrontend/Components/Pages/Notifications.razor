@@ -1,0 +1,158 @@
+@page "/notifications"
+@using BlazorFrontend.Models.Dtos
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using BlazorFrontend.Services
+@inject LibraryApiClient ApiClient
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Notifications</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+
+<div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div class="mb-8 animate-in fade-in slide-in-from-top-4 duration-500 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-extrabold tracking-tight text-mystic-900">Notifications</h1>
+            <p class="text-mystic-500 font-medium mt-1">Stay updated with your library account activity.</p>
+        </div>
+        @if (_notifications != null && _notifications.Any(n => !n.IsRead))
+        {
+            <button @onclick="MarkAllAsRead" class="text-sm font-medium text-mystic-600 hover:text-mystic-900 bg-mystic-100 hover:bg-mystic-200 px-4 py-2 rounded-full transition-colors">
+                Mark all as read
+            </button>
+        }
+    </div>
+
+    <div class="space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+        @if (_isLoading)
+        {
+            <div class="flex justify-center py-12">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-mystic-900"></div>
+            </div>
+        }
+        else if (_notifications == null || !_notifications.Any())
+        {
+            <div class="bg-white rounded-2xl p-12 text-center border border-mystic-200 shadow-sm">
+                <div class="w-16 h-16 bg-mystic-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-mystic-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-mystic-900 mb-1">No notifications yet</h3>
+                <p class="text-mystic-500 text-sm">When you get updates about your books or subscription, they'll show up here.</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var notif in _notifications)
+            {
+                <div class="bg-white rounded-2xl p-5 border border-mystic-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group @(!notif.IsRead ? "bg-mystic-50/50" : "")">
+                    @if (!notif.IsRead)
+                    {
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-mystic-900"></div>
+                    }
+                    
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0 mt-1">
+                            @if (notif.Type == "Warning")
+                            {
+                                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                </div>
+                            }
+                            else if (notif.Type == "Info")
+                            {
+                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="w-10 h-10 rounded-full bg-mystic-100 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-mystic-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <h4 class="text-sm font-bold text-mystic-900 @(!notif.IsRead ? "font-extrabold" : "")">@notif.Title</h4>
+                                    <p class="text-sm text-mystic-600 mt-1 leading-relaxed">@notif.Message</p>
+                                </div>
+                                <span class="text-xs font-medium text-mystic-400 whitespace-nowrap">@notif.CreatedAt.ToString("MMM dd, HH:mm")</span>
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(notif.ActionLink))
+                            {
+                                <div class="mt-3">
+                                    <a href="@notif.ActionLink" class="text-sm font-semibold text-mystic-900 hover:text-mystic-600 underline underline-offset-2">
+                                        @notif.ActionText
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+    </Authorized>
+    <NotAuthorized>
+        <div class="max-w-4xl mx-auto py-12 px-4 text-center">
+            <h2 class="text-2xl font-bold text-mystic-900 mb-4">Please sign in to view notifications</h2>
+            <a href="/login" class="btn-primary">Sign In</a>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private List<NotificationDto> _notifications = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadNotifications();
+    }
+
+    private async Task LoadNotifications()
+    {
+        try
+        {
+            _isLoading = true;
+            StateHasChanged();
+            
+            var results = await ApiClient.GetNotificationsAsync();
+            _notifications = results.ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading notifications: {ex.Message}");
+            _notifications = new List<NotificationDto>();
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task MarkAllAsRead()
+    {
+        try
+        {
+            var success = await ApiClient.MarkNotificationsReadAsync();
+            if (success)
+            {
+                await LoadNotifications();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error marking notifications as read: {ex.Message}");
+        }
+    }
+}

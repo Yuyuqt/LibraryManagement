@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DbConnect.Entities;
@@ -30,6 +30,8 @@ public partial class User
     public DateTime? SuspensionEndDate { get; set; }
 
     public string? Address { get; set; }
+
+    public string? FcmToken { get; set; }
 
     public virtual ICollection<Borrowing> Borrowings { get; set; } = new List<Borrowing>();
 

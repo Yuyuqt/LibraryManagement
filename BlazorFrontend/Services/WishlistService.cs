@@ -7,12 +7,30 @@ namespace BlazorFrontend.Services;
 public class WishlistService
 {
     private readonly ProtectedLocalStorage _localStorage;
+    private readonly LibraryApiClient _apiClient;
     private const string WishlistKey = "user_wishlist";
     private const string FavouriteKey = "user_favourites";
 
-    public WishlistService(ProtectedLocalStorage localStorage)
+    public WishlistService(ProtectedLocalStorage localStorage, LibraryApiClient apiClient)
     {
         _localStorage = localStorage;
+        _apiClient = apiClient;
+    }
+
+    public async Task SyncCurrentWishlistAsync()
+    {
+        var list = await GetWishlistAsync();
+        await SyncWithServerAsync(list);
+    }
+
+    private async Task SyncWithServerAsync(List<BookDto> list)
+    {
+        try
+        {
+            var bookIds = list.Select(b => b.Id).ToList();
+            await _apiClient.SyncWishlistAsync(bookIds);
+        }
+        catch { }
     }
 
     public async Task<List<BookDto>> GetWishlistAsync()
@@ -22,7 +40,18 @@ public class WishlistService
             var result = await _localStorage.GetAsync<string>(WishlistKey);
             if (result.Success && !string.IsNullOrWhiteSpace(result.Value))
             {
-                return JsonSerializer.Deserialize<List<BookDto>>(result.Value) ?? new List<BookDto>();
+                var localList = JsonSerializer.Deserialize<List<BookDto>>(result.Value) ?? new List<BookDto>();
+                if (!localList.Any()) return localList;
+
+                // Refresh from server
+                var latestList = await _apiClient.GetBooksByIdsAsync(localList.Select(b => b.Id).ToList());
+                if (latestList.Any())
+                {
+                    // Update local storage with fresh data
+                    await _localStorage.SetAsync(WishlistKey, JsonSerializer.Serialize(latestList));
+                    return latestList;
+                }
+                return localList;
             }
         }
         catch { }
@@ -36,6 +65,7 @@ public class WishlistService
         {
             list.Add(book);
             await _localStorage.SetAsync(WishlistKey, JsonSerializer.Serialize(list));
+            await SyncWithServerAsync(list);
         }
     }
 
@@ -47,6 +77,7 @@ public class WishlistService
         {
             list.Remove(item);
             await _localStorage.SetAsync(WishlistKey, JsonSerializer.Serialize(list));
+            await SyncWithServerAsync(list);
         }
     }
 
@@ -57,7 +88,18 @@ public class WishlistService
             var result = await _localStorage.GetAsync<string>(FavouriteKey);
             if (result.Success && !string.IsNullOrWhiteSpace(result.Value))
             {
-                return JsonSerializer.Deserialize<List<BookDto>>(result.Value) ?? new List<BookDto>();
+                var localList = JsonSerializer.Deserialize<List<BookDto>>(result.Value) ?? new List<BookDto>();
+                if (!localList.Any()) return localList;
+
+                // Refresh from server
+                var latestList = await _apiClient.GetBooksByIdsAsync(localList.Select(b => b.Id).ToList());
+                if (latestList.Any())
+                {
+                    // Update local storage with fresh data
+                    await _localStorage.SetAsync(FavouriteKey, JsonSerializer.Serialize(latestList));
+                    return latestList;
+                }
+                return localList;
             }
         }
         catch { }

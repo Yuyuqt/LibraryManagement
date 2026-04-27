@@ -47,6 +47,13 @@ namespace BlazorFrontend.Services
             return await _httpClient.GetFromJsonAsync<BookDto>($"api/books/{id}");
         }
 
+        public async Task<List<BookDto>> GetBooksByIdsAsync(List<int> ids)
+        {
+            if (ids == null || !ids.Any()) return new List<BookDto>();
+            var idsStr = string.Join(",", ids);
+            return await _httpClient.GetFromJsonAsync<List<BookDto>>($"api/books/by-ids?ids={idsStr}") ?? new List<BookDto>();
+        }
+
         public async Task<BookDto?> CreateBookAsync(BookCreateRequest request)
         {
             var response = await _httpClient.PostAsJsonAsync("api/books", request);
@@ -371,5 +378,38 @@ namespace BlazorFrontend.Services
             }
             catch (Exception ex) { return (false, $"Error: {ex.Message}"); }
         }
+        #region Notifications
+        public async Task<IEnumerable<NotificationDto>> GetNotificationsAsync()
+        {
+            return await _httpClient.GetFromJsonAsync<IEnumerable<NotificationDto>>("api/notifications") ?? Enumerable.Empty<NotificationDto>();
+        }
+
+        public async Task<int> GetUnreadNotificationCountAsync()
+        {
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<int>("api/notifications/unread-count");
+            }
+            catch { return 0; }
+        }
+
+        public async Task<bool> MarkNotificationsReadAsync()
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/notifications/mark-read", new { });
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> UpdateFcmTokenAsync(string fcmToken)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/users/fcm-token", new { fcmToken });
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> SyncWishlistAsync(List<int> bookIds)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/wishlist/sync", bookIds);
+            return response.IsSuccessStatusCode;
+        }
+        #endregion
     }
 }

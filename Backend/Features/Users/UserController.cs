@@ -72,6 +72,26 @@ namespace Backend.Features.Users
             if (!success) return NotFound();
             return NoContent();
         }
+
+        [HttpPost("fcm-token")]
+        [Authorize]
+        public async Task<IActionResult> UpdateFcmToken([FromBody] FcmTokenUpdateRequest request)
+        {
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out Guid userId))
+            {
+                return Unauthorized();
+            }
+
+            var success = await _userService.UpdateFcmTokenAsync(userId, request.FcmToken);
+            if (!success) return NotFound();
+            return Ok(new { message = "FCM token updated successfully" });
+        }
+    }
+
+    public class FcmTokenUpdateRequest
+    {
+        public string FcmToken { get; set; } = null!;
     }
 }
 

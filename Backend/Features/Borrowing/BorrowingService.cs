@@ -2,6 +2,7 @@ using DbConnect.Data;
 using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
 using Backend.Features.Loyalty;
+using Backend.Features.Notification;
 
 namespace Backend.Features.Borrowings
 {
@@ -18,12 +19,14 @@ namespace Backend.Features.Borrowings
     {
         private readonly AppDbContext _context;
         private readonly ILoyaltyService _loyaltyService;
+        private readonly INotificationService _notificationService;
         private const decimal FinePerDay = 500;
 
-        public BorrowingService(AppDbContext context, ILoyaltyService loyaltyService)
+        public BorrowingService(AppDbContext context, ILoyaltyService loyaltyService, INotificationService notificationService)
         {
             _context = context;
             _loyaltyService = loyaltyService;
+            _notificationService = notificationService;
         }
 
         public async Task<BorrowingDto> BorrowBookAsync(Guid userId, int bookId)
@@ -141,6 +144,32 @@ namespace Backend.Features.Borrowings
             book.Status = "Available";
 
             await _context.SaveChangesAsync();
+
+            // Wishlist Notification Trigger
+            try
+            {
+                var interestedUsers = await _context.WishlistItems
+                    .Include(w => w.User)
+                    .Where(w => w.BookId == book.Id)
+                    .ToListAsync();
+
+                foreach (var wishlistEntry in interestedUsers)
+                {
+                    await _notificationService.SendAndSaveNotificationAsync(
+                        wishlistEntry.UserId,
+                        wishlistEntry.User.FcmToken,
+                        "Book Available!",
+                        $"Good news! '{book.Title}' is now available for borrowing. Grab it before someone else does!",
+                        "Success",
+                        "/Books",
+                        "View Book"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending wishlist notifications: {ex.Message}");
+            }
 
             // Loyalty Integration: Send RETURN event
             string externalUserId = borrowing.UserId.ToString();

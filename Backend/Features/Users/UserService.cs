@@ -18,6 +18,7 @@ namespace Backend.Features.Users
         Task<UserDto?> UpdateUserAsync(Guid id, UserUpdateRequest request);
         Task<bool> UpdateUserRoleAsync(Guid id, string role);
         Task<bool> DeleteUserAsync(Guid id);
+        Task<bool> UpdateFcmTokenAsync(Guid id, string fcmToken);
     }
 
     public class UserService : IUserService
@@ -132,6 +133,18 @@ namespace Backend.Features.Users
 
             // Soft delete
             user.IsActive = false;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdateFcmTokenAsync(Guid id, string fcmToken)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return false;
+
+            user.FcmToken = fcmToken;
             user.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

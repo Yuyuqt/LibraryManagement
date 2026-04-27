@@ -31,6 +31,16 @@ namespace Backend.Features.Books
             return Ok(book);
         }
 
+        [HttpGet("by-ids")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<BookDto>>> GetBooksByIds([FromQuery] string ids)
+        {
+            if (string.IsNullOrEmpty(ids)) return Ok(new List<BookDto>());
+            var idList = ids.Split(',').Select(int.Parse).ToList();
+            var books = await _bookService.GetBooksByIdsAsync(idList);
+            return Ok(books);
+        }
+
         [HttpPost]
         [Authorize(Roles = "Librarian")]
         public async Task<ActionResult<BookDto>> CreateBook([FromBody] BookCreateRequest request)

@@ -12,8 +12,18 @@ using Backend.Features.Subscriptions;
 using Backend.Features.Categories;
 using Backend.Features.Borrowings;
 using Backend.Features.Loyalty;
+using Backend.Features.Notification;
+using Backend.Features.Wishlist;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Firebase Admin SDK Initialization
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile("LibraryFirebase.json")
+});
 
 
 builder.Services.AddControllers();
@@ -57,6 +67,9 @@ builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBorrowingService, BorrowingService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IWishlistService, WishlistService>();
+builder.Services.AddHostedService<NotificationBackgroundService>();
 
 // Register Loyalty API Client
 builder.Services.AddHttpClient<ILoyaltyService, LoyaltyService>(client =>

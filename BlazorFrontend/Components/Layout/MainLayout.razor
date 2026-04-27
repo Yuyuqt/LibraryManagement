@@ -127,12 +127,18 @@
                     </div>
                 </div>
                 <div class="ml-4 flex items-center md:ml-6 gap-4">
-                    <button type="button" class="bg-white p-1 rounded-full text-mystic-400 hover:text-mystic-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mystic-900">
+                    <a href="notifications" class="relative bg-white p-1 rounded-full text-mystic-400 hover:text-mystic-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mystic-900">
                         <span class="sr-only">View notifications</span>
                         <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
-                    </button>
+                        @if (_unreadCount > 0)
+                        {
+                            <span class="absolute top-0 right-0 block h-4 w-4 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center border-2 border-white transform translate-x-1/2 -translate-y-1/2">
+                                @(_unreadCount > 9 ? "9+" : _unreadCount)
+                            </span>
+                        }
+                    </a>
                     <AuthorizeView>
                         <Authorized>
                             <a href="/logout" class="btn-secondary py-1.5">Logout</a>
@@ -169,8 +175,12 @@
     <a class="dismiss cursor-pointer">🗙</a>
 </div>
 
+@inject BlazorFrontend.Services.LibraryApiClient ApiClient
+@inject IJSRuntime JS
+
 @code {
     private bool _isReady;
+    private int _unreadCount;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -180,6 +190,27 @@
             if (jwtProvider != null)
             {
                 await jwtProvider.LoadTokenAsync();
+                
+                // Fetch unread count if authenticated
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                if (authState.User.Identity?.IsAuthenticated == true)
+                {
+                    _unreadCount = await ApiClient.GetUnreadNotificationCountAsync();
+                    
+                    // Update FCM Token
+                    try
+                    {
+                        var token = await JS.InvokeAsync<string>("window.getFcmToken");
+                        if (!string.IsNullOrEmpty(token))
+                        {
+                            await ApiClient.UpdateFcmTokenAsync(token);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error updating FCM token: {ex.Message}");
+                    }
+                }
             }
             
             _isReady = true;

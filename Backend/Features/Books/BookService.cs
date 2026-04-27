@@ -9,6 +9,7 @@ namespace Backend.Features.Books
     {
         Task<IEnumerable<BookDto>> GetAllBooksAsync(int? categoryId = null);
         Task<BookDto?> GetBookByIdAsync(int id);
+        Task<IEnumerable<BookDto>> GetBooksByIdsAsync(List<int> ids);
         Task<BookDto> CreateBookAsync(BookCreateRequest request);
         Task<BookDto?> UpdateBookAsync(int id, BookUpdateRequest request);
         Task<bool> DeleteBookAsync(int id);
@@ -45,6 +46,15 @@ namespace Backend.Features.Books
                 .FirstOrDefaultAsync(b => b.Id == id);
             if (book == null || !book.IsActive) return null;
             return MapToDto(book);
+        }
+
+        public async Task<IEnumerable<BookDto>> GetBooksByIdsAsync(List<int> ids)
+        {
+            var books = await _context.Books
+                .Include(b => b.Categories)
+                .Where(b => ids.Contains(b.Id) && b.IsActive)
+                .ToListAsync();
+            return books.Select(b => MapToDto(b));
         }
 
         public async Task<BookDto> CreateBookAsync(BookCreateRequest request)

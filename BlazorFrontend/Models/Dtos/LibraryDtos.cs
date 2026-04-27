@@ -285,4 +285,16 @@ namespace BlazorFrontend.Models.Dtos
         [JsonPropertyName("redemptions")]
         public IEnumerable<LoyaltyRedemptionDto> Redemptions { get; set; } = Enumerable.Empty<LoyaltyRedemptionDto>();
     }
+
+    public class NotificationDto
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public string Type { get; set; } = "Info";
+        public DateTime CreatedAt { get; set; }
+        public bool IsRead { get; set; }
+        public string? ActionLink { get; set; }
+        public string? ActionText { get; set; }
+    }
 }

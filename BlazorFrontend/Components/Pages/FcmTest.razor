@@ -1,0 +1,78 @@
+@page "/fcm-test"
+@inject IJSRuntime JSRuntime
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+
+<div class="p-6 max-w-4xl mx-auto">
+    <div class="card p-6 bg-white shadow-md rounded-lg">
+        <h1 class="text-2xl font-bold text-mystic-900 mb-4">FCM Token Test</h1>
+        
+        <p class="text-mystic-600 mb-6">
+            Click the button below to request notification permission and generate your FCM token.
+        </p>
+
+        <div class="flex flex-col gap-4">
+            <button @onclick="GetToken" class="btn-primary w-fit">
+                Get FCM Token
+            </button>
+
+            @if (!string.IsNullOrEmpty(Token))
+            {
+                <div class="mt-4 p-4 bg-mystic-100 rounded-lg border border-mystic-200">
+                    <p class="text-sm font-semibold text-mystic-900 mb-2">Your Token:</p>
+                    <div class="flex gap-2">
+                        <textarea readonly class="w-full p-2 text-xs font-mono bg-white border border-mystic-300 rounded" rows="4">@Token</textarea>
+                        <button @onclick="CopyToken" class="btn-secondary h-fit">Copy</button>
+                    </div>
+                    <p class="mt-2 text-xs text-mystic-500">Copy this token and use it to test your Backend API.</p>
+                </div>
+            }
+
+            @if (IsLoading)
+            {
+                <p class="text-mystic-500 italic">Requesting token...</p>
+            }
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <p class="text-red-500 text-sm">@ErrorMessage</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? Token { get; set; }
+    private string? ErrorMessage { get; set; }
+    private bool IsLoading { get; set; }
+
+    private async Task GetToken()
+    {
+        IsLoading = true;
+        ErrorMessage = null;
+        try
+        {
+            Token = await JSRuntime.InvokeAsync<string?>("getFcmToken");
+            if (string.IsNullOrEmpty(Token))
+            {
+                ErrorMessage = "Failed to get token. Check if you granted permission or if VAPID key is configured.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task CopyToken()
+    {
+        if (!string.IsNullOrEmpty(Token))
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", Token);
+            await JSRuntime.InvokeVoidAsync("showToast", "Token copied to clipboard!", "success");
+        }
+    }
+}
