@@ -44,7 +44,7 @@
                     <p class="text-[10px] font-black text-muted uppercase tracking-widest mb-4">Membership</p>
                     <h3 class="text-2xl font-black text-main mb-1 uppercase">Premium Gold</h3>
                     <p class="text-xs text-muted mb-6">Active Status</p>
-                    <button @onclick='() => Navigation.NavigateTo("membership")' class="text-xs font-black text-primary uppercase tracking-widest hover:underline">Manage Plan</button>
+                    <a href="/membership" class="text-xs font-black text-primary uppercase tracking-widest hover:underline">Manage Plan</a>
                 </div>
             </div>
 
@@ -59,7 +59,6 @@
             </section>
         </div>
     </Authorized>
-
     <NotAuthorized>
         <!-- Guest Landing Page -->
         <div class="space-y-24 animate-fade py-12">
@@ -72,12 +71,12 @@
                     Join over 5,000 readers in a digital-first library experience. Access a global collection of literature, earn rewards for reading, and connect with fellow book lovers.
                 </p>
                 <div class="flex items-center justify-center gap-6">
-                    <button @onclick='() => Navigation.NavigateTo("register")' class="bg-primary text-white px-10 py-5 rounded-2xl font-black text-lg hover:bg-primary-hover shadow-xl shadow-primary/20 transition-all transform hover:scale-105">
+                    <a href="/register" class="bg-primary text-white px-10 py-5 rounded-2xl font-black text-lg hover:bg-primary-hover shadow-xl shadow-primary/20 transition-all transform hover:scale-105 inline-block text-center">
                         Start Reading Now
-                    </button>
-                    <button @onclick='() => Navigation.NavigateTo("books")' class="bg-card border border-border text-main px-10 py-5 rounded-2xl font-black text-lg hover:bg-body transition-all">
+                    </a>
+                    <a href="/books" class="bg-card border border-border text-main px-10 py-5 rounded-2xl font-black text-lg hover:bg-body transition-all inline-block text-center">
                         Explore Catalog
-                    </button>
+                    </a>
                 </div>
             </section>
 
@@ -130,6 +129,7 @@
         </div>
     </NotAuthorized>
 </AuthorizeView>
+
 
 @code {
     private LoyaltyAccountDto? _loyaltyAccount;

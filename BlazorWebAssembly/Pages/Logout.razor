@@ -1,0 +1,24 @@
+@page "/logout"
+@using BlazorWebAssembly.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="min-h-[60vh] flex items-center justify-center p-8">
+    <div class="text-center">
+        <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <div class="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <h2 class="text-2xl font-black text-main mb-2">Signing Out</h2>
+        <p class="text-muted font-medium">Please wait while we secure your session...</p>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.Logout();
+        // Brief delay for UX/Smoothness
+        await Task.Delay(800);
+        Navigation.NavigateTo("/login");
+    }
+}

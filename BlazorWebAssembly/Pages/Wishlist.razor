@@ -27,9 +27,9 @@
         <div class="text-center py-24 bg-card rounded-[2.5rem] border border-dashed border-border">
             <h3 class="text-2xl font-bold text-main mb-4">Your wishlist is empty</h3>
             <p class="text-muted mb-8">Found a book that's currently borrowed? Add it to your wishlist!</p>
-            <button @onclick='() => Navigation.NavigateTo("books")' class="bg-primary text-white px-10 py-4 rounded-xl font-black hover:bg-primary-hover transition-all shadow-lg shadow-primary/20">
-                Browse Books
-            </button>
+            <a href="/books" class="bg-primary text-white px-10 py-4 rounded-xl font-black hover:bg-primary-hover transition-all shadow-lg shadow-primary/20 inline-block text-center">
+                Go to Catalog
+            </a>
         </div>
     }
     else
