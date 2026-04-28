@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -7,10 +7,6 @@ namespace DbConnect.Data;
 
 public partial class AppDbContext : DbContext
 {
-    public AppDbContext()
-    {
-    }
-
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
@@ -24,15 +20,14 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Membership> Memberships { get; set; }
 
+    public virtual DbSet<Notification> Notifications { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserSubscription> UserSubscriptions { get; set; }
 
-    public virtual DbSet<Notification> Notifications { get; set; }
-
     public virtual DbSet<WishlistItem> WishlistItems { get; set; }
 
-    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Book>(entity =>
@@ -117,6 +112,26 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Type).HasMaxLength(50);
         });
 
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasIndex(e => e.UserId, "IX_Notifications_UserId");
+
+            entity.Property(e => e.ActionLink).HasMaxLength(500);
+            entity.Property(e => e.ActionText).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Message).HasMaxLength(1000);
+            entity.Property(e => e.Title).HasMaxLength(200);
+            entity.Property(e => e.Type)
+                .HasMaxLength(50)
+                .HasDefaultValue("Info");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_Notifications_Users");
+        });
+
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasIndex(e => e.Email, "UQ_Users_Email").IsUnique();
@@ -127,6 +142,7 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.FcmToken).HasMaxLength(500);
             entity.Property(e => e.FullName).HasMaxLength(100);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
@@ -136,7 +152,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.StudentId).HasMaxLength(20);
             entity.Property(e => e.SuspensionEndDate).HasColumnType("datetime");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
-            entity.Property(e => e.FcmToken).HasMaxLength(500);
         });
 
         modelBuilder.Entity<UserSubscription>(entity =>
@@ -161,42 +176,22 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK_UserSubscriptions_Users");
         });
 
-        modelBuilder.Entity<Notification>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.Title).HasMaxLength(200);
-            entity.Property(e => e.Message).HasMaxLength(1000);
-            entity.Property(e => e.Type).HasMaxLength(50).HasDefaultValue("Info");
-            entity.Property(e => e.ActionLink).HasMaxLength(500);
-            entity.Property(e => e.ActionText).HasMaxLength(100);
-            entity.Property(e => e.IsRead).HasDefaultValue(false);
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(d => d.User).WithMany()
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK_Notifications_Users");
-        });
-
         modelBuilder.Entity<WishlistItem>(entity =>
         {
-            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.BookId, "IX_WishlistItems_BookId");
+
+            entity.HasIndex(e => e.UserId, "IX_WishlistItems_UserId");
 
             entity.Property(e => e.AddedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
 
-            entity.HasOne(d => d.Book).WithMany()
+            entity.HasOne(d => d.Book).WithMany(p => p.WishlistItems)
                 .HasForeignKey(d => d.BookId)
-                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_WishlistItems_Books");
 
-            entity.HasOne(d => d.User).WithMany()
+            entity.HasOne(d => d.User).WithMany(p => p.WishlistItems)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_WishlistItems_Users");
         });
 

@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DbConnect.Entities;
 
@@ -12,7 +13,7 @@ public partial class Notification
 
     public string Message { get; set; } = null!;
 
-    public string Type { get; set; } = "Info";
+    public string Type { get; set; } = null!;
 
     public string? ActionLink { get; set; }
 

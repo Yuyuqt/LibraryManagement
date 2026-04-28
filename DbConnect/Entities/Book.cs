@@ -31,5 +31,7 @@ public partial class Book
 
     public virtual ICollection<Borrowing> Borrowings { get; set; } = new List<Borrowing>();
 
+    public virtual ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();
+
     public virtual ICollection<Category> Categories { get; set; } = new List<Category>();
 }
