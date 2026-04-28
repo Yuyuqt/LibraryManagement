@@ -1,0 +1,110 @@
+@page "/register"
+@using BlazorWebAssembly.Services
+@using LibraryManagement.Shared.Models
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="min-h-[90vh] flex items-center justify-center py-12 px-6">
+    <div class="w-full max-w-lg">
+        <!-- Brand / Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-black text-main mb-3 tracking-tight">Create Account</h1>
+            <p class="text-muted text-lg">Join our community and start your reading journey today.</p>
+        </div>
+
+        <!-- Register Form -->
+        <div class="bg-card p-10 rounded-[2.5rem] border border-border shadow-2xl shadow-primary/5">
+            <EditForm Model="@_registerModel" OnValidSubmit="HandleRegister" class="space-y-6">
+                <DataAnnotationsValidator />
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-black text-muted uppercase tracking-[0.2em] mb-2">Full Name</label>
+                        <InputText @bind-Value="_registerModel.FullName" 
+                                   class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                                   placeholder="John Doe" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black text-muted uppercase tracking-[0.2em] mb-2">Email Address</label>
+                        <InputText @bind-Value="_registerModel.Email" 
+                                   class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                                   placeholder="john@example.com" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black text-muted uppercase tracking-[0.2em] mb-2">Phone Number</label>
+                        <InputText @bind-Value="_registerModel.PhoneNumber" 
+                                   class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                                   placeholder="+1 234 567 890" />
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-black text-muted uppercase tracking-[0.2em] mb-2">Password</label>
+                        <InputText @bind-Value="_registerModel.Password" type="password"
+                                   class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                                   placeholder="Minimum 6 characters" />
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm font-bold text-center">
+                        @_errorMessage
+                    </div>
+                }
+
+                <button type="submit" disabled="@_isLoading"
+                        class='w-full py-5 mt-4 rounded-xl font-black text-white bg-primary hover:bg-primary-hover transition-all transform hover:scale-[1.01] active:scale-95 shadow-xl shadow-primary/20 flex items-center justify-center gap-3'>
+                    @if (_isLoading)
+                    {
+                        <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Creating Account...</span>
+                    }
+                    else
+                    {
+                        <span>Get Started</span>
+                    }
+                </button>
+            </EditForm>
+        </div>
+
+        <!-- Footer -->
+        <p class="text-center mt-10 text-muted font-medium">
+            Already have an account? 
+            <button @onclick='() => Navigation.NavigateTo("login")' class="text-primary font-bold hover:underline">Sign In</button>
+        </p>
+    </div>
+</div>
+
+@code {
+    private RegisterRequest _registerModel = new();
+    private bool _isLoading = false;
+    private string? _errorMessage;
+
+    private async Task HandleRegister()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        try
+        {
+            var success = await AuthService.RegisterAsync(_registerModel);
+            if (success)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                _errorMessage = "Registration failed. This email may already be in use.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "An unexpected error occurred. Please try again later.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

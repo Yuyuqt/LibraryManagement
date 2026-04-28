@@ -1,0 +1,97 @@
+@page "/login"
+@using BlazorWebAssembly.Services
+@using LibraryManagement.Shared.Models
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="min-h-[80vh] flex items-center justify-center py-12 px-6">
+    <div class="w-full max-w-md">
+        <!-- Brand / Header -->
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-2xl mb-6">
+                <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            </div>
+            <h1 class="text-3xl font-black text-main mb-2">Welcome Back</h1>
+            <p class="text-muted">Enter your credentials to access your library account.</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="bg-card p-10 rounded-[2rem] border border-border shadow-2xl shadow-primary/5">
+            <EditForm Model="@_loginModel" OnValidSubmit="HandleLogin" class="space-y-6">
+                <DataAnnotationsValidator />
+                
+                <div>
+                    <label class="block text-xs font-black text-muted uppercase tracking-[0.2em] mb-2">Email Address</label>
+                    <InputText @bind-Value="_loginModel.Email" 
+                               class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                               placeholder="name@example.com" />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-muted uppercase tracking-[0.2em] mb-2">Password</label>
+                    <InputText @bind-Value="_loginModel.Password" type="password"
+                               class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                               placeholder="••••••••" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm font-bold text-center">
+                        @_errorMessage
+                    </div>
+                }
+
+                <button type="submit" disabled="@_isLoading"
+                        class='w-full py-4 rounded-xl font-black text-white bg-primary hover:bg-primary-hover transition-all transform hover:scale-[1.02] active:scale-95 shadow-lg shadow-primary/20 flex items-center justify-center gap-2'>
+                    @if (_isLoading)
+                    {
+                        <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Authenticating...</span>
+                    }
+                    else
+                    {
+                        <span>Sign In</span>
+                    }
+                </button>
+            </EditForm>
+        </div>
+
+        <!-- Footer -->
+        <p class="text-center mt-10 text-muted font-medium">
+            Don't have an account? 
+            <button @onclick='() => Navigation.NavigateTo("register")' class="text-primary font-bold hover:underline">Create Account</button>
+        </p>
+    </div>
+</div>
+
+@code {
+    private LoginRequest _loginModel = new();
+    private bool _isLoading = false;
+    private string? _errorMessage;
+
+    private async Task HandleLogin()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        try
+        {
+            var success = await AuthService.LoginAsync(_loginModel);
+            if (success)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                _errorMessage = "Invalid email or password. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "A connection error occurred. Please check your network.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

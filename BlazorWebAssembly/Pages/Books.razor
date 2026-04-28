@@ -1,0 +1,143 @@
+@page "/books"
+@using LibraryManagement.Shared.Models
+@using BlazorWebAssembly.Services
+@inject LibraryApiClient ApiClient
+@inject NavigationManager Navigation
+
+<div class="max-w-7xl mx-auto py-10 px-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+        <div>
+            <h1 class="text-4xl font-extrabold tracking-tight text-main mb-2">Book Collection</h1>
+            <p class="text-muted text-lg">Discover your next favorite story among our curated selection.</p>
+        </div>
+        <div class="relative w-full md:w-96">
+            <input type="text" @bind="_searchQuery" @bind:event="oninput" 
+                   placeholder="Search by title, author..." 
+                   class="w-full bg-card border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-sm" />
+        </div>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="flex flex-wrap gap-2 mb-10">
+        <button @onclick="() => FilterByCategory(null)" 
+                class='px-4 py-2 rounded-full text-sm font-semibold transition-all @(_selectedCategoryId == null ? "bg-primary text-white" : "bg-card text-muted border border-border hover:border-primary hover:text-primary")'>
+            All Genres
+        </button>
+        @foreach (var cat in _categories)
+        {
+            <button @onclick="() => FilterByCategory(cat.Id)" 
+                    class='px-4 py-2 rounded-full text-sm font-semibold transition-all @(_selectedCategoryId == cat.Id ? "bg-primary text-white" : "bg-card text-muted border border-border hover:border-primary hover:text-primary")'>
+                @cat.Name
+            </button>
+        }
+    </div>
+
+    <!-- Loading State -->
+    @if (_isLoading)
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            @for (int i = 0; i < 8; i++)
+            {
+                <div class="animate-pulse bg-card rounded-xl border border-border h-96"></div>
+            }
+        </div>
+    }
+    else if (!FilteredBooks.Any())
+    {
+        <div class="text-center py-20 bg-card rounded-2xl border border-dashed border-border">
+            <h3 class="text-xl font-bold text-main mb-2">No results found</h3>
+            <p class="text-muted">Try adjusting your search or filters.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Books Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            @foreach (var book in FilteredBooks)
+            {
+                <div class="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full cursor-pointer" 
+                     @onclick="() => ShowDetails(book.Id)">
+                    <!-- Cover -->
+                    <div class="aspect-[2/3] bg-body relative overflow-hidden">
+                        @if (!string.IsNullOrEmpty(book.CoverUrl))
+                        {
+                            <img src="@book.CoverUrl" alt="@book.Title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        }
+                        else
+                        {
+                            <div class="w-full h-full flex items-center justify-center text-muted opacity-20">
+                                <span class="font-bold uppercase tracking-widest text-xs">No Cover</span>
+                            </div>
+                        }
+                        
+                        @if (book.AvailableCopies <= 0)
+                        {
+                            <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
+                                <span class="bg-white text-black px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Unavailable</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-5 flex-grow">
+                        <div class="flex items-center gap-2 mb-2">
+                            @foreach (var cat in book.Categories.Take(2))
+                            {
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-primary opacity-80">@cat.Name</span>
+                            }
+                        </div>
+                        <h3 class="font-bold text-main line-clamp-1 mb-1 group-hover:text-primary transition-colors">@book.Title</h3>
+                        <p class="text-xs text-muted mb-4 font-medium">@book.Author</p>
+                        
+                        <div class="mt-auto flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-muted bg-body px-2 py-1 rounded border border-border">@book.Status</span>
+                            <span class="text-xs font-bold @(book.AvailableCopies > 0 ? "text-green-500" : "text-red-400")">
+                                @book.AvailableCopies / @book.TotalCopies
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private string _searchQuery = "";
+    private int? _selectedCategoryId;
+    private List<BookDto> _books = new();
+    private List<CategoryDto> _categories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        try
+        {
+            _books = (await ApiClient.GetBooksAsync()).ToList();
+            _categories = (await ApiClient.GetCategoriesAsync()).ToList();
+        }
+        catch { }
+        finally { _isLoading = false; }
+    }
+
+    private IEnumerable<BookDto> FilteredBooks => _books
+        .Where(b => (string.IsNullOrEmpty(_searchQuery) || b.Title.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) || b.Author.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase))
+                 && (!_selectedCategoryId.HasValue || b.Categories.Any(c => c.Id == _selectedCategoryId)));
+
+    private void FilterByCategory(int? id)
+    {
+        _selectedCategoryId = id;
+    }
+
+    private void ShowDetails(int id)
+    {
+        // Navigation.NavigateTo($"books/{id}");
+    }
+}

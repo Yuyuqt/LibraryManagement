@@ -1,0 +1,130 @@
+@page "/membership"
+@using LibraryManagement.Shared.Models
+@using BlazorWebAssembly.Services
+@inject LibraryApiClient ApiClient
+@inject NavigationManager Navigation
+
+<div class="max-w-6xl mx-auto py-16 px-6">
+    <!-- Header -->
+    <div class="text-center mb-20">
+        <h1 class="text-5xl font-black tracking-tight text-main mb-6">Choose Your Journey</h1>
+        <p class="text-xl text-muted max-w-2xl mx-auto leading-relaxed">
+            From casual readers to devoted bookworms, we have a plan that perfectly matches your literary appetite.
+        </p>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            @for (int i = 0; i < 3; i++)
+            {
+                <div class="animate-pulse bg-card rounded-3xl border border-border h-[500px]"></div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Current Subscription Banner -->
+        @if (_currentSub != null)
+        {
+            <div class="bg-primary/5 border border-primary/20 rounded-3xl p-8 mb-16 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white text-3xl font-bold">
+                        P
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-main">@_currentSub.MembershipType Plan</h3>
+                        <p class="text-muted">Active until @_currentSub.ExpiryDate.ToString("MMMM dd, yyyy")</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="px-4 py-1.5 bg-green-500/10 text-green-600 rounded-full text-xs font-bold uppercase tracking-widest">Active</span>
+                </div>
+            </div>
+        }
+
+        <!-- Membership Plans -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            @foreach (var plan in _memberships)
+            {
+                <div class='relative bg-card rounded-[2rem] border p-10 flex flex-col transition-all duration-500 hover:-translate-y-2 @(IsCurrentPlan(plan.Id) ? "border-primary shadow-xl shadow-primary/5 scale-105 z-10" : "border-border shadow-sm")'>
+                    @if (IsCurrentPlan(plan.Id))
+                    {
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-6 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/30">
+                            Current Plan
+                        </div>
+                    }
+
+                    <div class="mb-10">
+                        <h3 class="text-sm font-black text-muted uppercase tracking-[0.2em] mb-4">@plan.Type</h3>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-4xl font-black text-main">$@plan.Price</span>
+                            <span class="text-muted font-medium">/@plan.DurationMonths mo</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6 mb-12 flex-grow">
+                        <div class="flex items-center gap-4">
+                            <div class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                                <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <span class="text-main font-medium">Borrow up to <span class="font-bold">@plan.MaxBooks</span> books</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                                <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <span class="text-main font-medium">Keep for <span class="font-bold">@plan.BorrowingDays</span> days</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                                <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <span class="text-main font-medium">Digital access included</span>
+                        </div>
+                    </div>
+
+                    <button @onclick="() => SubscribeAsync(plan)" 
+                            disabled="@IsCurrentPlan(plan.Id)"
+                            class='w-full py-5 rounded-2xl font-black transition-all @(IsCurrentPlan(plan.Id) ? "bg-body text-muted border border-border" : "bg-primary text-white hover:bg-primary-hover hover:shadow-xl shadow-primary/20")'>
+                        @(IsCurrentPlan(plan.Id) ? "Your Plan" : "Upgrade Now")
+                    </button>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private List<MembershipDto> _memberships = new();
+    private SubscriptionDto? _currentSub;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        try
+        {
+            _memberships = (await ApiClient.GetMembershipsAsync()).ToList();
+            _currentSub = await ApiClient.GetMySubscriptionAsync();
+        }
+        catch { }
+        finally { _isLoading = false; }
+    }
+
+    private bool IsCurrentPlan(int id) => _currentSub?.MembershipId == id;
+
+    private async Task SubscribeAsync(MembershipDto plan)
+    {
+        var result = await ApiClient.SubscribeAsync(new SubscribeRequest { MembershipId = plan.Id });
+        if (result != null)
+        {
+            await LoadData();
+        }
+    }
+}

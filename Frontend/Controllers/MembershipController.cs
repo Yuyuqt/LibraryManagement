@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Frontend.Services;
-using Frontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 using Frontend.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
@@ -66,3 +66,4 @@ namespace Frontend.Controllers
         }
     }
 }
+

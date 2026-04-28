@@ -14,15 +14,15 @@ namespace Backend.Features.Loyalty
     public interface ILoyaltyService
     {
         Task<bool> RegisterUserAsync(string externalUserId, string email, string mobile);
-        Task<bool> ProcessEventAsync(string externalUserId, string eventKey, double eventValue, string referenceId, string description, string email, string mobile);
-        Task<AccountLookupResponse?> GetUserAccountAsync(string externalUserId);
+        Task<bool> ProcessEventAsync(string externalUserId, string eventKey, double eventValue, string? referenceId = null, string? description = null, string? email = null, string? mobile = null);
+        Task<LoyaltyAccountDto?> GetUserAccountAsync(string externalUserId);
         Task<(bool Success, string Message)> ClaimRewardAsync(string externalUserId, string rewardId, string notes);
         Task<IEnumerable<LoyaltyRedemptionDto>> GetPendingRedemptionsAsync();
         Task<IEnumerable<LoyaltyRedemptionDto>> GetUserRedemptionsAsync(string externalUserId);
         Task<IEnumerable<LoyaltyRedemptionDto>> GetRedemptionsHistoryAsync();
         Task<bool> UpdateRedemptionStatusAsync(string redemptionId, string status);
         Task<IEnumerable<PointHistoryEntryDto>> GetPointsHistoryAsync(string accountId);
-        Task<IEnumerable<PointHistoryEntryDto>> GetAllMembersPointsHistoryAsync();
+        Task<IEnumerable<LoyaltyRewardDto>> GetActiveRewardsAsync();
     }
 
     public class LoyaltyService : ILoyaltyService
@@ -45,23 +45,19 @@ namespace Backend.Features.Loyalty
         {
             try
             {
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
+
                 var payload = new
                 {
-                    systemId = SystemId,
                     externalUserId = externalUserId,
                     email = email,
                     mobile = mobile,
-                    tier = "Member" // Default
+                    systemId = SystemId
                 };
 
                 var response = await _httpClient.PostAsJsonAsync("/api/v1/accounts", payload);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var error = await response.Content.ReadAsStringAsync();
-                    _logger.LogWarning($"Failed to register user in loyalty system: {error}");
-                    return false;
-                }
-                return true;
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
@@ -70,12 +66,16 @@ namespace Backend.Features.Loyalty
             }
         }
 
-        public async Task<bool> ProcessEventAsync(string externalUserId, string eventKey, double eventValue, string referenceId, string description, string email, string mobile)
+        public async Task<bool> ProcessEventAsync(string externalUserId, string eventKey, double eventValue, string? referenceId = null, string? description = null, string? email = null, string? mobile = null)
         {
             try
             {
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
+
                 var payload = new
                 {
+                    systemId = SystemId,
                     externalUserId = externalUserId,
                     eventKey = eventKey,
                     eventValue = eventValue,
@@ -85,14 +85,8 @@ namespace Backend.Features.Loyalty
                     mobile = mobile
                 };
 
-                var response = await _httpClient.PostAsJsonAsync("/api/v1/events/process", payload);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var error = await response.Content.ReadAsStringAsync();
-                    _logger.LogWarning($"Failed to process loyalty event {eventKey} for user {externalUserId}: {error}");
-                    return false;
-                }
-                return true;
+                var response = await _httpClient.PostAsJsonAsync($"/api/v1/events/process?systemId={SystemId}", payload);
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
@@ -101,26 +95,32 @@ namespace Backend.Features.Loyalty
             }
         }
 
-        public async Task<AccountLookupResponse?> GetUserAccountAsync(string externalUserId)
+        public async Task<LoyaltyAccountDto?> GetUserAccountAsync(string externalUserId)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/v1/accounts/lookup/{SystemId}/{externalUserId}");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
+
+                var response = await _httpClient.GetAsync($"/api/v1/accounts/lookup/{externalUserId}?systemId={SystemId}");
+                
                 if (response.IsSuccessStatusCode)
                 {
-                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    var account = await response.Content.ReadFromJsonAsync<AccountLookupResponse>(options);
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
+                    var account = await response.Content.ReadFromJsonAsync<LoyaltyAccountDto>(options);
+                    
                     if (account != null && string.IsNullOrWhiteSpace(account.Id) && !string.IsNullOrWhiteSpace(account.AccountId))
                     {
                         account.Id = account.AccountId;
                     }
                     return account;
                 }
+                
                 return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error fetching loyalty account for user {externalUserId}.");
+                _logger.LogError(ex, $"Error looking up loyalty account for {externalUserId}.");
                 return null;
             }
         }
@@ -131,36 +131,22 @@ namespace Backend.Features.Loyalty
             {
                 var payload = new
                 {
+                    systemId = SystemId,
                     externalUserId = externalUserId,
                     rewardId = rewardId,
                     notes = notes
                 };
 
-                var response = await _httpClient.PostAsJsonAsync("/api/v1/redemption/claim", payload);
-                if (response.IsSuccessStatusCode)
-                {
-                    return (true, "Reward claimed successfully!");
-                }
+                var response = await _httpClient.PostAsJsonAsync($"/api/v1/redemption/claim?systemId={SystemId}", payload);
+                if (response.IsSuccessStatusCode) return (true, "Reward claimed successfully!");
 
                 var error = await response.Content.ReadAsStringAsync();
-                _logger.LogWarning($"Failed to claim reward {rewardId} for user {externalUserId}: {error}");
-
-                try
-                {
-                    var errorDoc = JsonDocument.Parse(error);
-                    if (errorDoc.RootElement.TryGetProperty("message", out var msgElement))
-                    {
-                        return (false, msgElement.GetString() ?? "Failed to claim reward.");
-                    }
-                }
-                catch { }
-
-                return (false, string.IsNullOrEmpty(error) ? "Failed to claim reward." : error);
+                return (false, error);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while claiming reward.");
-                return (false, "An error occurred while processing your request.");
+                return (false, "An error occurred.");
             }
         }
 
@@ -168,58 +154,56 @@ namespace Backend.Features.Loyalty
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/v1/redemption/history/{SystemId}/{externalUserId}");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
+
+                var response = await _httpClient.GetAsync($"/api/v1/redemption/history/{externalUserId}?systemId={SystemId}");
                 if (response.IsSuccessStatusCode)
                 {
-                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
                     return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
                 }
                 return Enumerable.Empty<LoyaltyRedemptionDto>();
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error fetching redemptions for user {externalUserId}.");
-                return Enumerable.Empty<LoyaltyRedemptionDto>();
-            }
+            catch { return Enumerable.Empty<LoyaltyRedemptionDto>(); }
         }
 
         public async Task<IEnumerable<LoyaltyRedemptionDto>> GetPendingRedemptionsAsync()
         {
             try
             {
-                var response = await _httpClient.GetAsync("/api/v1/admin/redemptions/pending");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
+
+                var response = await _httpClient.GetAsync($"/api/v1/admin/redemptions/pending?systemId={SystemId}");
                 if (response.IsSuccessStatusCode)
                 {
-                    var rawJson = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation($"Raw Pending Redemptions JSON: {rawJson}");
-
-                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    return JsonSerializer.Deserialize<IEnumerable<LoyaltyRedemptionDto>>(rawJson, options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
                 }
                 return Enumerable.Empty<LoyaltyRedemptionDto>();
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching pending redemptions.");
-                return Enumerable.Empty<LoyaltyRedemptionDto>();
-            }
+            catch { return Enumerable.Empty<LoyaltyRedemptionDto>(); }
         }
 
         public async Task<IEnumerable<LoyaltyRedemptionDto>> GetRedemptionsHistoryAsync()
         {
             try
             {
-                var response = await _httpClient.GetAsync("/api/v1/admin/redemptions/history");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
+
+                var response = await _httpClient.GetAsync($"/api/v1/admin/redemptions/history?systemId={SystemId}");
                 if (response.IsSuccessStatusCode)
                 {
-                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
                     return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
                 }
                 return Enumerable.Empty<LoyaltyRedemptionDto>();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching redemptions history.");
+                _logger.LogError(ex, "Error fetching redemption history.");
                 return Enumerable.Empty<LoyaltyRedemptionDto>();
             }
         }
@@ -228,107 +212,58 @@ namespace Backend.Features.Loyalty
         {
             try
             {
-                var response = await _httpClient.PutAsJsonAsync($"/api/v1/admin/redemptions/{redemptionId}/status", new { status });
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
+
+                var response = await _httpClient.PutAsJsonAsync($"/api/v1/admin/redemptions/{redemptionId}/status?systemId={SystemId}", new { systemId = SystemId, status });
                 return response.IsSuccessStatusCode;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error updating redemption status to {status} for {redemptionId}.");
-                return false;
-            }
+            catch { return false; }
         }
 
         public async Task<IEnumerable<PointHistoryEntryDto>> GetPointsHistoryAsync(string accountId)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/v1/accounts/{accountId}/history");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
+
+                var response = await _httpClient.GetAsync($"/api/v1/accounts/{accountId}/history?systemId={SystemId}");
                 if (response.IsSuccessStatusCode)
                 {
-                    var rawJson = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation("Raw Points History JSON for account {AccountId}: {Json}", accountId, rawJson);
-
-                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    return JsonSerializer.Deserialize<IEnumerable<PointHistoryEntryDto>>(rawJson, options) ?? Enumerable.Empty<PointHistoryEntryDto>();
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<PointHistoryEntryDto>>(options) ?? Enumerable.Empty<PointHistoryEntryDto>();
                 }
-                
-                var error = await response.Content.ReadAsStringAsync();
-                _logger.LogWarning("Points history request failed for account {AccountId}. Status={Status}. Body={Body}", accountId, response.StatusCode, error);
                 return Enumerable.Empty<PointHistoryEntryDto>();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error fetching points history for account {accountId}.");
+                _logger.LogError(ex, $"Error fetching points history for {accountId}.");
                 return Enumerable.Empty<PointHistoryEntryDto>();
             }
         }
 
-        public async Task<IEnumerable<PointHistoryEntryDto>> GetAllMembersPointsHistoryAsync()
+        public async Task<IEnumerable<LoyaltyRewardDto>> GetActiveRewardsAsync()
         {
-            return Enumerable.Empty<PointHistoryEntryDto>();
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
+
+                var response = await _httpClient.GetAsync($"/api/v1/rewards/active?systemId={SystemId}");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRewardDto>>(options) ?? Enumerable.Empty<LoyaltyRewardDto>();
+                }
+                return Enumerable.Empty<LoyaltyRewardDto>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching active rewards.");
+                return Enumerable.Empty<LoyaltyRewardDto>();
+            }
         }
     }
-
-    public class PointHistoryEntryDto
-    {
-        [JsonPropertyName("id")]
-        public int Id { get; set; }
-
-        [JsonPropertyName("accountId")]
-        public string AccountId { get; set; } = string.Empty;
-
-        [JsonPropertyName("externalUserId")]
-        public string? ExternalUserId { get; set; }
-
-        [JsonPropertyName("pointDelta")]
-        public double PointDelta { get; set; }
-
-        [JsonPropertyName("eventKey")]
-        public string EventKey { get; set; } = string.Empty;
-
-        [JsonPropertyName("description")]
-        public string Description { get; set; } = string.Empty;
-
-        [JsonPropertyName("referenceId")]
-        public string? ReferenceId { get; set; }
-
-        [JsonPropertyName("createdAt")]
-        public DateTime CreatedAt { get; set; }
-
-        // Optional redemption-related fields (present for REDEEM events)
-        [JsonPropertyName("rewardId")]
-        public string? RewardId { get; set; }
-
-        [JsonPropertyName("rewardName")]
-        public string? RewardName { get; set; }
-
-        [JsonPropertyName("redemptionStatus")]
-        public string? RedemptionStatus { get; set; }
-
-        [JsonPropertyName("redeemedAt")]
-        public DateTime? RedeemedAt { get; set; }
-    }
-
-    public class AccountLookupResponse
-    {
-        [JsonPropertyName("id")]
-        public string Id { get; set; } = string.Empty;
-
-        // Some loyalty API versions return `accountId` instead of `id`.
-        [JsonPropertyName("accountId")]
-        public string? AccountId { get; set; }
-
-        [JsonPropertyName("externalUserId")]
-        public string ExternalUserId { get; set; } = string.Empty;
-
-        [JsonPropertyName("currentBalance")]
-        public double CurrentBalance { get; set; }
-
-        [JsonPropertyName("tier")]
-        public string Tier { get; set; } = string.Empty;
-
-        [JsonPropertyName("lifetimePoints")]
-        public double LifetimePoints { get; set; }
-    }
 }
-

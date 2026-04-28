@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
-using Frontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 using Frontend.Services;
 
 namespace Frontend.Controllers
@@ -108,3 +108,4 @@ namespace Frontend.Controllers
         }
     }
 }
+

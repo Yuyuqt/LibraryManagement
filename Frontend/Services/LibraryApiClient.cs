@@ -1,11 +1,21 @@
+using System.Text.Json.Serialization;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Frontend.Models.Dtos;
+using LibraryManagement.Shared.Models; // Changed from LibraryManagement.Shared.Models
 
 namespace Frontend.Services
 {
     public class LibraryApiClient
     {
+        public async Task<IEnumerable<LoyaltyRewardDto>> GetActiveRewardsAsync()
+        {
+            try
+            {
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
+                return await _httpClient.GetFromJsonAsync<IEnumerable<LoyaltyRewardDto>>("api/Loyalty/rewards", options) ?? Enumerable.Empty<LoyaltyRewardDto>();
+            }
+            catch { return Enumerable.Empty<LoyaltyRewardDto>(); }
+        }
         private readonly HttpClient _httpClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -232,11 +242,8 @@ namespace Frontend.Services
         {
             try
             {
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var response = await _httpClient.GetAsync($"api/v1/accounts/{accountId}/history");
-                if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadFromJsonAsync<IEnumerable<PointHistoryEntryDto>>(options) ?? Enumerable.Empty<PointHistoryEntryDto>();
-                return Enumerable.Empty<PointHistoryEntryDto>();
+                // Call the Backend's proxy endpoint instead of trying to hit the external API directly
+                return await _httpClient.GetFromJsonAsync<IEnumerable<PointHistoryEntryDto>>("api/Loyalty/my-points-history") ?? Enumerable.Empty<PointHistoryEntryDto>();
             }
             catch { return Enumerable.Empty<PointHistoryEntryDto>(); }
         }
@@ -244,7 +251,7 @@ namespace Frontend.Services
         public async Task<IEnumerable<UserPointsHistoryDto>> GetAllMembersPointsHistoryAsync()
         {
             try {
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
                 var response = await _httpClient.GetAsync("api/Loyalty/admin/all-points-history");
                 var raw = await response.Content.ReadAsStringAsync();
                 if (!response.IsSuccessStatusCode)
@@ -300,22 +307,6 @@ namespace Frontend.Services
             }
         }
 
-        public async Task<IEnumerable<LoyaltyRewardDto>> GetActiveRewardsAsync()
-        {
-            try
-            {
-                // Fetch from the external loyalty API directly or via our backend proxy
-                // The user specified the URL: http://150.95.88.91:4100/api/v1/rewards/active/THS-LMS
-                // We'll use a new HttpClient or just the existing one if configured correctly.
-                // However, our backend doesn't have a proxy for this yet.
-                // For simplicity, let's assume we call it directly or via a backend endpoint we'll add.
-                // Better: Let's add a backend proxy in LoyaltyController to avoid CORS issues if this was a browser app.
-                // In ASP.NET Core MVC, the server-side HttpClient can call it directly.
-                var client = new HttpClient();
-                return await client.GetFromJsonAsync<IEnumerable<LoyaltyRewardDto>>("http://150.95.88.91:4100/api/v1/rewards/active/THS-LMS") ?? Enumerable.Empty<LoyaltyRewardDto>();
-            }
-            catch { return Enumerable.Empty<LoyaltyRewardDto>(); }
-        }
 
         #region Users
         public async Task<IEnumerable<UserDto>> GetUsersAsync()
@@ -359,7 +350,7 @@ namespace Frontend.Services
                 var response = await _httpClient.GetAsync("api/Loyalty/admin/redemptions/pending");
                 if (response.IsSuccessStatusCode)
                 {
-                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
                     return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
                 }
                 return Enumerable.Empty<LoyaltyRedemptionDto>();
@@ -397,3 +388,7 @@ namespace Frontend.Services
         }
     }
 }
+
+
+
+

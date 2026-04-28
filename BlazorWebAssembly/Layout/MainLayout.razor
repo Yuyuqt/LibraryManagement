@@ -1,16 +1,100 @@
-﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@inherits LayoutComponentBase
+@using BlazorWebAssembly.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ThemeService ThemeService
+@inject AuthenticationStateProvider AuthStateProvider
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+<div class="flex h-screen overflow-hidden bg-body text-main animate-fade font-sans">
+    <!-- Sidebar (Hidden on mobile) -->
+    <aside class="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-50 border-r border-border bg-card">
+        <div class="flex flex-col flex-grow pt-8 pb-4 overflow-y-auto">
+            <!-- Brand -->
+            <div class="flex items-center flex-shrink-0 px-6 gap-3 mb-10">
+                <div class="bg-primary rounded-xl p-2 text-white shadow-lg shadow-primary/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/><path d="M4 12V4l4 4"/><path d="m12 6 4 4"/></svg>
+                </div>
+                <span class="text-xl font-black tracking-tighter uppercase">LibraryLuxe</span>
+            </div>
+
+            <!-- Navigation -->
+            <div class="flex-grow px-3">
+                <NavMenu />
+            </div>
+
+            <!-- Theme & User Mini Profile -->
+            <div class="px-6 py-6 border-t border-border">
+                <div class="mb-6">
+                    <p class="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-4 text-center">Switch Theme</p>
+                    <ThemeSwitcher />
+                </div>
+                
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="flex items-center gap-3 p-3 bg-body rounded-2xl border border-border">
+                            <div class="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white font-bold shadow-sm">
+                                @context.User.Identity?.Name?[..1].ToUpper()
+                            </div>
+                            <div class="flex flex-col min-w-0">
+                                <span class="text-xs font-bold truncate">@context.User.Identity?.Name</span>
+                                <span class="text-[10px] text-muted font-medium uppercase tracking-wider">Member</span>
+                            </div>
+                        </div>
+                    </Authorized>
+                    <NotAuthorized>
+                         <div class="flex items-center gap-3 p-3 bg-body rounded-2xl border border-border">
+                            <div class="h-10 w-10 rounded-xl bg-muted/20 flex items-center justify-center text-muted font-bold">
+                                G
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-muted">Guest User</span>
+                                <a href="login" class="text-[10px] text-primary font-black uppercase tracking-wider hover:underline">Sign In</a>
+                            </div>
+                        </div>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
         </div>
+    </aside>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+    <!-- Main Content Wrapper -->
+    <div class="lg:pl-64 flex flex-col flex-1 w-0">
+        <!-- Topbar -->
+        <header class="h-20 bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-40 flex items-center justify-between px-8">
+            <div class="flex-grow max-w-lg">
+                <div class="relative">
+                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" placeholder="Quick search..." class="w-full bg-body border border-border rounded-xl pl-12 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-sm" />
+                </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <AuthorizeView>
+                    <Authorized>
+                        <button class="relative text-muted hover:text-primary transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full border-2 border-card"></span>
+                        </button>
+                        <a href="/logout" class="text-xs font-black uppercase tracking-widest text-muted hover:text-red-500 transition-colors">Logout</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/login" class="bg-primary text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Sign In</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </header>
+
+        <!-- Main Content Section -->
+        <main class="flex-1 overflow-y-auto p-8 scrollbar-hide">
+            <div class="max-w-6xl mx-auto">
+                @Body
+            </div>
+        </main>
+    </div>
 </div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await ThemeService.InitializeAsync();
+    }
+}

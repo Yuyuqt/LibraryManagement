@@ -25,7 +25,7 @@ namespace Frontend.Controllers
             ViewBag.TotalMembers = 0;
             ViewBag.LoyaltyPoints = 0;
             ViewBag.LoyaltyStatus = "Not Authenticated";
-            ViewBag.RecentBooks = Enumerable.Empty<Frontend.Models.Dtos.BookDto>();
+            ViewBag.RecentBooks = Enumerable.Empty<LibraryManagement.Shared.Models.BookDto>();
 
             try 
             {
@@ -90,3 +90,4 @@ namespace Frontend.Controllers
         }
     }
 }
+

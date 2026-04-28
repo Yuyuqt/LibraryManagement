@@ -1,4 +1,8 @@
 using BlazorWebAssembly;
+using BlazorWebAssembly.Providers;
+using BlazorWebAssembly.Services;
+using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -6,6 +10,26 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+// Add HttpClient with Backend address
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7028/") });
+
+// Add Blazored LocalStorage
+builder.Services.AddBlazoredLocalStorage();
+
+// Add Authorization Core
+builder.Services.AddAuthorizationCore();
+
+// Register Custom AuthStateProvider
+builder.Services.AddScoped<JwtAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<JwtAuthenticationStateProvider>());
+
+// Register AuthService
+builder.Services.AddScoped<AuthService>();
+
+// Register ThemeService
+builder.Services.AddScoped<ThemeService>();
+
+// Register LibraryApiClient
+builder.Services.AddScoped<LibraryApiClient>();
 
 await builder.Build().RunAsync();

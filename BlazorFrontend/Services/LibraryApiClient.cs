@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.Net.Http.Json;
 using System.Text.Json;
 using LibraryManagement.Shared.Models;
@@ -182,7 +183,7 @@ namespace BlazorFrontend.Services
                 {
                     // JsonPropertyName attributes in LoyaltyAccountDto will handle the mapping
                     // and correctly populate CurrentBalance from the backend's currentBalance
-                    return await response.Content.ReadFromJsonAsync<LoyaltyAccountDto>();
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString }; return await response.Content.ReadFromJsonAsync<LoyaltyAccountDto>(options);
                 }
                 else
                 {
@@ -221,11 +222,8 @@ namespace BlazorFrontend.Services
         {
             try
             {
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var response = await _httpClient.GetAsync($"api/v1/accounts/{accountId}/history");
-                if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadFromJsonAsync<IEnumerable<PointHistoryEntryDto>>(options) ?? Enumerable.Empty<PointHistoryEntryDto>();
-                return Enumerable.Empty<PointHistoryEntryDto>();
+                // Call the Backend's proxy endpoint instead of trying to hit the external API directly
+                return await _httpClient.GetFromJsonAsync<IEnumerable<PointHistoryEntryDto>>("api/Loyalty/my-points-history") ?? Enumerable.Empty<PointHistoryEntryDto>();
             }
             catch { return Enumerable.Empty<PointHistoryEntryDto>(); }
         }
@@ -233,7 +231,7 @@ namespace BlazorFrontend.Services
         public async Task<IEnumerable<UserPointsHistoryDto>> GetAllMembersPointsHistoryAsync()
         {
             try {
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
                 var response = await _httpClient.GetAsync("api/Loyalty/admin/all-points-history");
                 var raw = await response.Content.ReadAsStringAsync();
                 if (!response.IsSuccessStatusCode)
@@ -293,9 +291,8 @@ namespace BlazorFrontend.Services
         {
             try
             {
-                
-                var client = new HttpClient();
-                return await client.GetFromJsonAsync<IEnumerable<LoyaltyRewardDto>>("http://150.95.88.91:4100/api/v1/rewards/active/THS-LMS") ?? Enumerable.Empty<LoyaltyRewardDto>();
+                // Call our Backend proxy which handles the external API and SystemId
+                return await _httpClient.GetFromJsonAsync<IEnumerable<LoyaltyRewardDto>>("api/Loyalty/rewards") ?? Enumerable.Empty<LoyaltyRewardDto>();
             }
             catch { return Enumerable.Empty<LoyaltyRewardDto>(); }
         }
@@ -342,7 +339,7 @@ namespace BlazorFrontend.Services
                 var response = await _httpClient.GetAsync("api/Loyalty/admin/redemptions/pending");
                 if (response.IsSuccessStatusCode)
                 {
-                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
                     return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
                 }
                 return Enumerable.Empty<LoyaltyRedemptionDto>();
@@ -413,3 +410,6 @@ namespace BlazorFrontend.Services
         #endregion
     }
 }
+
+
+

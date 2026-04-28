@@ -1,0 +1,100 @@
+@page "/rewards"
+@using LibraryManagement.Shared.Models
+@using BlazorWebAssembly.Services
+@inject LibraryApiClient ApiClient
+@inject NavigationManager Navigation
+
+<div class="max-w-6xl mx-auto py-12 px-6">
+    <!-- Header -->
+    <div class="text-center mb-16">
+        <h1 class="text-5xl font-black tracking-tight text-main mb-4">Loyalty Rewards</h1>
+        <p class="text-lg text-muted max-w-2xl mx-auto">
+            Your points are your power. Exchange them for exclusive memberships and reading perks.
+        </p>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="flex justify-center py-20">
+            <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+    }
+    else
+    {
+        <!-- Account Status Card -->
+        <div class="bg-card rounded-2xl border border-border p-10 mb-16 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm">
+            <div>
+                <p class="text-sm font-bold text-muted uppercase tracking-widest mb-1">Your Balance</p>
+                <div class="flex items-baseline gap-2">
+                    <h2 class="text-6xl font-black text-main">@(_account?.CurrentBalance ?? 0)</h2>
+                    <span class="text-xl font-bold text-primary">POINTS</span>
+                </div>
+            </div>
+            <div class="h-16 w-px bg-border hidden md:block"></div>
+            <div class="text-center md:text-left">
+                <p class="text-sm font-medium text-muted mb-2">Member Tier</p>
+                <p class="text-xl font-bold text-main">@(_account?.Tier ?? "Member")</p>
+            </div>
+            <button class="bg-primary text-white px-10 py-4 rounded-xl font-black hover:bg-primary-hover transition-all transform hover:scale-105 shadow-lg shadow-primary/20">
+                How it works
+            </button>
+        </div>
+
+        <!-- Rewards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            @foreach (var reward in _rewards)
+            {
+                <div class="bg-card rounded-2xl border border-border p-8 flex flex-col hover:border-primary transition-all group">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="w-14 h-14 bg-body rounded-xl flex items-center justify-center border border-border group-hover:bg-primary/5 transition-colors">
+                            <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
+                        </div>
+                        <span class="bg-primary/10 text-primary px-4 py-1 rounded-full text-sm font-black">@reward.PointCost pts</span>
+                    </div>
+                    
+                    <h3 class="text-2xl font-bold text-main mb-2">@reward.Name</h3>
+                    <p class="text-muted leading-relaxed mb-8 flex-grow">@reward.Description</p>
+                    
+                    <button @onclick="() => ClaimAsync(reward)" 
+                            disabled="@((_account?.CurrentBalance ?? 0) < reward.PointCost)"
+                            class='w-full py-4 rounded-xl font-bold transition-all @((_account?.CurrentBalance ?? 0) >= reward.PointCost ? "bg-main text-bg-body hover:bg-primary" : "bg-body text-muted cursor-not-allowed border border-border")'>
+                        @((_account?.CurrentBalance ?? 0) >= reward.PointCost ? "Claim Reward" : "Insufficient Points")
+                    </button>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private LoyaltyAccountDto? _account;
+    private List<LoyaltyRewardDto> _rewards = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        try
+        {
+            _account = await ApiClient.GetMyLoyaltyAccountAsync();
+            _rewards = (await ApiClient.GetActiveRewardsAsync()).ToList();
+        }
+        catch { }
+        finally { _isLoading = false; }
+    }
+
+    private async Task ClaimAsync(LoyaltyRewardDto reward)
+    {
+        var (success, msg) = await ApiClient.ClaimRewardAsync(reward.Id);
+        if (success)
+        {
+            await LoadData();
+            // Show success message
+        }
+    }
+}

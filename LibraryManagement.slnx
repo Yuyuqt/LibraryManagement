@@ -4,4 +4,5 @@
   <Project Path="BlazorWebAssembly/BlazorWebAssembly.csproj" Id="f8d002d4-70e4-4caf-b791-0f073b209f56" />
   <Project Path="DbConnect/DbConnect.csproj" Id="9923b718-c896-438d-ba4b-a2065f91c8ab" />
   <Project Path="Frontend/Frontend.csproj" Id="824d7fed-4fd3-41c5-8c5e-acd458ccbcdb" />
+  <Project Path="LibraryManagement.Shared/LibraryManagement.Shared.csproj" />
 </Solution>

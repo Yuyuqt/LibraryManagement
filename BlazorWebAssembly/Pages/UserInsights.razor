@@ -1,0 +1,100 @@
+@page "/user-insights"
+@using LibraryManagement.Shared.Models
+@using BlazorWebAssembly.Services
+@inject LibraryApiClient ApiClient
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Librarian")]
+
+<div class="max-w-7xl mx-auto py-12 px-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
+        <div>
+            <h1 class="text-5xl font-black tracking-tight text-main mb-4">User Insights</h1>
+            <p class="text-lg text-muted max-w-xl">
+                Analytics and data-driven visibility into library membership and reading patterns.
+            </p>
+        </div>
+        <div class="flex gap-4">
+            <div class="bg-card border border-border px-6 py-3 rounded-2xl flex flex-col">
+                <span class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Total Members</span>
+                <span class="text-2xl font-black text-main">1,284</span>
+            </div>
+            <div class="bg-card border border-border px-6 py-3 rounded-2xl flex flex-col text-primary border-primary/20">
+                <span class="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Active Now</span>
+                <span class="text-2xl font-black text-primary">42</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+        <!-- Top Readers -->
+        <div class="bg-card rounded-[2rem] border border-border p-10 shadow-sm">
+            <h3 class="text-xl font-bold text-main mb-8 border-b border-border pb-4 uppercase tracking-widest text-xs">Top Readers</h3>
+            <div class="space-y-8">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    <div class="flex items-center gap-4">
+                        <span class="w-8 h-8 rounded-lg bg-body flex items-center justify-center font-black text-muted text-xs">@i</span>
+                        <div class="flex-grow">
+                            <p class="font-bold text-main text-sm">Member User @i</p>
+                            <p class="text-[10px] text-muted font-medium uppercase tracking-widest">@(20 - i) Books Borrowed</p>
+                        </div>
+                        <div class="w-12 bg-body h-1 rounded-full overflow-hidden">
+                            <div class="bg-primary h-full" style="width: @(100 - (i * 15))%"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Loyalty Leaders -->
+        <div class="bg-card rounded-[2rem] border border-border p-10 shadow-sm">
+            <h3 class="text-xl font-bold text-main mb-8 border-b border-border pb-4 uppercase tracking-widest text-xs">Point Leaders</h3>
+            <div class="space-y-8">
+                 @for (int i = 1; i <= 5; i++)
+                {
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs">
+                            L
+                        </div>
+                        <div class="flex-grow">
+                            <p class="font-bold text-main text-sm">User Alpha @i</p>
+                            <p class="text-[10px] text-muted font-medium uppercase tracking-widest">@(5000 - (i * 500)) Points</p>
+                        </div>
+                        <span class="text-xs font-black text-primary">TIER @(6-i)</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Membership Distribution -->
+        <div class="bg-card rounded-[2rem] border border-border p-10 shadow-sm">
+            <h3 class="text-xl font-bold text-main mb-8 border-b border-border pb-4 uppercase tracking-widest text-xs">Growth Patterns</h3>
+            <div class="space-y-6">
+                <div class="flex justify-between items-end gap-2 h-40">
+                    <div class="bg-primary/20 w-full rounded-t-xl" style="height: 40%"></div>
+                    <div class="bg-primary/40 w-full rounded-t-xl" style="height: 60%"></div>
+                    <div class="bg-primary/60 w-full rounded-t-xl" style="height: 30%"></div>
+                    <div class="bg-primary/80 w-full rounded-t-xl" style="height: 90%"></div>
+                    <div class="bg-primary w-full rounded-t-xl" style="height: 100%"></div>
+                </div>
+                <div class="flex justify-between text-[10px] font-black text-muted uppercase tracking-[0.2em] px-2">
+                    <span>Mon</span>
+                    <span>Tue</span>
+                    <span>Wed</span>
+                    <span>Thu</span>
+                    <span>Fri</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Data loading logic here
+    }
+}

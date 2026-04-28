@@ -1,4 +1,4 @@
-using Frontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 using System.Collections.Generic;
 
 namespace Frontend.Models
@@ -10,3 +10,4 @@ namespace Frontend.Models
         public List<MembershipDto> AvailableMemberships { get; set; } = new();
     }
 }
+

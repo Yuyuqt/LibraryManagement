@@ -1,4 +1,4 @@
-@model Frontend.Models.Dtos.BookUpdateRequest
+@model LibraryManagement.Shared.Models.BookUpdateRequest
 @{
     ViewData["Title"] = "Edit Book";
 }
@@ -63,7 +63,7 @@
                     <div class="sm:col-span-2">
                         <label class="block text-sm font-medium text-slate-700 mb-2">Categories</label>
                         @{
-                            var allCategories = ViewBag.Categories as IEnumerable<Frontend.Models.Dtos.CategoryDto>;
+                            var allCategories = ViewBag.Categories as IEnumerable<LibraryManagement.Shared.Models.CategoryDto>;
                             var selectedIds = Model.CategoryIds ?? new List<int>();
                         }
                         @if (allCategories != null && allCategories.Any())
@@ -99,3 +99,4 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+

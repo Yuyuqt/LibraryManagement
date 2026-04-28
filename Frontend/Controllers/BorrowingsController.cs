@@ -1,5 +1,5 @@
 using Frontend.Models;
-using Frontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 using Frontend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -107,3 +107,4 @@ namespace Frontend.Controllers
         }
     }
 }
+

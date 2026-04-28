@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Frontend.Services;
-using Frontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Frontend.Controllers
@@ -18,12 +18,12 @@ namespace Frontend.Controllers
         public async Task<IActionResult> Index(int page = 1)
         {
             const int pageSize = 10;
-            var allUsers = await _apiClient.GetUsersAsync() ?? Enumerable.Empty<Frontend.Models.Dtos.UserDto>();
+            var allUsers = await _apiClient.GetUsersAsync() ?? Enumerable.Empty<LibraryManagement.Shared.Models.UserDto>();
             var totalCount = allUsers.Count();
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
 
-            var pagedResult = new Frontend.Models.PagedResult<Frontend.Models.Dtos.UserDto>
+            var pagedResult = new Frontend.Models.PagedResult<LibraryManagement.Shared.Models.UserDto>
             {
                 Items = allUsers.Skip((page - 1) * pageSize).Take(pageSize),
                 CurrentPage = page,
@@ -153,3 +153,4 @@ namespace Frontend.Controllers
         }
     }
 }
+

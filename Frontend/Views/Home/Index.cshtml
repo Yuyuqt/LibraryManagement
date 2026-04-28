@@ -103,7 +103,7 @@
     </div>
     
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-        @foreach (var book in (IEnumerable<Frontend.Models.Dtos.BookDto>)ViewBag.RecentBooks)
+        @foreach (var book in (IEnumerable<LibraryManagement.Shared.Models.BookDto>)ViewBag.RecentBooks)
         {
             <div class="group cursor-pointer">
                 <div class="aspect-[2/3] w-full bg-slate-100 rounded-xl mb-3 flex items-center justify-center text-slate-300 group-hover:shadow-lg transition-all duration-300 relative overflow-hidden">
@@ -151,3 +151,4 @@
         </div>
     </div>
 </div>
+

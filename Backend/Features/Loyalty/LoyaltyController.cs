@@ -24,6 +24,13 @@ namespace Backend.Features.Loyalty
             _context = context;
         }
 
+        [HttpGet("rewards")]
+        public async Task<IActionResult> GetRewards()
+        {
+            var rewards = await _loyaltyService.GetActiveRewardsAsync();
+            return Ok(rewards);
+        }
+
         // ── Member endpoints ──────────────────────────────────────────────────
 
         [HttpGet("my-account")]
@@ -32,8 +39,31 @@ namespace Backend.Features.Loyalty
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
 
+            // 2. Get user from DB to get Email/Mobile for potential registration
+            var user = await _context.Users.FindAsync(Guid.Parse(userIdStr));
+            if (user == null) return NotFound("User not found.");
+
+            // 3. Get Loyalty Account
             var account = await _loyaltyService.GetUserAccountAsync(userIdStr);
-            if (account == null) return NotFound("Loyalty account not found.");
+            
+            if (account == null)
+            {
+                // Auto-register if account not found
+                var registered = await _loyaltyService.RegisterUserAsync(userIdStr, user.Email, user.PhoneNumber ?? "0000000000");
+                if (registered)
+                {
+                    // Process a small signup bonus if it's their first time being linked
+                    await _loyaltyService.ProcessEventAsync(userIdStr, "SIGNUP", 20, $"LINK-{user.Id}", "Account Auto-Linked Bonus", user.Email, user.PhoneNumber);
+                    
+                    // Try lookup again
+                    account = await _loyaltyService.GetUserAccountAsync(userIdStr);
+                }
+            }
+
+            if (account == null)
+            {
+                return Ok(null); // Will show "Account Not Linked" in UI
+            }
             return Ok(account);
         }
 
@@ -55,7 +85,7 @@ namespace Backend.Features.Loyalty
             if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
 
             var redemptions = await _loyaltyService.GetUserRedemptionsAsync(userIdStr);
-            var pending = redemptions.Where(r => r.Status.Equals("Pending", StringComparison.OrdinalIgnoreCase));
+            var pending = redemptions.Where(r => string.Equals(r.Status, "Pending", StringComparison.OrdinalIgnoreCase));
             return Ok(pending);
         }
 

@@ -1,4 +1,4 @@
-@model Frontend.Models.PagedResult<Frontend.Models.Dtos.BookDto>
+@model Frontend.Models.PagedResult<LibraryManagement.Shared.Models.BookDto>
 @{
     ViewData["Title"] = "Books Catalog";
 }
@@ -37,7 +37,7 @@
 
 @* Category Filter Pills *@
 @{
-    var categories = ViewBag.Categories as IEnumerable<Frontend.Models.Dtos.CategoryDto> ?? Enumerable.Empty<Frontend.Models.Dtos.CategoryDto>();
+    var categories = ViewBag.Categories as IEnumerable<LibraryManagement.Shared.Models.CategoryDto> ?? Enumerable.Empty<LibraryManagement.Shared.Models.CategoryDto>();
     int? selectedCategoryId = ViewBag.SelectedCategoryId;
 }
 @if (categories.Any())
@@ -191,3 +191,4 @@
         </nav>
     </div>
 }
+

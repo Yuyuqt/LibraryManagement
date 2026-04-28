@@ -1,4 +1,4 @@
-using Frontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 
 namespace Frontend.Models
 {
@@ -19,3 +19,4 @@ namespace Frontend.Models
         public IEnumerable<UserPointsHistoryDto> AllMembersHistory { get; set; } = Enumerable.Empty<UserPointsHistoryDto>();
     }
 }
+

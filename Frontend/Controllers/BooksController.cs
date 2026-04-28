@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Frontend.Services;
-using Frontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 
 namespace Frontend.Controllers
 {
@@ -125,3 +125,4 @@ namespace Frontend.Controllers
         }
     }
 }
+

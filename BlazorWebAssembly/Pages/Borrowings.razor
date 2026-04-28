@@ -1,0 +1,122 @@
+@page "/borrowings"
+@using LibraryManagement.Shared.Models
+@using BlazorWebAssembly.Services
+@inject LibraryApiClient ApiClient
+@inject NavigationManager Navigation
+
+<div class="max-w-6xl mx-auto py-12 px-6">
+    <!-- Header -->
+    <div class="flex justify-between items-end mb-16">
+        <div>
+            <h1 class="text-5xl font-black tracking-tight text-main mb-4">My Loans</h1>
+            <p class="text-lg text-muted max-w-xl">
+                Keep track of your reading journey and manage your active borrowings.
+            </p>
+        </div>
+        <button @onclick='() => Navigation.NavigateTo("books")' class="hidden md:block bg-body text-main border border-border px-8 py-3 rounded-xl font-bold hover:bg-card transition-all">
+            Browse More
+        </button>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="space-y-6">
+            @for (int i = 0; i < 3; i++)
+            {
+                <div class="animate-pulse bg-card rounded-2xl border border-border h-32 w-full"></div>
+            }
+        </div>
+    }
+    else if (!_borrowings.Any())
+    {
+        <div class="text-center py-24 bg-card rounded-[2.5rem] border border-dashed border-border shadow-sm">
+            <h3 class="text-2xl font-bold text-main mb-3">No active loans</h3>
+            <p class="text-muted mb-8">You haven't borrowed any books yet. Explore our collection to get started.</p>
+            <button @onclick='() => Navigation.NavigateTo("books")' class="bg-primary text-white px-10 py-4 rounded-xl font-black hover:bg-primary-hover transition-all shadow-lg shadow-primary/20">
+                Go to Catalog
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-6">
+            @foreach (var loan in _borrowings)
+            {
+                <div class="bg-card rounded-2xl border border-border p-6 flex flex-col md:flex-row items-center gap-8 hover:border-primary/50 transition-all group">
+                    <!-- Book Cover / Placeholder -->
+                    <div class="w-20 h-28 bg-body rounded-lg overflow-hidden flex-shrink-0 border border-border flex items-center justify-center">
+                        <svg class="w-8 h-8 text-muted opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="flex-grow text-center md:text-left">
+                        <h3 class="text-xl font-bold text-main mb-1 group-hover:text-primary transition-colors">@loan.BookTitle</h3>
+                        <p class="text-sm text-muted font-medium mb-4 md:mb-0">ID: @loan.BookId</p>
+                    </div>
+
+                    <!-- Dates -->
+                    <div class="grid grid-cols-2 gap-8 px-8 border-x border-border hidden lg:grid">
+                        <div>
+                            <p class="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-1">Borrowed</p>
+                            <p class="text-sm font-bold text-main">@loan.BorrowDate.ToString("MMM dd, yyyy")</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-1">Due Date</p>
+                            <p class="text-sm font-bold @(loan.DueDate < DateTime.UtcNow ? "text-red-500" : "text-main")">
+                                @loan.DueDate.ToString("MMM dd, yyyy")
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Status & Action -->
+                    <div class="flex flex-col md:items-end gap-3 min-w-[150px]">
+                        <span class='px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-center @GetStatusColor(loan.Status)'>
+                            @loan.Status
+                        </span>
+                        @if (loan.Status == "Borrowed")
+                        {
+                            <button @onclick="() => ReturnRequestAsync(loan.Id)" class="text-xs font-bold text-primary hover:underline">
+                                Request Return
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private List<BorrowingDto> _borrowings = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        try
+        {
+            _borrowings = (await ApiClient.GetMyBorrowingsAsync()).ToList();
+        }
+        catch { }
+        finally { _isLoading = false; }
+    }
+
+    private async Task ReturnRequestAsync(Guid id)
+    {
+        var success = await ApiClient.RequestReturnAsync(id);
+        if (success) await LoadData();
+    }
+
+    private string GetStatusColor(string status) => status switch
+    {
+        "Borrowed" => "bg-blue-500/10 text-blue-500",
+        "Returned" => "bg-green-500/10 text-green-500",
+        "PendingReturn" => "bg-orange-500/10 text-orange-500",
+        _ => "bg-body text-muted"
+    };
+}

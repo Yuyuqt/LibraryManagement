@@ -25,6 +25,14 @@ var builder = WebApplication.CreateBuilder(args);
 //    Credential = GoogleCredential.FromFile("LibraryFirebase.json")
 //});
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowWasm",
+        policy => policy.WithOrigins("https://localhost:7058", "http://localhost:5158")
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+});
+
 
 builder.Services.AddControllers();
 builder.Services.AddAuthorization();
@@ -104,6 +112,9 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseCors("AllowWasm");
+
 app.UseAuthentication();
 app.UseAuthorization();
 

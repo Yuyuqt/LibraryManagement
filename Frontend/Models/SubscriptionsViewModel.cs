@@ -1,4 +1,4 @@
-using Frontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 
 namespace Frontend.Models
 {
@@ -8,3 +8,4 @@ namespace Frontend.Models
         public List<SubscriptionDto> ActiveSubscriptions { get; set; } = new();
     }
 }
+
