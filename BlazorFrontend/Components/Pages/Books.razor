@@ -1,6 +1,6 @@
 @page "/Books"
 @using BlazorFrontend.Services
-@using BlazorFrontend.Models.Dtos
+@using LibraryManagement.Shared.Models
 @using Microsoft.AspNetCore.Authorization
 @inject LibraryApiClient ApiClient
 @inject WishlistService WishlistService
@@ -727,3 +727,4 @@ else if (_viewMode == ViewMode.Create || _viewMode == ViewMode.Edit)
         public List<int> CategoryIds { get; set; } = new();
     }
 }
+

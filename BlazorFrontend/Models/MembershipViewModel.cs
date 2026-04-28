@@ -1,4 +1,4 @@
-using BlazorFrontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 using System.Collections.Generic;
 
 namespace BlazorFrontend.Models
@@ -12,3 +12,4 @@ namespace BlazorFrontend.Models
         public Dictionary<string, double> RewardPointCosts { get; set; } = new Dictionary<string, double>();
     }
 }
+

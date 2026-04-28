@@ -1,4 +1,4 @@
-using BlazorFrontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using System.Text.Json;
 

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace BlazorFrontend.Models.Dtos
+namespace LibraryManagement.Shared.Models
 {
     // Auth DTOs
     public class RegisterRequest
@@ -83,7 +83,7 @@ namespace BlazorFrontend.Models.Dtos
         public string BookTitle { get; set; } = string.Empty;
         public DateTime BorrowDate { get; set; }
         public DateTime DueDate { get; set; }
-        public DateTime? ReturnDate { get; set; } // This is ActualReturnDate in some contexts
+        public DateTime? ReturnDate { get; set; }
         public string Status { get; set; } = string.Empty;
         public decimal FineAmount { get; set; }
         public bool IsFinePaid { get; set; }
@@ -149,7 +149,6 @@ namespace BlazorFrontend.Models.Dtos
         [JsonPropertyName("id")]
         public string Id { get; set; } = string.Empty;
 
-        // Some responses use `accountId` instead of `id`.
         [JsonPropertyName("accountId")]
         public string? AccountId { get; set; }
 
@@ -193,10 +192,38 @@ namespace BlazorFrontend.Models.Dtos
         public string? Notes { get; set; }
     }
 
+    public class LoyaltyRedemptionDto
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = string.Empty;
+
+        [JsonPropertyName("systemId")]
+        public string SystemId { get; set; } = string.Empty;
+
+        [JsonPropertyName("externalUserId")]
+        public string ExternalUserId { get; set; } = string.Empty;
+
+        [JsonPropertyName("rewardId")]
+        public string? RewardId { get; set; }
+
+        [JsonPropertyName("rewardName")]
+        public string RewardName { get; set; } = string.Empty;
+
+        [JsonPropertyName("pointCost")]
+        public double PointCost { get; set; }
+
+        [JsonPropertyName("status")]
+        public string Status { get; set; } = string.Empty;
+
+        [JsonPropertyName("redeemedAt")]
+        public DateTime RedeemedAt { get; set; }
+    }
+
     // User DTOs
     public class UserDto
     {
         public Guid Id { get; set; }
+        public string Name => FullName;
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string? PhoneNumber { get; set; }
@@ -296,5 +323,28 @@ namespace BlazorFrontend.Models.Dtos
         public bool IsRead { get; set; }
         public string? ActionLink { get; set; }
         public string? ActionText { get; set; }
+    }
+
+    public class SubscriptionExpiryNotificationRequest
+    {
+        public Guid UserId { get; set; }
+        public string FcmToken { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+        public int DaysRemaining { get; set; }
+    }
+
+    public class ReturnReminderNotificationRequest
+    {
+        public Guid UserId { get; set; }
+        public string FcmToken { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+        public string BookTitle { get; set; } = string.Empty;
+        public DateTime DueDate { get; set; }
+    }
+
+    public class NotificationResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
     }
 }

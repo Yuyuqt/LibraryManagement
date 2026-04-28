@@ -1,3 +1,4 @@
+using LibraryManagement.Shared.Models;
 using Backend.Features.Subscriptions;
 using DbConnect.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -165,3 +166,4 @@ namespace Backend.Features.Loyalty
     }
 
 }
+

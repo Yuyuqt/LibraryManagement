@@ -1,3 +1,4 @@
+using LibraryManagement.Shared.Models;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -11,3 +12,4 @@ public interface INotificationService
     Task<bool> MarkAllAsReadAsync(Guid userId);
     Task<int> GetUnreadCountAsync(Guid userId);
 }
+

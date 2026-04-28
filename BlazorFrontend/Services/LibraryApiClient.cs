@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
-using BlazorFrontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 
 namespace BlazorFrontend.Services
 {

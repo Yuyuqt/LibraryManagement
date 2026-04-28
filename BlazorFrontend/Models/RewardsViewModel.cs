@@ -1,4 +1,4 @@
-using BlazorFrontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 
 namespace BlazorFrontend.Models
 {
@@ -19,3 +19,4 @@ namespace BlazorFrontend.Models
         public IEnumerable<UserPointsHistoryDto> AllMembersHistory { get; set; } = Enumerable.Empty<UserPointsHistoryDto>();
     }
 }
+

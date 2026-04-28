@@ -1,6 +1,6 @@
 @page "/Members"
 @using BlazorFrontend.Services
-@using BlazorFrontend.Models.Dtos
+@using LibraryManagement.Shared.Models
 @using BlazorFrontend.Models
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Librarian")]
@@ -631,4 +631,5 @@ else if (_currentView == ViewMode.Create || _currentView == ViewMode.Edit)
         }
     }
 }
+
 

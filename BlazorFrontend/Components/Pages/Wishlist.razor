@@ -1,6 +1,6 @@
 @page "/Wishlist"
 @using BlazorFrontend.Services
-@using BlazorFrontend.Models.Dtos
+@using LibraryManagement.Shared.Models
 @using Microsoft.AspNetCore.Authorization
 @inject WishlistService WishlistService
 @inject IJSRuntime JS
@@ -201,3 +201,4 @@
         await JS.InvokeVoidAsync("showToast", "Removed from favourites", "success");
     }
 }
+

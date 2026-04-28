@@ -1,3 +1,4 @@
+using LibraryManagement.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -101,3 +102,4 @@ namespace Backend.Features.Subscriptions
         }
     }
 }
+

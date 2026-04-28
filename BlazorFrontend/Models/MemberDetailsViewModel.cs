@@ -1,4 +1,4 @@
-using BlazorFrontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 using System.Collections.Generic;
 
 namespace BlazorFrontend.Models
@@ -10,3 +10,4 @@ namespace BlazorFrontend.Models
         public List<MembershipDto> AvailableMemberships { get; set; } = new();
     }
 }
+

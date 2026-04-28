@@ -1,7 +1,7 @@
 using DbConnect.Data;
 using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
+using LibraryManagement.Shared.Models;
 
 namespace Backend.Features.Books
 {
@@ -162,50 +162,5 @@ namespace Backend.Features.Books
                 Categories = book.Categories.Select(c => new BookCategoryDto { Id = c.Id, Name = c.Name }).ToList()
             };
         }
-    }
-
-    public class BookDto
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Isbn { get; set; } = string.Empty;
-        public string Author { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
-        public string? Description { get; set; }
-        public int TotalCopies { get; set; }
-        public int AvailableCopies { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        [JsonPropertyName("coverUrl")]
-        public string? CoverUrl { get; set; }
-        public List<BookCategoryDto> Categories { get; set; } = new();
-    }
-
-    public class BookCategoryDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
-
-    public class BookCreateRequest
-    {
-        public string Title { get; set; } = string.Empty;
-        public string Isbn { get; set; } = string.Empty;
-        public string Author { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public int TotalCopies { get; set; }
-        public string? CoverUrl { get; set; }
-        public List<int>? CategoryIds { get; set; }
-    }
-
-    public class BookUpdateRequest
-    {
-        public string Title { get; set; } = string.Empty;
-        public string Author { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public int TotalCopies { get; set; }
-        public string? CoverUrl { get; set; }
-        public List<int>? CategoryIds { get; set; }
     }
 }

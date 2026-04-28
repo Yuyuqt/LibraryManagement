@@ -1,3 +1,4 @@
+using LibraryManagement.Shared.Models;
 using FirebaseAdmin.Messaging;
 using System;
 using System.Collections.Generic;
@@ -128,3 +129,4 @@ public class NotificationService : INotificationService
             .CountAsync(n => n.UserId == userId && !n.IsRead);
     }
 }
+

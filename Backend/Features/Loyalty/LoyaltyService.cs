@@ -1,3 +1,4 @@
+using LibraryManagement.Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -330,3 +331,4 @@ namespace Backend.Features.Loyalty
         public double LifetimePoints { get; set; }
     }
 }
+

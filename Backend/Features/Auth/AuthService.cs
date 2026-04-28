@@ -1,5 +1,6 @@
 using DbConnect.Data;
 using DbConnect.Entities;
+using LibraryManagement.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;

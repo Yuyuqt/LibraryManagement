@@ -1,6 +1,7 @@
 using DbConnect.Data;
 using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
+using LibraryManagement.Shared.Models;
 
 namespace Backend.Features.Categories
 {
@@ -65,16 +66,5 @@ namespace Backend.Features.Categories
             await _context.SaveChangesAsync();
             return true;
         }
-    }
-
-    public class CategoryDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
-
-    public class CategoryCreateRequest
-    {
-        public string Name { get; set; } = string.Empty;
     }
 }

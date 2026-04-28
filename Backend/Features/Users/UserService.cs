@@ -3,6 +3,7 @@ using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
 using Backend.Features.Subscriptions;
 using Backend.Features.Loyalty;
+using LibraryManagement.Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -169,45 +170,5 @@ namespace Backend.Features.Users
                 SuspensionEndDate = user.SuspensionEndDate
             };
         }
-    }
-
-    public class UserDto
-    {
-        public Guid Id { get; set; }
-        public string Name => FullName;
-        public string FullName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string? PhoneNumber { get; set; }
-        public string Role { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
-        public string? StudentId { get; set; }
-        public string? Address { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        public bool? BanStatus { get; set; }
-        public DateTime? SuspensionEndDate { get; set; }
-    }
-
-    public class UserCreateRequest
-    {
-        public string FullName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public string? PhoneNumber { get; set; }
-        public string? StudentId { get; set; }
-        public string? Address { get; set; }
-    }
-
-    public class UserUpdateRequest
-    {
-        public string FullName { get; set; } = string.Empty;
-        public string? PhoneNumber { get; set; }
-        public string? StudentId { get; set; }
-        public string? Address { get; set; }
-    }
-
-    public class UserRoleUpdateRequest
-    {
-        public string Role { get; set; } = string.Empty;
     }
 }

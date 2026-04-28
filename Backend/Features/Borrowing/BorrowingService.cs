@@ -1,3 +1,4 @@
+using LibraryManagement.Shared.Models;
 using DbConnect.Data;
 using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -231,3 +232,4 @@ namespace Backend.Features.Borrowings
         }
     }
 }
+

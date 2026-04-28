@@ -1,6 +1,6 @@
 @page "/Insights"
 @using BlazorFrontend.Services
-@using BlazorFrontend.Models.Dtos
+@using LibraryManagement.Shared.Models
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Librarian")]
 @inject LibraryApiClient ApiClient
@@ -271,3 +271,4 @@ else
         public string ValueLabel { get; set; } = "";
     }
 }
+

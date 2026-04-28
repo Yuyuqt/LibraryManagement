@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using LibraryManagement.Shared.Models;
 
 namespace Backend.Features.Auth
 {

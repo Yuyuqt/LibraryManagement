@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DbConnect\DbConnect.csproj" />
+    <ProjectReference Include="..\LibraryManagement.Shared\LibraryManagement.Shared.csproj" />
   </ItemGroup>
 
 </Project>

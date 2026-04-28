@@ -1,3 +1,4 @@
+using LibraryManagement.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -99,3 +100,4 @@ public class NotificationsController : ControllerBase
         return BadRequest(new NotificationResponse { Success = false, Message = "Failed to process notification" });
     }
 }
+

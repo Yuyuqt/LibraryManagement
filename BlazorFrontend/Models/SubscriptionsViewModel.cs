@@ -1,4 +1,4 @@
-using BlazorFrontend.Models.Dtos;
+using LibraryManagement.Shared.Models;
 
 namespace BlazorFrontend.Models
 {
@@ -8,3 +8,4 @@ namespace BlazorFrontend.Models
         public List<SubscriptionDto> ActiveSubscriptions { get; set; } = new();
     }
 }
+
