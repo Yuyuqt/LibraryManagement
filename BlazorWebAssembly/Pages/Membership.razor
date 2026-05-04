@@ -31,8 +31,11 @@
             <Authorized>
                 @if (_currentSub != null)
                 {
-                    <div class="bg-primary/5 border border-primary/20 rounded-[2.5rem] p-10 mb-20 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm">
-                        <div class="flex items-center gap-8">
+                    <div class="bg-primary/5 border border-primary/20 rounded-[2.5rem] p-10 mb-12 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        </div>
+                        <div class="flex items-center gap-8 relative z-10">
                             <div class="w-20 h-20 bg-primary rounded-3xl flex items-center justify-center text-white text-4xl font-black shadow-lg shadow-primary/20">
                                 @(_currentSub.MembershipType?[..1].ToUpper())
                             </div>
@@ -41,11 +44,49 @@
                                 <p class="text-muted font-medium">Active until <span class="text-main font-bold">@_currentSub.ExpiryDate.ToString("MMMM dd, yyyy")</span></p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-6">
+                        <div class="flex items-center gap-6 relative z-10">
                             <div class="flex flex-col items-end">
                                 <span class="px-4 py-1.5 bg-green-500/10 text-green-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-2">Active Status</span>
                                 <span class="text-xs text-muted font-bold uppercase tracking-widest">Auto-renews monthly</span>
                             </div>
+                        </div>
+                    </div>
+                }
+
+                @if (_queuedRewards.Any())
+                {
+                    <div class="mb-20 animate-fade-in-down">
+                        <div class="flex items-center gap-3 mb-8">
+                            <div class="h-px flex-grow bg-border"></div>
+                            <h3 class="text-xs font-black text-amber-500 uppercase tracking-[0.4em] px-4 whitespace-nowrap">Queued Rewards</h3>
+                            <div class="h-px flex-grow bg-border"></div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            @foreach (var sub in _queuedRewards)
+                            {
+                                <div class="bg-card border border-amber-500/20 rounded-3xl p-8 flex items-center justify-between shadow-sm hover:shadow-lg transition-all border-l-4 border-l-amber-500 relative overflow-hidden group">
+                                    <div class="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
+                                        <svg class="w-20 h-20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                    </div>
+                                    <div class="flex items-center gap-6 relative z-10">
+                                        <div class="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500">
+                                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xl font-black text-main uppercase">@sub.MembershipType</h4>
+                                            <p class="text-sm text-muted font-medium">Starts on @sub.StartDate.ToString("MMM dd, yyyy")</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right relative z-10">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-500/10 text-green-500">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                            Approved
+                                        </span>
+                                        <p class="text-[10px] text-muted font-bold uppercase tracking-widest mt-2">Queued in Pipeline</p>
+                                    </div>
+                                </div>
+                            }
                         </div>
                     </div>
                 }
@@ -134,6 +175,7 @@
     private bool _isLoading = true;
     private List<MembershipDto> _memberships = new();
     private SubscriptionDto? _currentSub;
+    private List<SubscriptionDto> _queuedRewards = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -147,6 +189,12 @@
         {
             _memberships = (await ApiClient.GetMembershipsAsync()).ToList();
             _currentSub = await ApiClient.GetMySubscriptionAsync();
+            
+            var allSubs = await ApiClient.GetMyAllSubscriptionsAsync();
+            _queuedRewards = allSubs
+                .Where(s => !string.IsNullOrEmpty(s.ExternalRedemptionId) && s.StartDate > DateTime.UtcNow)
+                .OrderBy(s => s.StartDate)
+                .ToList();
         }
         catch { }
         finally { _isLoading = false; }

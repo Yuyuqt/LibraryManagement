@@ -1,56 +1,48 @@
 @page "/rewards/manage"
-@using BlazorWebAssembly.Services
 @using LibraryManagement.Shared.Models
+@using BlazorWebAssembly.Services
 @using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Librarian")]
 @inject LibraryApiClient ApiClient
 @inject IJSRuntime JS
-@attribute [Authorize(Roles = "Librarian")]
 
-<div class="max-w-7xl mx-auto py-10 px-6 animate-fade">
-    <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
-        <div>
-            <h1 class="text-4xl font-extrabold tracking-tight text-main mb-2">Rewards Management</h1>
-            <p class="text-muted text-lg font-medium">Fulfill pending redemptions and review all members' loyalty activity.</p>
-        </div>
-        <div class="flex items-center gap-4">
-            <div class="bg-card px-6 py-3 flex items-center gap-4 border border-border rounded-xl shadow-sm">
-                <div class="text-center">
-                    <p class="text-[10px] font-black text-amber-500 uppercase tracking-widest">Pending</p>
-                    <p class="text-2xl font-black text-main">@_pendingRedemptions.Count()</p>
-                </div>
-                <div class="w-px h-8 bg-border"></div>
-                <div class="text-center">
-                    <p class="text-[10px] font-black text-muted uppercase tracking-widest">Members</p>
-                    <p class="text-2xl font-black text-main">@_allMembersHistory.Count()</p>
-                </div>
-            </div>
-        </div>
+<div class="max-w-7xl mx-auto py-12 px-6">
+    <!-- Header -->
+    <div class="mb-12">
+        <h1 class="text-5xl font-black tracking-tight text-main mb-4">Rewards Management</h1>
+        <p class="text-lg text-muted max-w-2xl">
+            Review and fulfill loyalty reward claims from library members.
+        </p>
     </div>
 
-    <div class="mb-8 border-b border-border flex gap-8">
+    <!-- Tabs -->
+    <div class="flex items-center gap-8 border-b border-border mb-12">
         <button @onclick='() => _activeTab = "pending"'
-                class='pb-4 text-sm font-bold border-b-2 transition-all relative @(_activeTab == "pending" ? "border-primary text-main" : "border-transparent text-muted hover:text-main")'>
-            <span class="flex items-center gap-2">
-                Pending Redemptions
-                @if (_pendingRedemptions.Any())
-                {
-                    <span class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-black rounded-full bg-red-500 text-white">@_pendingRedemptions.Count()</span>
-                }
-            </span>
+                class='pb-4 text-sm font-bold tracking-widest uppercase transition-all relative @(_activeTab == "pending" ? "text-primary" : "text-muted hover:text-main")'>
+            Pending Redemptions
+            @if (_pendingRedemptions.Any())
+            {
+                <span class="ml-2 bg-primary text-white text-[10px] px-2 py-0.5 rounded-full">@_pendingRedemptions.Count()</span>
+            }
+            @if (_activeTab == "pending")
+            {
+                <div class="absolute bottom-0 left-0 w-full h-0.5 bg-primary animate-scale-x"></div>
+            }
         </button>
         <button @onclick='() => _activeTab = "history"'
-                class='pb-4 text-sm font-bold border-b-2 transition-all @(_activeTab == "history" ? "border-primary text-main" : "border-transparent text-muted hover:text-main")'>
+                class='pb-4 text-sm font-bold tracking-widest uppercase transition-all relative @(_activeTab == "history" ? "text-primary" : "text-muted hover:text-main")'>
             Members Points History
+            @if (_activeTab == "history")
+            {
+                <div class="absolute bottom-0 left-0 w-full h-0.5 bg-primary animate-scale-x"></div>
+            }
         </button>
     </div>
 
     @if (_isLoading)
     {
-        <div class="space-y-4">
-            @for (int i = 0; i < 5; i++)
-            {
-                <div class="animate-pulse bg-card rounded-xl border border-border h-20 w-full"></div>
-            }
+        <div class="flex justify-center py-20">
+            <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
     }
     else
@@ -61,59 +53,60 @@
                 @if (!_pendingRedemptions.Any())
                 {
                     <div class="py-24 text-center bg-card rounded-3xl border border-dashed border-border shadow-sm">
-                        <p class="text-muted font-bold text-lg mb-2">No pending redemptions</p>
-                        <p class="text-muted/70 text-sm">All member requests have been fulfilled.</p>
+                        <p class="text-muted font-bold text-lg">No pending redemptions at the moment.</p>
                     </div>
                 }
                 else
                 {
-                    <div class="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
-                        <table class="w-full text-left border-collapse min-w-max whitespace-nowrap">
-                            <thead class="bg-body border-b border-border">
-                                <tr>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Member</th>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Reward</th>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Points</th>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Claimed Date</th>
-                                    <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Status</th>
-                                    <th class="px-6 py-4 text-right text-[10px] font-bold text-muted uppercase tracking-widest">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-border">
-                                @foreach (var r in _pendingRedemptions.OrderBy(x => x.RedeemedAt))
-                                {
-                                    <tr class="hover:bg-body transition-colors">
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold shadow-sm">
-                                                    @(r.ExternalUserId.Length >= 2 ? r.ExternalUserId.Substring(0, 2).ToUpper() : "U")
-                                                </div>
-                                                <span class="text-sm font-bold text-main">@r.ExternalUserId</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <p class="text-sm font-bold text-main">@r.RewardName</p>
-                                            <p class="text-[10px] text-muted font-bold tracking-widest uppercase">ID: @(r.Id.Length > 8 ? r.Id[..8] : r.Id)</p>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm font-black text-primary">@r.PointCost.ToString("N0") pts</td>
-                                        <td class="px-6 py-4 text-sm font-medium text-muted">@r.RedeemedAt.ToString("MMM dd, yyyy")</td>
-                                        <td class="px-6 py-4">
-                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-500">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                                Pending
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 text-right">
-                                            <button @onclick="() => FulfillAsync(r)"
-                                                    class="inline-flex items-center gap-1.5 bg-green-500/10 text-green-500 border border-green-500/20 px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-500 hover:text-white transition-all shadow-sm active:scale-95">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                                Fulfill
-                                            </button>
-                                        </td>
+                    <div class="max-w-6xl">
+                        <div class="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
+                            <table class="w-full text-left border-collapse whitespace-nowrap">
+                                <thead class="bg-body border-b border-border">
+                                    <tr>
+                                        <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Member</th>
+                                        <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Reward</th>
+                                        <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Points</th>
+                                        <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Claimed Date</th>
+                                        <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Status</th>
+                                        <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Action</th>
                                     </tr>
-                                }
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody class="divide-y divide-border">
+                                    @foreach (var r in _pendingRedemptions.OrderBy(x => x.RedeemedAt))
+                                    {
+                                        <tr class="hover:bg-body transition-colors">
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                                                        @(string.IsNullOrEmpty(r.UserName) || r.UserName == "Unknown Member" ? "U" : r.UserName.Substring(0, 1).ToUpper())
+                                                    </div>
+                                                    <span class="text-sm font-bold text-main">@(r.UserName ?? "Unknown Member")</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <p class="text-sm font-bold text-main">@r.RewardName</p>
+                                                <p class="text-[10px] text-muted font-bold tracking-widest uppercase">ID: @(r.Id.Length > 8 ? r.Id[..8] : r.Id)</p>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm font-black text-primary">@r.PointCost.ToString("N0") pts</td>
+                                            <td class="px-6 py-4 text-sm font-medium text-muted">@r.RedeemedAt.ToString("MMM dd, yyyy")</td>
+                                            <td class="px-4 py-4">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-500">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                    Pending
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-4">
+                                                <button @onclick="() => FulfillAsync(r)"
+                                                        class="inline-flex items-center gap-1.5 bg-green-500/10 text-green-500 border border-green-500/20 px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-500 hover:text-white transition-all shadow-sm active:scale-95">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                                    Fulfill
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 }
             </div>
@@ -150,75 +143,70 @@
                                             <p class="text-xs font-medium text-muted">@member.UserEmail</p>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end">
-                                        <div class="text-right">
-                                            <p class="text-[10px] font-black text-muted uppercase tracking-widest">Balance</p>
-                                            <p class="font-black text-main text-lg">@member.CurrentBalance.ToString("N0") pts</p>
+                                    <div class="flex items-center gap-12">
+                                        <div class="text-center sm:text-right">
+                                            <p class="text-[10px] text-muted font-bold tracking-widest uppercase mb-1">Current Balance</p>
+                                            <p class="text-2xl font-black text-primary">@member.CurrentBalance.ToString("N0") <span class="text-xs">PTS</span></p>
                                         </div>
-                                        <div class="text-right hidden md:block">
-                                            <p class="text-[10px] font-black text-muted uppercase tracking-widest">Tier</p>
-                                            <span class="text-xs font-bold text-primary">@member.Tier</span>
+                                        <div class="text-center sm:text-right">
+                                            <p class="text-[10px] text-muted font-bold tracking-widest uppercase mb-1">Tier</p>
+                                            <span class="inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-primary text-white shadow-sm">@member.Tier</span>
                                         </div>
-                                        <div class="text-right hidden sm:block">
-                                            <p class="text-[10px] font-black text-muted uppercase tracking-widest">History</p>
-                                            <p class="font-bold text-main text-sm">@member.History.Count() items</p>
+                                        <div class="w-8 h-8 rounded-full bg-body flex items-center justify-center transition-transform @(_expandedMemberId == member.AccountId ? "rotate-180" : "")">
+                                            <svg class="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                                         </div>
-                                        <svg class="w-5 h-5 text-muted transition-transform @(_expandedMembers.Contains(member.AccountId) ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                     </div>
                                 </div>
-                                
-                                @if (_expandedMembers.Contains(member.AccountId))
+
+                                @if (_expandedMemberId == member.AccountId)
                                 {
-                                    <div class="border-t border-border bg-body animate-fade-in-down">
-                                        @if (!member.History.Any())
-                                        {
-                                            <p class="px-6 py-6 text-sm text-muted font-medium text-center">No transactions found for this member.</p>
-                                        }
-                                        else
-                                        {
-                                            <div class="overflow-x-auto">
-                                                <table class="min-w-full text-left min-w-max whitespace-nowrap">
-                                                    <thead>
-                                                        <tr class="bg-card">
-                                                            <th class="px-6 py-3 text-[10px] font-bold text-muted uppercase tracking-widest">Date</th>
-                                                            <th class="px-6 py-3 text-[10px] font-bold text-muted uppercase tracking-widest">Type</th>
-                                                            <th class="px-6 py-3 text-[10px] font-bold text-muted uppercase tracking-widest">Details</th>
-                                                            <th class="px-6 py-3 text-[10px] font-bold text-muted uppercase tracking-widest">Subject</th>
-                                                            <th class="px-6 py-3 text-right text-[10px] font-bold text-muted uppercase tracking-widest">Points</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody class="divide-y divide-border">
-                                                        @foreach (var h in member.History.OrderByDescending(x => x.CreatedAt))
-                                                        {
-                                                            var isPos = h.PointDelta >= 0;
-                                                            var label = PrettyEvent(h.EventKey, h.PointDelta);
-                                                            string? spentOn = h.RewardName;
-                                                            
-                                                            <tr class="hover:bg-card transition-colors">
-                                                                <td class="px-6 py-3 text-xs font-medium text-muted whitespace-nowrap">@h.CreatedAt.ToString("MMM dd, yyyy")</td>
-                                                                <td class="px-6 py-3">
-                                                                    <span class="px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-widest border @(isPos ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-red-500/10 text-red-500 border-red-500/20")">@label</span>
-                                                                </td>
-                                                                <td class="px-6 py-3 text-xs font-medium text-main max-w-xs truncate">@h.Description</td>
-                                                                <td class="px-6 py-3 text-xs font-bold text-muted max-w-xs truncate">
-                                                                    @if (!string.IsNullOrWhiteSpace(spentOn))
-                                                                    {
-                                                                        <span class="text-main">@spentOn</span>
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        <span>—</span>
-                                                                    }
-                                                                </td>
-                                                                <td class="px-6 py-3 text-right font-black text-sm @(isPos ? "text-green-500" : "text-red-500")">
-                                                                    @(isPos ? "+" : "")@h.PointDelta.ToString("N0")
-                                                                </td>
-                                                            </tr>
-                                                        }
-                                                    </tbody>
-                                                </table>
+                                    <div class="border-t border-border bg-body/30 p-6 animate-slide-down">
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                            <!-- Points History -->
+                                            <div>
+                                                <h4 class="text-xs font-bold text-muted uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                    Points History
+                                                </h4>
+                                                <div class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                                                    @foreach (var entry in member.History.OrderByDescending(x => x.CreatedAt))
+                                                    {
+                                                        <div class="flex items-center justify-between p-3 bg-card rounded-xl border border-border shadow-sm">
+                                                            <div>
+                                                                <p class="text-sm font-bold text-main">@entry.Description</p>
+                                                                <p class="text-[10px] text-muted">@entry.CreatedAt.ToString("MMM dd, yyyy HH:mm")</p>
+                                                            </div>
+                                                            <div class='text-sm font-black @(entry.PointDelta >= 0 ? "text-green-500" : "text-red-500")'>
+                                                                @(entry.PointDelta >= 0 ? "+" : "")@entry.PointDelta
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
                                             </div>
-                                        }
+
+                                            <!-- Redemptions -->
+                                            <div>
+                                                <h4 class="text-xs font-bold text-muted uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                                                    Redemption History
+                                                </h4>
+                                                <div class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                                                    @foreach (var red in member.Redemptions.OrderByDescending(x => x.RedeemedAt))
+                                                    {
+                                                        <div class="flex items-center justify-between p-3 bg-card rounded-xl border border-border shadow-sm">
+                                                            <div>
+                                                                <p class="text-sm font-bold text-main">@red.RewardName</p>
+                                                                <p class="text-[10px] text-muted">@red.RedeemedAt.ToString("MMM dd, yyyy")</p>
+                                                            </div>
+                                                            <div class="text-right">
+                                                                <p class="text-xs font-black text-primary">@red.PointCost pts</p>
+                                                                <span class='text-[9px] font-bold uppercase tracking-widest @(red.Status == "Fulfilled" ? "text-green-500" : "text-amber-500")'>@red.Status</span>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 }
                             </div>
@@ -233,10 +221,10 @@
 @code {
     private string _activeTab = "pending";
     private bool _isLoading = true;
-    private string _searchQuery = "";
     private IEnumerable<LoyaltyRedemptionDto> _pendingRedemptions = Enumerable.Empty<LoyaltyRedemptionDto>();
     private IEnumerable<UserPointsHistoryDto> _allMembersHistory = Enumerable.Empty<UserPointsHistoryDto>();
-    private HashSet<string> _expandedMembers = new();
+    private string _searchQuery = "";
+    private string? _expandedMemberId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -253,7 +241,7 @@
         }
         catch (Exception ex)
         {
-            await JS.InvokeVoidAsync("alert", $"Error loading management data: {ex.Message}");
+            Console.WriteLine($"Error loading rewards manage data: {ex.Message}");
         }
         finally
         {
@@ -265,44 +253,30 @@
         string.IsNullOrWhiteSpace(_searchQuery) 
             ? _allMembersHistory 
             : _allMembersHistory.Where(m => m.UserName.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) || 
-                                            m.UserEmail.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase));
+                                           m.UserEmail.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase));
 
     private void ToggleMember(string accountId)
     {
-        if (_expandedMembers.Contains(accountId))
-            _expandedMembers.Remove(accountId);
+        if (_expandedMemberId == accountId)
+            _expandedMemberId = null;
         else
-            _expandedMembers.Add(accountId);
+            _expandedMemberId = accountId;
     }
 
     private async Task FulfillAsync(LoyaltyRedemptionDto redemption)
     {
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Fulfill this redemption and grant membership to the member?");
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Fulfill {redemption.RewardName} for {redemption.UserName}?");
         if (!confirmed) return;
 
         var result = await ApiClient.FulfillRedemptionAsync(redemption.Id);
         if (result.Success)
         {
-            await JS.InvokeVoidAsync("alert", result.Message);
             await LoadDataAsync();
+            await JS.InvokeVoidAsync("alert", result.Message);
         }
         else
         {
             await JS.InvokeVoidAsync("alert", result.Message);
         }
-    }
-
-    private string PrettyEvent(string? eventKey, double points)
-    {
-        var key = (eventKey ?? string.Empty).Trim().ToUpperInvariant();
-
-        return key switch
-        {
-            "RETURN" or "BOOK_RETURN" or "BORROW_RETURN" => "RETURN",
-            "SIGNUP" or "REGISTER" => "SIGNUP",
-            "SUBSCRIBE" or "SUBSCRIPTION" or "MEMBERSHIP" => "SUBSCRIBE",
-            "REDEEM" or "REDEMPTION" or "CLAIM_REWARD" => "REDEEM",
-            _ => points < 0 ? "SPENT" : (string.IsNullOrEmpty(key) ? "EARNED" : key)
-        };
     }
 }

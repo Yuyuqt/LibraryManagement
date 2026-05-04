@@ -33,7 +33,7 @@
                             </div>
                             <div class="flex flex-col min-w-0">
                                 <span class="text-xs font-bold truncate">@context.User.Identity?.Name</span>
-                                <span class="text-[10px] text-muted font-medium uppercase tracking-wider">Member</span>
+                                <span class="text-[10px] text-muted font-medium uppercase tracking-wider">@(context.User.IsInRole("Librarian") ? "Librarian" : "Member")</span>
                             </div>
                         </div>
                     </div>

@@ -19,12 +19,28 @@
                 </div>
             </div>
         </div>
-        <div class="relative">
-            <div class="bg-card aspect-square rounded-[4rem] border border-border shadow-2xl flex items-center justify-center p-12 relative z-10 overflow-hidden">
-                 <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-emerald-500/10"></div>
-                 <svg class="w-48 h-48 text-primary opacity-20 relative z-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+        <div class="relative w-full max-w-sm mx-auto aspect-[3/4] group perspective-1000">
+            <!-- Book 4 (Furthest Back) -->
+            <div class="absolute inset-0 bg-card rounded-2xl border border-border shadow-lg transform transition-all duration-700 origin-bottom-left -rotate-12 group-hover:-rotate-[25deg] group-hover:-translate-x-16 group-hover:-translate-y-8 overflow-hidden">
+                <img src="https://covers.openlibrary.org/b/isbn/9780062316097-L.jpg" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
             </div>
-            <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+            
+            <!-- Book 3 -->
+            <div class="absolute inset-0 bg-card rounded-2xl border border-border shadow-xl transform transition-all duration-700 origin-bottom-left -rotate-6 group-hover:-rotate-[12deg] group-hover:-translate-x-8 group-hover:-translate-y-4 overflow-hidden">
+                <img src="https://covers.openlibrary.org/b/isbn/9780060850524-L.jpg" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+            </div>
+
+            <!-- Book 2 -->
+            <div class="absolute inset-0 bg-card rounded-2xl border border-border shadow-2xl transform transition-all duration-700 origin-bottom-right rotate-6 group-hover:rotate-[12deg] group-hover:translate-x-8 group-hover:-translate-y-4 overflow-hidden z-10">
+                <img src="https://covers.openlibrary.org/b/id/14828198-L.jpg" class="w-full h-full object-cover opacity-95 group-hover:opacity-100 transition-opacity" />
+            </div>
+
+            <!-- Book 1 (Front) -->
+            <div class="absolute inset-0 bg-card rounded-2xl border border-border shadow-2xl transform transition-all duration-700 origin-bottom-right rotate-12 group-hover:rotate-[25deg] group-hover:translate-x-16 group-hover:-translate-y-8 overflow-hidden z-20">
+                <img src="https://covers.openlibrary.org/b/isbn/9780743273565-L.jpg" class="w-full h-full object-cover" />
+            </div>
+
+            <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10"></div>
         </div>
     </div>
 

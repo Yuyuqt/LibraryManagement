@@ -12,7 +12,7 @@ namespace Backend.Features.Subscriptions
         Task<SubscriptionDto?> GetUserSubscriptionAsync(Guid userId);
         Task<IEnumerable<SubscriptionDto>> GetUserAllSubscriptionsAsync(Guid userId);
         Task<bool> HandleLoyaltyRedemptionAsync(Guid userId, string rewardId, string rewardName, string redemptionId);
-        Task<SubscriptionDto> SubscribeUserAsync(Guid userId, int membershipId);
+        Task<SubscriptionDto> SubscribeUserAsync(Guid userId, int membershipId, string? redemptionId = null);
         Task<IEnumerable<SubscriptionDto>> GetAllSubscriptionsAsync();
     }
 
@@ -71,19 +71,14 @@ namespace Backend.Features.Subscriptions
         {
             try
             {
-                // Load all memberships into memory (small collection)
                 var allMemberships = await _context.Memberships.ToListAsync();
-                
                 Membership? membership = null;
 
-                // 1. First try exact match by RewardId (most precise)
                 if (!string.IsNullOrEmpty(rewardId))
                 {
                     membership = allMemberships.FirstOrDefault(m => m.RewardId == rewardId);
                 }
 
-                // 2. Fallback: in-memory string matching on rewardName vs membership Type
-                //    e.g. "Free Monthly Basic Membership" contains words "Basic" and "Monthly"
                 if (membership == null && !string.IsNullOrEmpty(rewardName))
                 {
                     var normalizedRewardName = rewardName.ToLowerInvariant();
@@ -100,11 +95,7 @@ namespace Backend.Features.Subscriptions
                     return false;
                 }
 
-                System.Diagnostics.Debug.WriteLine($"Matched membership '{membership.Type}' (Id={membership.Id}) for rewardName='{rewardName}'");
-                
-                // 3. Grant the membership (will be queued if they already have one)
-                await SubscribeUserAsync(userId, membership.Id);
-
+                await SubscribeUserAsync(userId, membership.Id, redemptionId);
                 return true;
             }
             catch (Exception ex)
@@ -114,21 +105,17 @@ namespace Backend.Features.Subscriptions
             }
         }
 
-        public async Task<SubscriptionDto> SubscribeUserAsync(Guid userId, int membershipId)
+        public async Task<SubscriptionDto> SubscribeUserAsync(Guid userId, int membershipId, string? redemptionId = null)
         {
             var membership = await _context.Memberships.FindAsync(membershipId);
             if (membership == null) throw new Exception("Membership plan not found.");
 
-            // Find the latest expiry date for this user to enable queuing
-            // We look at all active or future subscriptions
             var latestSubscription = await _context.UserSubscriptions
                 .Where(s => s.UserId == userId && s.IsActive)
                 .OrderByDescending(s => s.ExpiryDate)
                 .FirstOrDefaultAsync();
 
             DateTime startDate = DateTime.UtcNow;
-            
-            // If there's an existing subscription that expires in the future, start after it
             if (latestSubscription != null && latestSubscription.ExpiryDate > startDate)
             {
                 startDate = latestSubscription.ExpiryDate;
@@ -140,29 +127,25 @@ namespace Backend.Features.Subscriptions
                 MembershipId = membershipId,
                 StartDate = startDate,
                 ExpiryDate = startDate.AddMonths(membership.DurationMonths),
-                IsActive = true
+                IsActive = true,
+                ExternalRedemptionId = redemptionId,
+                Status = "Active"
             };
 
             _context.UserSubscriptions.Add(subscription);
             await _context.SaveChangesAsync();
 
-            // Explicitly load context for DTO
             await _context.Entry(subscription).Reference(s => s.Membership).LoadAsync();
             await _context.Entry(subscription).Reference(s => s.User).LoadAsync();
 
-            // Loyalty Integration: Send SUBSCRIBE event
-            string externalUserId = userId.ToString();
-            string userMobile = subscription.User?.PhoneNumber ?? "0000000000";
-            string userEmail = subscription.User?.Email ?? "No Email";
-
             await _loyaltyService.ProcessEventAsync(
-                externalUserId: externalUserId,
+                externalUserId: userId.ToString(),
                 eventKey: "SUBSCRIBE",
                 eventValue: (double)membership.Price,
                 referenceId: $"SUB-{subscription.Id}",
                 description: $"Purchased Membership: {membership.Type}",
-                email: userEmail,
-                mobile: userMobile
+                email: subscription.User?.Email ?? "No Email",
+                mobile: subscription.User?.PhoneNumber ?? "0000000000"
             );
 
             return MapToDto(subscription);
@@ -191,9 +174,9 @@ namespace Backend.Features.Subscriptions
                 UserName = subscription.User?.FullName ?? "Unknown",
                 StartDate = subscription.StartDate,
                 ExpiryDate = subscription.ExpiryDate,
-                IsActive = subscription.IsActive
+                IsActive = subscription.IsActive,
+                ExternalRedemptionId = subscription.ExternalRedemptionId
             };
         }
     }
 }
-

@@ -119,7 +119,34 @@ namespace Backend.Features.Loyalty
         [Authorize(Roles = "Librarian")]
         public async Task<IActionResult> GetPendingRedemptions()
         {
-            var redemptions = await _loyaltyService.GetPendingRedemptionsAsync();
+            var redemptions = (await _loyaltyService.GetPendingRedemptionsAsync()).ToList();
+            
+            // Map names
+            var guidList = redemptions
+                .Where(r => !string.IsNullOrEmpty(r.ExternalUserId) && Guid.TryParse(r.ExternalUserId, out _))
+                .Select(r => Guid.Parse(r.ExternalUserId))
+                .Distinct()
+                .ToList();
+
+            var users = await _context.Users
+                .Where(u => guidList.Contains(u.Id))
+                .Select(u => new { u.Id, u.FullName })
+                .ToListAsync();
+
+            var userMap = users.ToDictionary(u => u.Id.ToString(), u => u.FullName);
+
+            foreach (var r in redemptions)
+            {
+                if (!string.IsNullOrEmpty(r.ExternalUserId) && userMap.TryGetValue(r.ExternalUserId, out var name))
+                {
+                    r.UserName = name;
+                }
+                else
+                {
+                    r.UserName = "Unknown Member";
+                }
+            }
+
             return Ok(redemptions);
         }
 

@@ -50,24 +50,35 @@
             </button>
         </div>
 
-        <!-- Category Filter Dropdown equivalent -->
-        @if (_categories.Any())
-        {
-            <div class="flex flex-wrap gap-2 mb-10">
-                <button @onclick="() => FilterByCategory(null)" 
-                        class='px-4 py-1.5 rounded-full text-[11px] font-bold border transition-all @(_selectedCategoryId == null ? "bg-primary text-white border-primary shadow-sm" : "bg-card text-muted border-border hover:border-primary hover:text-primary")'>
-                    All Categories
-                </button>
-                @foreach (var cat in _categories)
+        <div class="mb-10 animate-fade">
+            <button @onclick="ToggleCategoryDropdown" class="group inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-muted hover:text-primary transition-colors">
+                <div class="w-6 h-6 rounded-lg bg-card border border-border flex items-center justify-center group-hover:bg-primary/5 transition-colors">
+                    <svg class="w-3 transition-transform duration-300 @(_isCategoryDropdownOpen ? "rotate-90" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+                <span>Browse by Category</span>
+                @if (_selectedCategoryId != null)
                 {
-                    <button @onclick="() => FilterByCategory(cat.Id)" 
-                            class='px-4 py-1.5 rounded-full text-[11px] font-bold border transition-all @(_selectedCategoryId == cat.Id ? "bg-primary text-white border-primary shadow-sm" : "bg-card text-muted border-border hover:border-primary hover:text-primary")'>
-                        @cat.Name
-                    </button>
+                    <span class="ml-2 px-2 py-0.5 bg-primary text-white text-[9px] rounded-full">@SelectedCategoryName</span>
                 }
-            </div>
-        }
-
+            </button>
+            
+            @if (_isCategoryDropdownOpen)
+            {
+                <div class="flex flex-wrap items-center gap-2 mt-6 animate-slide-down">
+                    <button @onclick="() => FilterByCategory(null)"
+                       class='inline-flex items-center px-4 py-1.5 rounded-full text-[11px] font-bold border transition-all @(_selectedCategoryId == null ? "bg-primary text-white border-primary shadow-sm" : "bg-card text-muted border-border hover:border-primary hover:text-primary")'>
+                        All
+                    </button>
+                    @foreach (var cat in _categories)
+                    {
+                        <button @onclick="() => FilterByCategory(cat.Id)"
+                           class='inline-flex items-center px-4 py-1.5 rounded-full text-[11px] font-bold border transition-all @(_selectedCategoryId == cat.Id ? "bg-primary text-white border-primary shadow-sm" : "bg-card text-muted border-border hover:border-primary hover:text-primary")'>
+                            @cat.Name
+                        </button>
+                    }
+                </div>
+            }
+        </div>
         <!-- Loading State -->
         @if (_isLoading)
         {
@@ -391,11 +402,16 @@
 
     // Form Model
     private BookFormModel _formModel = new();
+    private bool _isCategoryDropdownOpen = false;
+
+    private string SelectedCategoryName => _categories.FirstOrDefault(c => c.Id == _selectedCategoryId)?.Name ?? "";
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
     }
+
+    private void ToggleCategoryDropdown() => _isCategoryDropdownOpen = !_isCategoryDropdownOpen;
 
     private async Task LoadDataAsync()
     {

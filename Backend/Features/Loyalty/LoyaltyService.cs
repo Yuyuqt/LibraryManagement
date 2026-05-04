@@ -35,19 +35,20 @@ namespace Backend.Features.Loyalty
         {
             _httpClient = httpClient;
             _logger = logger;
-            if (!_httpClient.DefaultRequestHeaders.Contains("x-system-id"))
-            {
-                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
-            }
+            _httpClient.DefaultRequestHeaders.Remove("x-system-id");
+            _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
+        }
+
+        private class LoyaltyResponseWrapper<T>
+        {
+            [JsonPropertyName("items")]
+            public IEnumerable<T> Items { get; set; } = Enumerable.Empty<T>();
         }
 
         public async Task<bool> RegisterUserAsync(string externalUserId, string email, string mobile)
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
-
                 var payload = new
                 {
                     externalUserId = externalUserId,
@@ -70,9 +71,6 @@ namespace Backend.Features.Loyalty
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
-
                 var payload = new
                 {
                     systemId = SystemId,
@@ -99,9 +97,6 @@ namespace Backend.Features.Loyalty
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
-
                 var response = await _httpClient.GetAsync($"/api/v1/accounts/lookup/{externalUserId}?systemId={SystemId}");
                 
                 if (response.IsSuccessStatusCode)
@@ -137,7 +132,7 @@ namespace Backend.Features.Loyalty
                     notes = notes
                 };
 
-                var response = await _httpClient.PostAsJsonAsync($"/api/v1/redemption/claim?systemId={SystemId}", payload);
+                var response = await _httpClient.PostAsJsonAsync($"/api/v1/redemptions/claim?systemId={SystemId}", payload);
                 if (response.IsSuccessStatusCode) return (true, "Reward claimed successfully!");
 
                 var error = await response.Content.ReadAsStringAsync();
@@ -154,50 +149,62 @@ namespace Backend.Features.Loyalty
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
-
-                var response = await _httpClient.GetAsync($"/api/v1/redemption/history/{externalUserId}?systemId={SystemId}");
+                var response = await _httpClient.GetAsync($"/api/v1/redemptions/history/{externalUserId}?systemId={SystemId}");
                 if (response.IsSuccessStatusCode)
                 {
                     var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
-                    return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
+                    var wrapper = await response.Content.ReadFromJsonAsync<LoyaltyResponseWrapper<LoyaltyRedemptionDto>>(options);
+                    return wrapper?.Items ?? Enumerable.Empty<LoyaltyRedemptionDto>();
                 }
                 return Enumerable.Empty<LoyaltyRedemptionDto>();
             }
-            catch { return Enumerable.Empty<LoyaltyRedemptionDto>(); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching user redemptions for {externalUserId}.");
+                return Enumerable.Empty<LoyaltyRedemptionDto>();
+            }
         }
 
         public async Task<IEnumerable<LoyaltyRedemptionDto>> GetPendingRedemptionsAsync()
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
-
                 var response = await _httpClient.GetAsync($"/api/v1/admin/redemptions/pending?systemId={SystemId}");
                 if (response.IsSuccessStatusCode)
                 {
                     var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
-                    return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
+                    var wrapper = await response.Content.ReadFromJsonAsync<LoyaltyResponseWrapper<LoyaltyRedemptionDto>>(options);
+                    return wrapper?.Items ?? Enumerable.Empty<LoyaltyRedemptionDto>();
+                }
+                else
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning($"Failed to fetch pending redemptions. Status: {response.StatusCode}, Content: {content}");
                 }
                 return Enumerable.Empty<LoyaltyRedemptionDto>();
             }
-            catch { return Enumerable.Empty<LoyaltyRedemptionDto>(); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching pending redemptions.");
+                return Enumerable.Empty<LoyaltyRedemptionDto>();
+            }
         }
 
         public async Task<IEnumerable<LoyaltyRedemptionDto>> GetRedemptionsHistoryAsync()
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
-
                 var response = await _httpClient.GetAsync($"/api/v1/admin/redemptions/history?systemId={SystemId}");
                 if (response.IsSuccessStatusCode)
                 {
                     var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = JsonNumberHandling.AllowReadingFromString };
-                    return await response.Content.ReadFromJsonAsync<IEnumerable<LoyaltyRedemptionDto>>(options) ?? Enumerable.Empty<LoyaltyRedemptionDto>();
+                    var wrapper = await response.Content.ReadFromJsonAsync<LoyaltyResponseWrapper<LoyaltyRedemptionDto>>(options);
+                    return wrapper?.Items ?? Enumerable.Empty<LoyaltyRedemptionDto>();
+                }
+                else
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning($"Failed to fetch redemption history. Status: {response.StatusCode}, Content: {content}");
                 }
                 return Enumerable.Empty<LoyaltyRedemptionDto>();
             }
@@ -212,22 +219,25 @@ namespace Backend.Features.Loyalty
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
-
                 var response = await _httpClient.PutAsJsonAsync($"/api/v1/admin/redemptions/{redemptionId}/status?systemId={SystemId}", new { systemId = SystemId, status });
+                if (!response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning($"Failed to update redemption status. Status: {response.StatusCode}, Content: {content}");
+                }
                 return response.IsSuccessStatusCode;
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating redemption status for {redemptionId}.");
+                return false;
+            }
         }
 
         public async Task<IEnumerable<PointHistoryEntryDto>> GetPointsHistoryAsync(string accountId)
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
-
                 var response = await _httpClient.GetAsync($"/api/v1/accounts/{accountId}/history?systemId={SystemId}");
                 if (response.IsSuccessStatusCode)
                 {
@@ -247,9 +257,6 @@ namespace Backend.Features.Loyalty
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-system-id", SystemId);
-
                 var response = await _httpClient.GetAsync($"/api/v1/rewards/active?systemId={SystemId}");
                 
                 if (response.IsSuccessStatusCode)

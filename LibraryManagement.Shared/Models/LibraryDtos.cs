@@ -129,6 +129,7 @@ namespace LibraryManagement.Shared.Models
         public DateTime StartDate { get; set; }
         public DateTime ExpiryDate { get; set; }
         public bool IsActive { get; set; }
+        public string? ExternalRedemptionId { get; set; }
         public bool IsExpired => DateTime.UtcNow > ExpiryDate;
     }
 
@@ -217,6 +218,8 @@ namespace LibraryManagement.Shared.Models
 
         [JsonPropertyName("redeemedAt")]
         public DateTime RedeemedAt { get; set; }
+
+        public string? UserName { get; set; }
     }
 
     // User DTOs

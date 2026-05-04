@@ -58,7 +58,7 @@
                     
                     <button @onclick="() => ClaimAsync(reward)" 
                             disabled="@((_account?.CurrentBalance ?? 0) < reward.PointCost)"
-                            class='w-full py-4 rounded-xl font-bold transition-all @((_account?.CurrentBalance ?? 0) >= reward.PointCost ? "bg-main text-bg-body hover:bg-primary" : "bg-body text-muted cursor-not-allowed border border-border")'>
+                            class='w-full py-4 rounded-xl font-bold transition-all @((_account?.CurrentBalance ?? 0) >= reward.PointCost ? "bg-primary text-white hover:bg-hover shadow-lg shadow-primary/20" : "bg-body text-muted cursor-not-allowed border border-border")'>
                         @((_account?.CurrentBalance ?? 0) >= reward.PointCost ? "Claim Reward" : "Insufficient Points")
                     </button>
                 </div>
