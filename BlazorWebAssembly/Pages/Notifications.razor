@@ -1,0 +1,146 @@
+@page "/notifications"
+@using LibraryManagement.Shared.Models
+@using BlazorWebAssembly.Services
+@inject LibraryApiClient ApiClient
+@inject IJSRuntime JS
+
+<PageTitle>Notifications | LibraryLuxe</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="max-w-4xl mx-auto py-12 px-6 animate-fade">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-12">
+                <div>
+                    <h2 class="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">User Updates</h2>
+                    <h1 class="text-4xl font-black tracking-tighter text-main uppercase italic">Notifications</h1>
+                </div>
+                @if (_notifications.Any(n => !n.IsRead))
+                {
+                    <button @onclick="MarkAllAsRead" 
+                            class="text-[10px] font-black uppercase tracking-widest px-6 py-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white transition-all transform hover:scale-105 active:scale-95 shadow-sm">
+                        Mark All As Read
+                    </button>
+                }
+            </div>
+
+            @if (_isLoading)
+            {
+                <div class="space-y-4">
+                    @for (int i = 0; i < 4; i++)
+                    {
+                        <div class="h-24 bg-card rounded-2xl border border-border animate-pulse"></div>
+                    }
+                </div>
+            }
+            else if (!_notifications.Any())
+            {
+                <div class="bg-card rounded-[2.5rem] p-20 text-center border border-border shadow-sm">
+                    <div class="w-20 h-20 bg-body rounded-3xl flex items-center justify-center mx-auto mb-6 text-muted border border-border">
+                        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black text-main uppercase tracking-tight mb-2">Clean Slate</h3>
+                    <p class="text-muted text-sm font-medium">You're all caught up. New updates will appear here.</p>
+                </div>
+            }
+            else
+            {
+                <div class="grid gap-4">
+                    @foreach (var notif in _notifications)
+                    {
+                        <div class="group bg-card rounded-2xl p-6 border border-border hover:border-primary/30 transition-all duration-300 shadow-sm relative overflow-hidden @(!notif.IsRead ? "bg-primary/[0.02]" : "")">
+                            @if (!notif.IsRead)
+                            {
+                                <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
+                            }
+                            
+                            <div class="flex gap-6">
+                                <div class="flex-shrink-0">
+                                    <div class='w-12 h-12 rounded-2xl flex items-center justify-center @GetIconClass(notif.Type) shadow-sm'>
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            @if (notif.Type == "Warning") { <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /> }
+                                            else if (notif.Type == "Info") { <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /> }
+                                            else { <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /> }
+                                        </svg>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between gap-4 mb-2">
+                                        <h4 class="text-sm font-black text-main uppercase tracking-tight @(!notif.IsRead ? "text-primary" : "")">@notif.Title</h4>
+                                        <span class="text-[10px] font-black text-muted uppercase tracking-widest whitespace-nowrap">@notif.CreatedAt.ToString("MMM dd, HH:mm")</span>
+                                    </div>
+                                    <p class="text-sm text-muted font-medium leading-relaxed mb-4">@notif.Message</p>
+                                    
+                                    @if (!string.IsNullOrEmpty(notif.ActionLink))
+                                    {
+                                        <a href="@notif.ActionLink" class="inline-flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-[0.2em] hover:gap-4 transition-all">
+                                            @notif.ActionText
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <div class="min-h-[60vh] flex flex-col items-center justify-center px-6 text-center">
+            <h2 class="text-4xl font-black text-main uppercase tracking-tighter mb-6">Identity Required</h2>
+            <p class="text-muted max-w-md mb-10 font-medium leading-relaxed">Please sign in to your LibraryLuxe account to access your personal updates and notifications.</p>
+            <a href="/login" class="bg-primary text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-primary-hover shadow-xl shadow-primary/20 transition-all transform hover:scale-105 active:scale-95">Sign In Now</a>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private List<NotificationDto> _notifications = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadNotifications();
+    }
+
+    private async Task LoadNotifications()
+    {
+        try
+        {
+            _isLoading = true;
+            _notifications = (await ApiClient.GetNotificationsAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task MarkAllAsRead()
+    {
+        try
+        {
+            var success = await ApiClient.MarkNotificationsReadAsync();
+            if (success) await LoadNotifications();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private string GetIconClass(string type) => type switch
+    {
+        "Warning" => "bg-orange-500/10 text-orange-500",
+        "Info" => "bg-blue-500/10 text-blue-500",
+        _ => "bg-primary/10 text-primary"
+    };
+}
