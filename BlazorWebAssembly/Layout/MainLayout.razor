@@ -1,10 +1,11 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @using BlazorWebAssembly.Services
-@using Microsoft.AspNetCore.Components.Authorization
 @inject ThemeService ThemeService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IJSRuntime JS
 @inject LibraryApiClient ApiClient
+@inject NotificationStateService NotifService
 
 <AuthorizeView>
     <Authorized>
@@ -48,12 +49,12 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-6">
-                        <NavLink href="/notifications" class="relative text-muted hover:text-primary transition-colors">
+                        <NavLink href="/notifications" class="relative text-muted hover:text-primary transition-colors p-2 rounded-xl hover:bg-primary/5">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                            @if (_unreadCount > 0)
+                            @if (NotifService.UnreadCount > 0)
                             {
-                                <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center bg-primary text-white text-[8px] font-black rounded-full border-2 border-card animate-bounce">
-                                    @(_unreadCount > 9 ? "9+" : _unreadCount)
+                                <span class="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center bg-primary text-white text-[9px] font-black rounded-full border-2 border-card shadow-md animate-bounce z-10">
+                                    @(NotifService.UnreadCount > 9 ? "9+" : NotifService.UnreadCount)
                                 </span>
                             }
                         </NavLink>
@@ -155,38 +156,53 @@
 </AuthorizeView>
 
 @code {
-    private int _unreadCount = 0;
-
     protected override async Task OnInitializedAsync()
     {
         await ThemeService.InitializeAsync();
+        AuthStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
+        NotifService.OnChange += HandleNotifChange;
+        _ = UpdateNotificationCount();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async void OnAuthStateChanged(Task<AuthenticationState> task)
     {
-        if (firstRender)
+        await InvokeAsync(UpdateNotificationCount);
+    }
+
+    private async Task UpdateNotificationCount()
+    {
+        try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-
-            if (user.Identity?.IsAuthenticated == true)
+            if (authState.User.Identity?.IsAuthenticated == true)
             {
-                try
+                var count = await ApiClient.GetUnreadNotificationCountAsync();
+                NotifService.SetUnreadCount(count);
+                
+                // Also update FCM token if not already done
+                var token = await JS.InvokeAsync<string>("getFcmToken");
+                if (!string.IsNullOrEmpty(token))
                 {
-                    _unreadCount = await ApiClient.GetUnreadNotificationCountAsync();
-                    StateHasChanged();
-
-                    var token = await JS.InvokeAsync<string>("getFcmToken");
-                    if (!string.IsNullOrEmpty(token))
-                    {
-                        await ApiClient.UpdateFcmTokenAsync(token);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"FCM Token Error: {ex.Message}");
+                    await ApiClient.UpdateFcmTokenAsync(token);
                 }
             }
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[MainLayout] Error updating notifications: {ex.Message}");
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // No longer using OnAfterRender for initial fetch as it's handled in OnInitialized and events
+    }
+
+    private async void HandleNotifChange() => await InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthStateChanged;
+        NotifService.OnChange -= HandleNotifChange;
     }
 }

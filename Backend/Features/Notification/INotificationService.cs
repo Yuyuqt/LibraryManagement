@@ -10,6 +10,7 @@ public interface INotificationService
     Task<bool> SendAndSaveNotificationAsync(Guid userId, string? token, string title, string body, string type = "Info", string? actionLink = null, string? actionText = null);
     Task<List<NotificationDto>> GetUserNotificationsAsync(Guid userId);
     Task<bool> MarkAllAsReadAsync(Guid userId);
+    Task<bool> MarkAsReadAsync(int id);
     Task<int> GetUnreadCountAsync(Guid userId);
 }
 

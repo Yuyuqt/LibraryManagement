@@ -383,6 +383,12 @@ namespace BlazorWebAssembly.Services
             return response.IsSuccessStatusCode;
         }
 
+        public async Task<bool> MarkAsReadAsync(int id)
+        {
+            var response = await _httpClient.PostAsync($"api/notifications/mark-read/{id}", null);
+            return response.IsSuccessStatusCode;
+        }
+
         public async Task<bool> UpdateFcmTokenAsync(string fcmToken)
         {
             var response = await _httpClient.PostAsJsonAsync("api/users/fcm-token", new { fcmToken });

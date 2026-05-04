@@ -2,6 +2,7 @@
 @using LibraryManagement.Shared.Models
 @using BlazorWebAssembly.Services
 @inject LibraryApiClient ApiClient
+@inject NotificationStateService NotifService
 @inject IJSRuntime JS
 
 <PageTitle>Notifications | LibraryLuxe</PageTitle>
@@ -50,7 +51,8 @@
                 <div class="grid gap-4">
                     @foreach (var notif in _notifications)
                     {
-                        <div class="group bg-card rounded-2xl p-6 border border-border hover:border-primary/30 transition-all duration-300 shadow-sm relative overflow-hidden @(!notif.IsRead ? "bg-primary/[0.02]" : "")">
+                        <div @onclick="() => MarkAsRead(notif)" 
+                             class="group bg-card rounded-2xl p-6 border border-border hover:border-primary/30 transition-all duration-300 shadow-sm relative overflow-hidden cursor-pointer @(!notif.IsRead ? "bg-primary/[0.02]" : "")">
                             @if (!notif.IsRead)
                             {
                                 <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
@@ -129,7 +131,31 @@
         try
         {
             var success = await ApiClient.MarkNotificationsReadAsync();
-            if (success) await LoadNotifications();
+            if (success) 
+            {
+                NotifService.SetUnreadCount(0);
+                await LoadNotifications();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task MarkAsRead(NotificationDto notif)
+    {
+        if (notif.IsRead) return;
+
+        try
+        {
+            var success = await ApiClient.MarkAsReadAsync(notif.Id);
+            if (success)
+            {
+                notif.IsRead = true;
+                NotifService.DecrementCount();
+                StateHasChanged();
+            }
         }
         catch (Exception ex)
         {

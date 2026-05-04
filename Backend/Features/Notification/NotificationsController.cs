@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Backend.Features.Notification;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/notifications")]
 public class NotificationsController : ControllerBase
 {
     private readonly INotificationService _notificationService;
@@ -55,6 +55,14 @@ public class NotificationsController : ControllerBase
         }
 
         await _notificationService.MarkAllAsReadAsync(userId);
+        return Ok();
+    }
+
+    [HttpPost("mark-read/{id}")]
+    public async Task<IActionResult> MarkAsRead(int id)
+    {
+        var success = await _notificationService.MarkAsReadAsync(id);
+        if (!success) return NotFound();
         return Ok();
     }
 

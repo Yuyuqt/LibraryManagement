@@ -123,6 +123,16 @@ public class NotificationService : INotificationService
         return true;
     }
 
+    public async Task<bool> MarkAsReadAsync(int id)
+    {
+        var notif = await _context.Notifications.FindAsync(id);
+        if (notif == null) return false;
+
+        notif.IsRead = true;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<int> GetUnreadCountAsync(Guid userId)
     {
         return await _context.Notifications

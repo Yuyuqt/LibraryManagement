@@ -35,4 +35,7 @@ builder.Services.AddScoped<LibraryApiClient>();
 // Register WishlistService
 builder.Services.AddScoped<WishlistService>();
 
+// Register NotificationStateService
+builder.Services.AddScoped<NotificationStateService>();
+
 await builder.Build().RunAsync();
