@@ -20,10 +20,10 @@ using Google.Apis.Auth.OAuth2;
 var builder = WebApplication.CreateBuilder(args);
 
 // Firebase Admin SDK Initialization
-//FirebaseApp.Create(new AppOptions()
-//{
-//    Credential = GoogleCredential.FromFile("LibraryFirebase.json")
-//});
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile("LibraryFirebase.json")
+});
 
 builder.Services.AddCors(options =>
 {

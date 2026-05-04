@@ -3,6 +3,7 @@
 @using BlazorWebAssembly.Services
 @inject LibraryApiClient ApiClient
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="max-w-6xl mx-auto py-12 px-6">
     <!-- Header -->
@@ -54,28 +55,51 @@
                         <p class="text-sm text-muted font-medium mb-4 md:mb-0">ID: @loan.BookId</p>
                     </div>
 
-                    <!-- Dates -->
-                    <div class="grid grid-cols-2 gap-8 px-8 border-x border-border hidden lg:grid">
+                    <!-- Dates & Fines -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-8 px-8 border-x border-border hidden lg:grid flex-grow">
                         <div>
                             <p class="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-1">Borrowed</p>
                             <p class="text-sm font-bold text-main">@loan.BorrowDate.ToString("MMM dd, yyyy")</p>
                         </div>
                         <div>
                             <p class="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-1">Due Date</p>
-                            <p class="text-sm font-bold @(loan.DueDate < DateTime.UtcNow ? "text-red-500" : "text-main")">
+                            <p class="text-sm font-bold @(loan.DueDate < DateTime.UtcNow && loan.Status == "Borrowed" ? "text-red-500" : "text-main")">
                                 @loan.DueDate.ToString("MMM dd, yyyy")
                             </p>
+                        </div>
+                        <div class="hidden md:block">
+                            @if (loan.ReturnDate.HasValue)
+                            {
+                                <p class="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-1">Returned</p>
+                                <p class="text-sm font-bold text-green-500">@loan.ReturnDate.Value.ToString("MMM dd, yyyy")</p>
+                            }
+                            else if (loan.FineAmount > 0)
+                            {
+                                <p class="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-1">Fine</p>
+                                <p class="text-sm font-bold @(loan.IsFinePaid ? "text-muted line-through" : "text-red-500")">
+                                    MMK @loan.FineAmount.ToString("N0")
+                                </p>
+                                @if (loan.IsFinePaid)
+                                {
+                                    <span class="text-[10px] text-green-500 font-black uppercase">Paid</span>
+                                }
+                            }
+                            else
+                            {
+                                <p class="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-1">Fine</p>
+                                <p class="text-sm font-bold text-muted">No Fines</p>
+                            }
                         </div>
                     </div>
 
                     <!-- Status & Action -->
                     <div class="flex flex-col md:items-end gap-3 min-w-[150px]">
                         <span class='px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-center @GetStatusColor(loan.Status)'>
-                            @loan.Status
+                            @(loan.Status == "PendingReturn" ? "Pending" : loan.Status)
                         </span>
                         @if (loan.Status == "Borrowed")
                         {
-                            <button @onclick="() => ReturnRequestAsync(loan.Id)" class="text-xs font-bold text-primary hover:underline">
+                            <button @onclick="() => ReturnRequestAsync(loan)" class="text-xs font-bold text-primary hover:underline">
                                 Request Return
                             </button>
                         }
@@ -106,10 +130,21 @@
         finally { _isLoading = false; }
     }
 
-    private async Task ReturnRequestAsync(Guid id)
+    private async Task ReturnRequestAsync(BorrowingDto loan)
     {
-        var success = await ApiClient.RequestReturnAsync(id);
-        if (success) await LoadData();
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Request return for \"{loan.BookTitle}\"? It will be marked as pending until approved by a librarian.");
+        if (!confirmed) return;
+
+        var success = await ApiClient.RequestReturnAsync(loan.Id);
+        if (success) 
+        {
+            await JS.InvokeVoidAsync("alert", "Return request submitted successfully!");
+            await LoadData();
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "Failed to submit return request.");
+        }
     }
 
     private string GetStatusColor(string status) => status switch

@@ -6,7 +6,7 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Librarian")]
 
-<div class="max-w-7xl mx-auto py-12 px-6">
+<div class="max-w-7xl mx-auto py-12 px-6 animate-fade">
     <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
         <div>
@@ -16,85 +16,255 @@
             </p>
         </div>
         <div class="flex gap-4">
-            <div class="bg-card border border-border px-6 py-3 rounded-2xl flex flex-col">
+            <div class="bg-card border border-border px-6 py-3 rounded-2xl flex flex-col shadow-sm">
                 <span class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Total Members</span>
-                <span class="text-2xl font-black text-main">1,284</span>
+                <span class="text-2xl font-black text-main">@(_totalMembers)</span>
             </div>
-            <div class="bg-card border border-border px-6 py-3 rounded-2xl flex flex-col text-primary border-primary/20">
-                <span class="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Active Now</span>
-                <span class="text-2xl font-black text-primary">42</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Metrics Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-        <!-- Top Readers -->
-        <div class="bg-card rounded-[2rem] border border-border p-10 shadow-sm">
-            <h3 class="text-xl font-bold text-main mb-8 border-b border-border pb-4 uppercase tracking-widest text-xs">Top Readers</h3>
-            <div class="space-y-8">
-                @for (int i = 1; i <= 5; i++)
-                {
-                    <div class="flex items-center gap-4">
-                        <span class="w-8 h-8 rounded-lg bg-body flex items-center justify-center font-black text-muted text-xs">@i</span>
-                        <div class="flex-grow">
-                            <p class="font-bold text-main text-sm">Member User @i</p>
-                            <p class="text-[10px] text-muted font-medium uppercase tracking-widest">@(20 - i) Books Borrowed</p>
-                        </div>
-                        <div class="w-12 bg-body h-1 rounded-full overflow-hidden">
-                            <div class="bg-primary h-full" style="width: @(100 - (i * 15))%"></div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-
-        <!-- Loyalty Leaders -->
-        <div class="bg-card rounded-[2rem] border border-border p-10 shadow-sm">
-            <h3 class="text-xl font-bold text-main mb-8 border-b border-border pb-4 uppercase tracking-widest text-xs">Point Leaders</h3>
-            <div class="space-y-8">
-                 @for (int i = 1; i <= 5; i++)
-                {
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs">
-                            L
-                        </div>
-                        <div class="flex-grow">
-                            <p class="font-bold text-main text-sm">User Alpha @i</p>
-                            <p class="text-[10px] text-muted font-medium uppercase tracking-widest">@(5000 - (i * 500)) Points</p>
-                        </div>
-                        <span class="text-xs font-black text-primary">TIER @(6-i)</span>
-                    </div>
-                }
-            </div>
-        </div>
-
-        <!-- Membership Distribution -->
-        <div class="bg-card rounded-[2rem] border border-border p-10 shadow-sm">
-            <h3 class="text-xl font-bold text-main mb-8 border-b border-border pb-4 uppercase tracking-widest text-xs">Growth Patterns</h3>
-            <div class="space-y-6">
-                <div class="flex justify-between items-end gap-2 h-40">
-                    <div class="bg-primary/20 w-full rounded-t-xl" style="height: 40%"></div>
-                    <div class="bg-primary/40 w-full rounded-t-xl" style="height: 60%"></div>
-                    <div class="bg-primary/60 w-full rounded-t-xl" style="height: 30%"></div>
-                    <div class="bg-primary/80 w-full rounded-t-xl" style="height: 90%"></div>
-                    <div class="bg-primary w-full rounded-t-xl" style="height: 100%"></div>
-                </div>
-                <div class="flex justify-between text-[10px] font-black text-muted uppercase tracking-[0.2em] px-2">
-                    <span>Mon</span>
-                    <span>Tue</span>
-                    <span>Wed</span>
-                    <span>Thu</span>
-                    <span>Fri</span>
-                </div>
+            <div class="bg-primary/10 border border-primary/20 px-6 py-3 rounded-2xl flex flex-col text-primary shadow-sm">
+                <span class="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Active Subs</span>
+                <span class="text-2xl font-black text-primary">@(_activeSubscriptions)</span>
             </div>
         </div>
     </div>
+
+    @if (_isLoading)
+    {
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+            @for (int i = 0; i < 3; i++)
+            {
+                <div class="bg-card rounded-[2rem] border border-border p-10 shadow-sm animate-pulse h-96"></div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Metrics Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+            
+            <!-- Most Active Readers -->
+            <div class="bg-card rounded-[2rem] border border-border p-10 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-8 border-b border-border pb-4">
+                    <h3 class="text-xl font-bold text-main uppercase tracking-widest text-xs">Top Readers</h3>
+                    <div class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    </div>
+                </div>
+                <div class="space-y-6 flex-grow">
+                    @if (!_activeReaders.Any())
+                    {
+                        <p class="text-muted text-sm italic text-center py-10">No data available yet.</p>
+                    }
+                    @foreach (var (user, index) in _activeReaders.Take(5).Select((u, i) => (u, i)))
+                    {
+                        var maxRaw = _activeReaders.Max(u => u.RawValue);
+                        var pct = maxRaw > 0 ? (user.RawValue / maxRaw) * 100 : 0;
+                        <div class="flex items-center gap-4">
+                            <span class="w-8 h-8 rounded-lg bg-body flex items-center justify-center font-black text-muted text-xs">@(index + 1)</span>
+                            <div class="flex-grow">
+                                <p class="font-bold text-main text-sm truncate max-w-[150px]">@user.Name</p>
+                                <p class="text-[10px] text-muted font-black uppercase tracking-widest">@user.ValueLabel</p>
+                            </div>
+                            <div class="w-16 bg-body h-1.5 rounded-full overflow-hidden">
+                                <div class="bg-blue-500 h-full rounded-full" style="width: @pct%"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Loyalty Leaders -->
+            <div class="bg-card rounded-[2rem] border border-border p-10 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-8 border-b border-border pb-4">
+                    <h3 class="text-xl font-bold text-main uppercase tracking-widest text-xs">Point Leaders</h3>
+                    <div class="w-8 h-8 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
+                    </div>
+                </div>
+                <div class="space-y-6 flex-grow">
+                    @if (!_loyalty.Any())
+                    {
+                        <p class="text-muted text-sm italic text-center py-10">No data available yet.</p>
+                    }
+                    @foreach (var (user, index) in _loyalty.Take(5).Select((u, i) => (u, i)))
+                    {
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 font-black text-xs">
+                                @(user.Name.Length >= 2 ? user.Name.Substring(0, 2).ToUpper() : "?")
+                            </div>
+                            <div class="flex-grow">
+                                <p class="font-bold text-main text-sm truncate max-w-[150px]">@user.Name</p>
+                                <p class="text-[10px] text-muted font-black uppercase tracking-widest">@user.ValueLabel</p>
+                            </div>
+                            <span class="text-[10px] font-black text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md">#@(index + 1)</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Top Subscribers -->
+            <div class="bg-card rounded-[2rem] border border-border p-10 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between mb-8 border-b border-border pb-4">
+                    <h3 class="text-xl font-bold text-main uppercase tracking-widest text-xs">Top Subscribers</h3>
+                    <div class="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                    </div>
+                </div>
+                <div class="space-y-6 flex-grow">
+                    @if (!_subscribers.Any())
+                    {
+                        <p class="text-muted text-sm italic text-center py-10">No data available yet.</p>
+                    }
+                    @foreach (var (user, index) in _subscribers.Take(5).Select((u, i) => (u, i)))
+                    {
+                        <div class="flex items-center gap-4">
+                            <span class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-black text-xs border border-emerald-500/20">@(index + 1)</span>
+                            <div class="flex-grow">
+                                <p class="font-bold text-main text-sm truncate max-w-[150px]">@user.Name</p>
+                                <p class="text-[10px] text-muted font-black uppercase tracking-widest">@user.ValueLabel</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+            <div class="p-6 border-b border-border bg-body">
+                <h3 class="text-lg font-bold text-main">Full Member Insights (All Users)</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-body border-b border-border">
+                            <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Member</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Joined Date</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest text-right">Lifetime Points</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest text-right">Books Read</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border">
+                        @foreach (var user in _allUsers.OrderByDescending(u => u.CreatedAt))
+                        {
+                            var points = _loyalty.FirstOrDefault(l => l.UserId == user.Id)?.RawValue ?? 0;
+                            var books = _activeReaders.FirstOrDefault(r => r.UserId == user.Id)?.RawValue ?? 0;
+                            
+                            <tr class="hover:bg-body transition-colors">
+                                <td class="px-6 py-5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs border border-primary/20">
+                                            @(user.FullName?.Substring(0, Math.Min(2, user.FullName.Length)).ToUpper() ?? "U")
+                                        </div>
+                                        <p class="text-sm font-bold text-main">@user.FullName</p>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5 text-sm font-medium text-muted">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                <td class="px-6 py-5 text-right font-black text-amber-500">@points.ToString("N0")</td>
+                                <td class="px-6 py-5 text-right font-black text-blue-500">@books.ToString("N0")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
+    private bool _isLoading = true;
+    
+    private List<InsightItem> _subscribers = new();
+    private List<InsightItem> _loyalty = new();
+    private List<InsightItem> _activeReaders = new();
+    
+    private List<UserDto> _allUsers = new();
+    private int _totalMembers = 0;
+    private int _activeSubscriptions = 0;
+
     protected override async Task OnInitializedAsync()
     {
-        // Data loading logic here
+        await LoadInsightsAsync();
+    }
+
+    private async Task LoadInsightsAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var users = await ApiClient.GetUsersAsync();
+            _allUsers = users.ToList();
+            _totalMembers = _allUsers.Count;
+
+            var borrowings = await ApiClient.GetAllBorrowingsAsync();
+            var subscriptions = await ApiClient.GetAllSubscriptionsAsync();
+            var memberships = await ApiClient.GetMembershipsAsync();
+            var loyaltyHistory = await ApiClient.GetAllMembersPointsHistoryAsync();
+
+            _activeSubscriptions = subscriptions.Count(s => s.IsActive);
+
+            // 1. Top Subscribers (Total Spent)
+            var membershipPriceMap = memberships.ToDictionary(m => m.Id, m => m.Price);
+            _subscribers = subscriptions
+                .GroupBy(s => s.UserId)
+                .Select(g => {
+                    var user = _allUsers.FirstOrDefault(u => u.Id == g.Key);
+                    var totalSpent = g.Sum(s => membershipPriceMap.TryGetValue(s.MembershipId, out var price) ? price : 0);
+                    return new InsightItem {
+                        UserId = g.Key,
+                        Name = user?.FullName ?? "Unknown User",
+                        RawValue = (double)totalSpent,
+                        ValueLabel = $"MMK {totalSpent:N0}"
+                    };
+                })
+                .OrderByDescending(i => i.RawValue)
+                .ToList();
+
+            // 2. Top Loyalty (Earned Points only)
+            _loyalty = loyaltyHistory
+                .Select(lh => {
+                    var user = _allUsers.FirstOrDefault(u => u.Id == lh.UserId);
+                    var totalEarned = lh.History.Where(h => h.PointDelta > 0).Sum(h => h.PointDelta);
+                    return new InsightItem {
+                        UserId = lh.UserId,
+                        Name = user?.FullName ?? lh.UserName,
+                        RawValue = totalEarned,
+                        ValueLabel = $"{totalEarned:N0} pts"
+                    };
+                })
+                .OrderByDescending(i => i.RawValue)
+                .ToList();
+
+            // 3. Most Active (Approved Returns only)
+            _activeReaders = borrowings
+                .Where(b => b.Status == "Returned")
+                .GroupBy(b => b.UserId)
+                .Select(g => {
+                    var user = _allUsers.FirstOrDefault(u => u.Id == g.Key);
+                    var count = g.Count();
+                    return new InsightItem {
+                        UserId = g.Key,
+                        Name = user?.FullName ?? "Unknown User",
+                        RawValue = count,
+                        ValueLabel = $"{count} books"
+                    };
+                })
+                .OrderByDescending(i => i.RawValue)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading insights: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private class InsightItem
+    {
+        public Guid UserId { get; set; }
+        public string Name { get; set; } = "";
+        public double RawValue { get; set; }
+        public string ValueLabel { get; set; } = "";
     }
 }

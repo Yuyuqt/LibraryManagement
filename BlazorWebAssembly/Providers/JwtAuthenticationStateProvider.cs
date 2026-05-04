@@ -26,9 +26,23 @@ namespace BlazorWebAssembly.Providers
             if (string.IsNullOrWhiteSpace(token))
                 return _anonymous;
 
+            var claims = ParseClaimsFromJwt(token);
+            
+            // Check expiration
+            var expClaim = claims.FirstOrDefault(c => c.Type == "exp");
+            if (expClaim != null && long.TryParse(expClaim.Value, out long expTime))
+            {
+                var expDateTime = DateTimeOffset.FromUnixTimeSeconds(expTime).UtcDateTime;
+                if (expDateTime <= DateTime.UtcNow)
+                {
+                    await _localStorage.RemoveItemAsync("authToken");
+                    return _anonymous;
+                }
+            }
+
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
 
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
+            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt")));
         }
 
         public void NotifyUserAuthentication(string token)
@@ -57,16 +71,20 @@ namespace BlazorWebAssembly.Providers
             {
                 foreach (var kvp in keyValuePairs)
                 {
+                    string claimType = kvp.Key;
+                    if (claimType == "role" || claimType == "Role") claimType = ClaimTypes.Role;
+                    else if (claimType == "unique_name" || claimType == "name") claimType = ClaimTypes.Name;
+
                     if (kvp.Value is JsonElement element && element.ValueKind == JsonValueKind.Array)
                     {
                         foreach (var item in element.EnumerateArray())
                         {
-                            claims.Add(new Claim(kvp.Key, item.ToString()));
+                            claims.Add(new Claim(claimType, item.ToString()));
                         }
                     }
                     else
                     {
-                        claims.Add(new Claim(kvp.Key, kvp.Value.ToString() ?? ""));
+                        claims.Add(new Claim(claimType, kvp.Value.ToString() ?? ""));
                     }
                 }
             }

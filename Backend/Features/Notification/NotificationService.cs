@@ -32,16 +32,16 @@ public class NotificationService : INotificationService
             Data = data
         };
 
-        try
-        {
-            string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
-            return !string.IsNullOrEmpty(response);
+       try
+
+      {string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
+        return !string.IsNullOrEmpty(response);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error sending FCM message: {ex.Message}");
-            return false;
-        }
+           Console.WriteLine($"Error sending FCM message: {ex.Message}");
+           return false;
+       }
     }
 
     public async Task<bool> SendAndSaveNotificationAsync(Guid userId, string? token, string title, string body, string type = "Info", string? actionLink = null, string? actionText = null)

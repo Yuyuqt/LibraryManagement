@@ -1,24 +1,101 @@
 @page "/about"
 
-<div class="max-w-4xl mx-auto py-24 px-8 animate-fade">
-    <div class="text-center mb-16">
-        <h1 class="text-6xl font-black tracking-tighter text-main mb-6 uppercase">Our Story</h1>
-        <p class="text-xl text-muted leading-relaxed">Redefining the relationship between readers and literature through technology and community.</p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-        <div class="space-y-8">
-            <h2 class="text-3xl font-black text-main tracking-tight">A Library without Borders.</h2>
-            <p class="text-muted leading-relaxed">Founded in 2024, LibraryLuxe was born from a simple idea: that books should be accessible, organized, and rewarding. We've built a system that doesn't just manage inventory, but fosters a culture of reading.</p>
-            <div class="flex gap-4">
-                <div class="w-px h-12 bg-primary"></div>
-                <p class="italic text-main font-medium">"Reading is the ultimate superpower. We just provide the cape."</p>
+<div class="max-w-7xl mx-auto py-24 px-8 animate-fade space-y-32">
+    <!-- Hero / Story -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+        <div>
+            <h2 class="text-xs font-black text-primary uppercase tracking-[0.3em] mb-4">Our Origin</h2>
+            <h1 class="text-7xl font-black tracking-tighter text-main mb-8 uppercase leading-[0.9]">A Library <br /> <span class="text-primary italic">Without Borders.</span></h1>
+            <p class="text-xl text-muted leading-relaxed mb-10">
+                Founded in 2024, LibraryLuxe was born from a simple idea: that books should be accessible, organized, and rewarding. We've built a system that doesn't just manage inventory, but fosters a culture of reading.
+            </p>
+            <div class="bg-card p-8 rounded-3xl border border-border border-l-4 border-l-primary shadow-sm">
+                <p class="italic text-main font-medium text-lg leading-relaxed">
+                    "Reading is the ultimate superpower. We just provide the cape. Our mission is to bridge the gap between classic literature and modern convenience."
+                </p>
+                <div class="mt-4 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-primary/20"></div>
+                    <span class="text-xs font-bold uppercase tracking-widest text-muted">Founding Vision</span>
+                </div>
             </div>
         </div>
-        <div class="bg-card aspect-square rounded-[3rem] border border-border shadow-2xl flex items-center justify-center p-12">
-            <div class="w-full h-full rounded-2xl bg-primary/5 border border-primary/20 flex items-center justify-center">
-                <svg class="w-24 h-24 text-primary opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+        <div class="relative">
+            <div class="bg-card aspect-square rounded-[4rem] border border-border shadow-2xl flex items-center justify-center p-12 relative z-10 overflow-hidden">
+                 <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-emerald-500/10"></div>
+                 <svg class="w-48 h-48 text-primary opacity-20 relative z-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
             </div>
+            <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+        </div>
+    </div>
+
+    <!-- How it Works -->
+    <section>
+        <div class="text-center mb-20">
+            <h2 class="text-xs font-black text-primary uppercase tracking-[0.3em] mb-4">The Process</h2>
+            <h3 class="text-5xl font-black text-main tracking-tight">How LibraryLuxe Works</h3>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+            <div class="hidden md:block absolute top-1/2 left-0 w-full h-px bg-border -z-10"></div>
+            <!-- Step 1 -->
+            <div class="bg-body p-8 relative">
+                <div class="w-16 h-16 bg-card border border-border rounded-2xl flex items-center justify-center text-2xl font-black text-primary mb-8 shadow-xl">1</div>
+                <h4 class="text-xl font-bold text-main mb-4 uppercase">Create Account</h4>
+                <p class="text-muted text-sm leading-relaxed">Sign up in seconds and choose a membership plan that fits your reading habits.</p>
+            </div>
+            <!-- Step 2 -->
+            <div class="bg-body p-8 relative">
+                <div class="w-16 h-16 bg-card border border-border rounded-2xl flex items-center justify-center text-2xl font-black text-primary mb-8 shadow-xl">2</div>
+                <h4 class="text-xl font-bold text-main mb-4 uppercase">Borrow & Read</h4>
+                <p class="text-muted text-sm leading-relaxed">Browse thousands of titles and borrow them instantly. Physical books or digital access, your choice.</p>
+            </div>
+            <!-- Step 3 -->
+            <div class="bg-body p-8 relative">
+                <div class="w-16 h-16 bg-card border border-border rounded-2xl flex items-center justify-center text-2xl font-black text-primary mb-8 shadow-xl">3</div>
+                <h4 class="text-xl font-bold text-main mb-4 uppercase">Earn Rewards</h4>
+                <p class="text-muted text-sm leading-relaxed">Return books on time to earn loyalty points. Use points to upgrade your membership or unlock perks.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div class="bg-card p-12 rounded-[3rem] border border-border">
+            <h4 class="text-2xl font-black text-main mb-8 uppercase tracking-tight">Why Choose Us?</h4>
+            <div class="space-y-6">
+                <div class="flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 mt-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-main">Eco-Friendly Reading</h5>
+                        <p class="text-sm text-muted">Our digital-first approach reduces paper waste and logistics footprint.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 mt-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-main">Community Driven</h5>
+                        <p class="text-sm text-muted">Join reading clubs and community events hosted right in our ecosystem.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 mt-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-main">Smart Notifications</h5>
+                        <p class="text-sm text-muted">Advanced Firebase integration keeps you informed about your library activity.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-primary p-12 rounded-[3rem] text-white flex flex-col justify-center">
+            <h4 class="text-4xl font-black tracking-tighter mb-6 uppercase">Join the <br/> Revolution.</h4>
+            <p class="text-white/80 mb-8 leading-relaxed font-medium">We're not just a library; we're a community of life-long learners. Be part of our growing family today.</p>
+            <a href="/register" class="bg-white text-primary px-8 py-4 rounded-2xl font-black text-center hover:bg-white/90 transition-all uppercase tracking-widest text-sm">Join LibraryLuxe</a>
         </div>
     </div>
 </div>
+

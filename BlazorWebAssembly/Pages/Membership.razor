@@ -3,11 +3,13 @@
 @using BlazorWebAssembly.Services
 @inject LibraryApiClient ApiClient
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
-<div class="max-w-6xl mx-auto py-16 px-6">
+<div class="max-w-7xl mx-auto py-24 px-8 animate-fade">
     <!-- Header -->
-    <div class="text-center mb-20">
-        <h1 class="text-5xl font-black tracking-tight text-main mb-6">Choose Your Journey</h1>
+    <div class="text-center mb-24">
+        <h2 class="text-xs font-black text-primary uppercase tracking-[0.3em] mb-4">Pricing Plans</h2>
+        <h1 class="text-7xl font-black tracking-tighter text-main mb-8 uppercase leading-[0.9]">Choose Your <br /> <span class="text-primary italic">Journey.</span></h1>
         <p class="text-xl text-muted max-w-2xl mx-auto leading-relaxed">
             From casual readers to devoted bookworms, we have a plan that perfectly matches your literary appetite.
         </p>
@@ -18,82 +20,115 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             @for (int i = 0; i < 3; i++)
             {
-                <div class="animate-pulse bg-card rounded-3xl border border-border h-[500px]"></div>
+                <div class="animate-pulse bg-card rounded-[3rem] border border-border h-[600px]"></div>
             }
         </div>
     }
     else
     {
-        <!-- Current Subscription Banner -->
-        @if (_currentSub != null)
-        {
-            <div class="bg-primary/5 border border-primary/20 rounded-3xl p-8 mb-16 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div class="flex items-center gap-6">
-                    <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white text-3xl font-bold">
-                        P
+        <!-- Current Subscription Banner (Only for Auth) -->
+        <AuthorizeView>
+            <Authorized>
+                @if (_currentSub != null)
+                {
+                    <div class="bg-primary/5 border border-primary/20 rounded-[2.5rem] p-10 mb-20 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm">
+                        <div class="flex items-center gap-8">
+                            <div class="w-20 h-20 bg-primary rounded-3xl flex items-center justify-center text-white text-4xl font-black shadow-lg shadow-primary/20">
+                                @(_currentSub.MembershipType?[..1].ToUpper())
+                            </div>
+                            <div>
+                                <h3 class="text-3xl font-black text-main uppercase tracking-tight">@_currentSub.MembershipType Plan</h3>
+                                <p class="text-muted font-medium">Active until <span class="text-main font-bold">@_currentSub.ExpiryDate.ToString("MMMM dd, yyyy")</span></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <div class="flex flex-col items-end">
+                                <span class="px-4 py-1.5 bg-green-500/10 text-green-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-2">Active Status</span>
+                                <span class="text-xs text-muted font-bold uppercase tracking-widest">Auto-renews monthly</span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-2xl font-bold text-main">@_currentSub.MembershipType Plan</h3>
-                        <p class="text-muted">Active until @_currentSub.ExpiryDate.ToString("MMMM dd, yyyy")</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="px-4 py-1.5 bg-green-500/10 text-green-600 rounded-full text-xs font-bold uppercase tracking-widest">Active</span>
-                </div>
-            </div>
-        }
+                }
+            </Authorized>
+        </AuthorizeView>
 
         <!-- Membership Plans -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
             @foreach (var plan in _memberships)
             {
-                <div class='relative bg-card rounded-[2rem] border p-10 flex flex-col transition-all duration-500 hover:-translate-y-2 @(IsCurrentPlan(plan.Id) ? "border-primary shadow-xl shadow-primary/5 scale-105 z-10" : "border-border shadow-sm")'>
+                <div class='relative bg-card rounded-[3.5rem] border p-12 flex flex-col transition-all duration-700 hover:-translate-y-4 @(IsCurrentPlan(plan.Id) ? "border-primary shadow-2xl shadow-primary/10 scale-105 z-10" : "border-border shadow-xl hover:shadow-2xl")'>
+                    @if (plan.Price > 20 && !IsCurrentPlan(plan.Id))
+                    {
+                        <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/30">
+                            Most Popular
+                        </div>
+                    }
                     @if (IsCurrentPlan(plan.Id))
                     {
-                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-6 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/30">
-                            Current Plan
+                        <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-primary text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/30">
+                            Your Current Plan
                         </div>
                     }
 
                     <div class="mb-10">
-                        <h3 class="text-sm font-black text-muted uppercase tracking-[0.2em] mb-4">@plan.Type</h3>
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-4xl font-black text-main">$@plan.Price</span>
-                            <span class="text-muted font-medium">/@plan.DurationMonths mo</span>
+                        <h3 class="text-sm font-black text-muted uppercase tracking-[0.3em] mb-6">@plan.Type</h3>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-baseline gap-2 flex-wrap">
+                                <span class="text-5xl font-black text-main tracking-tighter">@plan.Price.ToString("N0")</span>
+                                <span class="text-2xl font-bold text-muted">mmk</span>
+                            </div>
+                            <span class="text-muted font-bold uppercase text-sm tracking-widest mt-1">/ @plan.DurationMonths mo</span>
                         </div>
                     </div>
 
-                    <div class="space-y-6 mb-12 flex-grow">
-                        <div class="flex items-center gap-4">
-                            <div class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-                                <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    <div class="space-y-6 mb-16 flex-grow">
+                        <div class="flex items-center gap-5 group/item">
+                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover/item:scale-110 transition-transform flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                             </div>
-                            <span class="text-main font-medium">Borrow up to <span class="font-bold">@plan.MaxBooks</span> books</span>
+                            <span class="text-main font-bold text-lg">Borrow <span class="text-primary">@plan.MaxBooks</span> books</span>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <div class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-                                <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        <div class="flex items-center gap-5 group/item">
+                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover/item:scale-110 transition-transform flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                             </div>
-                            <span class="text-main font-medium">Keep for <span class="font-bold">@plan.BorrowingDays</span> days</span>
+                            <span class="text-main font-bold text-lg">@plan.BorrowingDays Day period</span>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <div class="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-                                <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        <div class="flex items-center gap-5 group/item">
+                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover/item:scale-110 transition-transform flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                             </div>
-                            <span class="text-main font-medium">Digital access included</span>
+                            <span class="text-main font-bold text-lg">Digital access included</span>
+                        </div>
+                        <div class="flex items-center gap-5 group/item">
+                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover/item:scale-110 transition-transform flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <span class="text-main font-bold text-lg">Loyalty point multiplier</span>
                         </div>
                     </div>
 
                     <button @onclick="() => SubscribeAsync(plan)" 
                             disabled="@IsCurrentPlan(plan.Id)"
-                            class='w-full py-5 rounded-2xl font-black transition-all @(IsCurrentPlan(plan.Id) ? "bg-body text-muted border border-border" : "bg-primary text-white hover:bg-primary-hover hover:shadow-xl shadow-primary/20")'>
-                        @(IsCurrentPlan(plan.Id) ? "Your Plan" : "Upgrade Now")
+                            class='w-full py-6 rounded-[2rem] font-black uppercase tracking-widest text-sm transition-all @(IsCurrentPlan(plan.Id) ? "bg-body text-muted border border-border cursor-not-allowed" : "bg-primary text-white hover:bg-primary-hover hover:shadow-2xl hover:shadow-primary/30 transform hover:scale-[1.02] active:scale-95")'>
+                        @(IsCurrentPlan(plan.Id) ? "Current Plan" : "Select Plan")
                     </button>
                 </div>
             }
         </div>
+
+        <div class="mt-24 text-center">
+            <p class="text-muted font-medium mb-8">All plans include 24/7 support and access to our community events.</p>
+            <div class="flex items-center justify-center gap-12 opacity-50 grayscale hover:grayscale-0 transition-all">
+                <!-- Trust Badges Placeholder -->
+                <span class="font-black text-xl uppercase tracking-tighter">Secure Payment</span>
+                <span class="font-black text-xl uppercase tracking-tighter">Cancel Anytime</span>
+                <span class="font-black text-xl uppercase tracking-tighter">No Hidden Fees</span>
+            </div>
+        </div>
     }
 </div>
+
 
 @code {
     private bool _isLoading = true;
@@ -121,10 +156,18 @@
 
     private async Task SubscribeAsync(MembershipDto plan)
     {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to subscribe to {plan.Type} for {plan.Price} mmk?");
+        if (!confirmed) return;
+
         var result = await ApiClient.SubscribeAsync(new SubscribeRequest { MembershipId = plan.Id });
         if (result != null)
         {
+            await JS.InvokeVoidAsync("alert", "Subscription successful!");
             await LoadData();
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "Subscription failed. Please check your account balance or try again.");
         }
     }
 }

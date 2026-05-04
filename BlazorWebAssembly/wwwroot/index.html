@@ -63,6 +63,14 @@
     </div>
     
     <script src="_framework/blazor.webassembly.js"></script>
+    
+    <!-- Firebase Push Notifications -->
+    <script type="module" src="firebase-init.js"></script>
+    <script>
+        window.showToast = function (message, type) {
+            alert(message); // simple fallback, can be enhanced with UI toast
+        };
+    </script>
 </body>
 
 <style>

@@ -1,0 +1,609 @@
+@page "/members"
+@using BlazorWebAssembly.Services
+@using LibraryManagement.Shared.Models
+@using BlazorWebAssembly.Models
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Librarian")]
+@inject LibraryApiClient ApiClient
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<div class="max-w-7xl mx-auto py-10 px-6 animate-fade">
+    @if (_currentView == ViewMode.List)
+    {
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+                <h1 class="text-4xl font-extrabold tracking-tight text-main mb-2">Members Directory</h1>
+                <p class="text-muted text-lg">
+                    Manage library members and administrator accounts.
+                    <span class="ml-2 text-xs text-muted font-bold">(@(_allUsers?.Count() ?? 0) total)</span>
+                </p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button @onclick="ShowCreate" class="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all whitespace-nowrap flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Add Member
+                </button>
+            </div>
+        </div>
+
+        @if (_isLoading)
+        {
+            <div class="space-y-4">
+                @for (int i = 0; i < 5; i++)
+                {
+                    <div class="animate-pulse bg-card rounded-xl border border-border h-24 w-full"></div>
+                }
+            </div>
+        }
+        else if (_pagedResult != null)
+        {
+            <div class="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-max whitespace-nowrap">
+                        <thead class="bg-body border-b border-border">
+                            <tr>
+                                <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Member</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Contact</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Role</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Status</th>
+                                <th class="px-6 py-4 text-right text-[10px] font-bold text-muted uppercase tracking-widest">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border">
+                            @foreach (var user in _pagedResult.Items)
+                            {
+                                <tr class="hover:bg-body transition-colors group">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-4">
+                                            <div class="h-10 w-10 flex-shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                                                @(user.FullName?.Substring(0, Math.Min(2, user.FullName.Length)).ToUpper() ?? "U")
+                                            </div>
+                                            <div>
+                                                <button @onclick="() => ShowDetails(user.Id)" class="text-sm font-bold text-main hover:text-primary transition-colors text-left">@user.FullName</button>
+                                                @if (!string.IsNullOrEmpty(user.StudentId))
+                                                {
+                                                    <div class="text-xs text-muted font-medium mt-0.5">ID: @user.StudentId</div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-main font-medium">@user.Email</div>
+                                        <div class="text-xs text-muted">@(string.IsNullOrEmpty(user.PhoneNumber) ? "No phone" : user.PhoneNumber)</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase @(user.Role == "Admin" ? "bg-amber-500/10 text-amber-500" : "bg-blue-500/10 text-blue-500")">
+                                            @user.Role
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        @if (user.BanStatus == true)
+                                        {
+                                            <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase bg-red-500/10 text-red-500">
+                                                Suspended
+                                            </span>
+                                        }
+                                        else if (user.IsActive)
+                                        {
+                                            <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase bg-green-500/10 text-green-500">
+                                                Active
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase bg-body text-muted border border-border">
+                                                Inactive
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button @onclick="() => ShowDetails(user.Id)" class="p-2 rounded-lg border border-border text-muted hover:bg-primary hover:text-white hover:border-primary transition-all">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                            </button>
+                                            <button @onclick="() => ShowEdit(user.Id)" class="p-2 rounded-lg border border-border text-muted hover:bg-primary hover:text-white hover:border-primary transition-all">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (_pagedResult.TotalPages > 1)
+                {
+                    <div class="px-6 py-4 border-t border-border flex items-center justify-between bg-body">
+                        <p class="text-xs text-muted">
+                            Showing <span class="font-bold text-main">@((_pagedResult.CurrentPage - 1) * _pagedResult.PageSize + 1)</span>
+                            to
+                            <span class="font-bold text-main">@(Math.Min(_pagedResult.CurrentPage * _pagedResult.PageSize, _pagedResult.TotalCount))</span>
+                            of <span class="font-bold text-main">@_pagedResult.TotalCount</span> members
+                        </p>
+                        <div class="flex items-center gap-2">
+                            <button @onclick="() => ChangePage(_pagedResult.CurrentPage - 1)" disabled="@(!_pagedResult.HasPreviousPage)"
+                                    class="p-2 rounded-lg border border-border text-muted hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                            </button>
+
+                            @for (int p = 1; p <= _pagedResult.TotalPages; p++)
+                            {
+                                var pageNumber = p;
+                                if (p == _pagedResult.CurrentPage)
+                                {
+                                    <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-main text-body text-xs font-bold">@p</span>
+                                }
+                                else if (p == 1 || p == _pagedResult.TotalPages || (p >= _pagedResult.CurrentPage - 1 && p <= _pagedResult.CurrentPage + 1))
+                                {
+                                    <button @onclick="() => ChangePage(pageNumber)"
+                                            class="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-xs font-bold text-muted hover:text-primary hover:border-primary transition-colors">@p</button>
+                                }
+                                else if (p == _pagedResult.CurrentPage - 2 || p == _pagedResult.CurrentPage + 2)
+                                {
+                                    <span class="w-8 h-8 flex items-center justify-center text-xs text-muted">...</span>
+                                }
+                            }
+
+                            <button @onclick="() => ChangePage(_pagedResult.CurrentPage + 1)" disabled="@(!_pagedResult.HasNextPage)"
+                                    class="p-2 rounded-lg border border-border text-muted hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+    else if (_currentView == ViewMode.Details && _selectedUser != null)
+    {
+        <div class="animate-fade">
+            <button @onclick="BackToList" class="inline-flex items-center text-sm font-medium text-muted hover:text-main mb-6 group">
+                <svg class="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to Directory
+            </button>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <div class="lg:col-span-1">
+                    <div class="aspect-square w-full rounded-3xl bg-card border border-border flex flex-col items-center justify-center text-main p-6 shadow-sm relative overflow-hidden">
+                        <div class="absolute inset-0 bg-primary/5"></div>
+                        <div class="relative z-10 flex flex-col items-center">
+                            <div class="w-32 h-32 rounded-full bg-main text-body flex items-center justify-center text-5xl font-black mb-6 shadow-xl">
+                                @(_selectedUser.User.FullName?.Substring(0, Math.Min(2, _selectedUser.User.FullName.Length)).ToUpper() ?? "U")
+                            </div>
+                            <h2 class="text-2xl font-bold text-center mb-2">@_selectedUser.User.FullName</h2>
+                            <div class="inline-flex rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest @(_selectedUser.User.Role == "Admin" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "bg-blue-500/10 text-blue-500 border border-blue-500/20")">
+                                @_selectedUser.User.Role
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 space-y-8">
+                    <div>
+                        <h1 class="text-4xl font-extrabold text-main tracking-tight mb-4">Member Profile</h1>
+                        <div class="flex items-center gap-3">
+                            @if (_selectedUser.User.BanStatus == true)
+                            {
+                                <span class="inline-flex items-center rounded-full bg-red-500/10 border border-red-500/20 px-4 py-1.5 text-[10px] font-black text-red-500 tracking-widest uppercase">Suspended</span>
+                            }
+                            else if (_selectedUser.User.IsActive)
+                            {
+                                <span class="inline-flex items-center rounded-full bg-green-500/10 border border-green-500/20 px-4 py-1.5 text-[10px] font-black text-green-500 tracking-widest uppercase">Active</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 border-y border-border py-8">
+                        <div>
+                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Email Address</h4>
+                            <p class="text-sm font-semibold text-main">@_selectedUser.User.Email</p>
+                        </div>
+                        <div>
+                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Phone Number</h4>
+                            <p class="text-sm font-semibold text-main">@(string.IsNullOrEmpty(_selectedUser.User.PhoneNumber) ? "-" : _selectedUser.User.PhoneNumber)</p>
+                        </div>
+                        <div>
+                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Student ID</h4>
+                            <p class="text-sm font-semibold text-main">@(string.IsNullOrEmpty(_selectedUser.User.StudentId) ? "-" : _selectedUser.User.StudentId)</p>
+                        </div>
+                        <div>
+                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Joined Date</h4>
+                            <p class="text-sm font-semibold text-main">@_selectedUser.User.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Physical Address</h4>
+                            <p class="text-sm font-semibold text-main">@(string.IsNullOrEmpty(_selectedUser.User.Address) ? "-" : _selectedUser.User.Address)</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-4 pt-2">
+                        <button @onclick="() => ShowEdit(_selectedUser.User.Id)" class="bg-primary text-white py-3 px-8 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Edit Details</button>
+                        
+                        <button @onclick="UpdateRole" class="bg-body border border-border text-main py-3 px-8 rounded-xl font-bold hover:bg-card transition-colors">
+                            Make @(_selectedUser.User.Role == "Admin" ? "Member" : "Admin")
+                        </button>
+
+                        <button @onclick="DeleteUser" class="p-3 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors ml-auto border border-transparent hover:border-red-500/20">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Subscription Management -->
+                    <div class="mt-12 pt-12 border-t border-border">
+                        <h3 class="text-2xl font-bold text-main mb-8">Manage Subscription</h3>
+                        
+                        @if (_selectedUser.CurrentSubscription != null && _selectedUser.CurrentSubscription.IsActive)
+                        {
+                            <div class="bg-green-500/5 border border-green-500/20 rounded-2xl p-6 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div>
+                                    <span class="text-[10px] text-green-600 font-black uppercase tracking-widest mb-1 block">Active Plan</span>
+                                    <h4 class="text-2xl font-black text-green-700">@_selectedUser.CurrentSubscription.MembershipType</h4>
+                                </div>
+                                <div class="sm:text-right">
+                                    <div class="text-[10px] text-green-600/70 font-black uppercase tracking-widest mb-1">Expires On</div>
+                                    <div class="font-bold text-green-700">@_selectedUser.CurrentSubscription.ExpiryDate.ToString("MMMM dd, yyyy")</div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="bg-card border border-dashed border-border rounded-2xl p-6 mb-8 text-center">
+                                <p class="text-muted font-medium">No active subscription for this member.</p>
+                            </div>
+                        }
+
+                        <h4 class="text-xs font-black text-muted uppercase tracking-[0.2em] mb-6">Assign New Plan</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            @foreach (var plan in _selectedUser.AvailableMemberships)
+                            {
+                                var isCurrent = _selectedUser.CurrentSubscription?.IsActive == true && _selectedUser.CurrentSubscription.MembershipId == plan.Id;
+                                <div class="bg-card rounded-2xl border p-6 flex flex-col transition-all relative @(isCurrent ? "border-primary shadow-lg shadow-primary/10" : "border-border hover:border-primary/50")">
+                                    @if (isCurrent)
+                                    {
+                                        <div class="absolute -top-3 right-6 bg-primary text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">Current</div>
+                                    }
+                                    <h5 class="font-bold text-main text-xl mb-1">@plan.Type</h5>
+                                    <p class="text-muted font-medium text-sm mb-6 flex-grow">@plan.Price.ToString("N0") MMK / @plan.DurationMonths mo</p>
+                                    
+                                    @if (!isCurrent)
+                                    {
+                                        <button @onclick="() => AssignSubscription(plan.Id, plan.Type)" class="w-full bg-body border border-border text-main py-2.5 rounded-xl text-sm font-bold hover:bg-primary hover:text-white hover:border-primary transition-colors">Assign Plan</button>
+                                    }
+                                    else
+                                    {
+                                        <button disabled class="w-full bg-body border border-border text-muted py-2.5 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed">Current Plan</button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (_currentView == ViewMode.Create || _currentView == ViewMode.Edit)
+    {
+        <div class="animate-fade">
+            <button @onclick="BackToList" class="inline-flex items-center text-sm font-medium text-muted hover:text-main mb-6 group">
+                <svg class="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to Directory
+            </button>
+
+            <div class="max-w-3xl mx-auto">
+                <div class="mb-10 text-center">
+                    <h1 class="text-4xl font-extrabold tracking-tight text-main mb-3">@(_currentView == ViewMode.Create ? "Register New Member" : "Edit Member Details")</h1>
+                    <p class="text-lg text-muted">@(_currentView == ViewMode.Create ? "Add a new reader to the library system." : $"Update profile details for {_editUser?.FullName}.")</p>
+                </div>
+
+                <div class="bg-card border border-border p-8 sm:p-10 rounded-3xl shadow-sm">
+                    @if (_currentView == ViewMode.Create)
+                    {
+                        <EditForm Model="@_createRequest" OnValidSubmit="HandleCreate" class="space-y-6">
+                            <DataAnnotationsValidator />
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div class="sm:col-span-2">
+                                    <label class="block text-sm font-bold text-main mb-2">Full Name <span class="text-red-500">*</span></label>
+                                    <InputText @bind-Value="_createRequest.FullName" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="John Doe" />
+                                    <ValidationMessage For="@(() => _createRequest.FullName)" class="mt-1 text-xs text-red-500 font-medium" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-main mb-2">Email Address <span class="text-red-500">*</span></label>
+                                    <InputText @bind-Value="_createRequest.Email" type="email" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="you@domain.com" />
+                                    <ValidationMessage For="@(() => _createRequest.Email)" class="mt-1 text-xs text-red-500 font-medium" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-main mb-2">Password <span class="text-red-500">*</span></label>
+                                    <InputText @bind-Value="_createRequest.Password" type="password" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="••••••••" />
+                                    <ValidationMessage For="@(() => _createRequest.Password)" class="mt-1 text-xs text-red-500 font-medium" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-main mb-2">Phone Number</label>
+                                    <InputText @bind-Value="_createRequest.PhoneNumber" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="+123456789" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-main mb-2">Student ID</label>
+                                    <InputText @bind-Value="_createRequest.StudentId" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="Optional" />
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-sm font-bold text-main mb-2">Address</label>
+                                    <InputTextArea @bind-Value="_createRequest.Address" rows="3" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="Full physical address" />
+                                </div>
+                            </div>
+                            <div class="pt-8 border-t border-border flex justify-end gap-4 mt-8">
+                                <button type="button" @onclick="BackToList" class="bg-body border border-border text-main px-8 py-3 rounded-xl font-bold hover:bg-card transition-colors">Cancel</button>
+                                <button type="submit" class="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Create Member</button>
+                            </div>
+                        </EditForm>
+                    }
+                    else if (_currentView == ViewMode.Edit)
+                    {
+                        <EditForm Model="@_updateRequest" OnValidSubmit="HandleUpdate" class="space-y-6">
+                            <DataAnnotationsValidator />
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div class="sm:col-span-2">
+                                    <label class="block text-sm font-bold text-main mb-2">Full Name <span class="text-red-500">*</span></label>
+                                    <InputText @bind-Value="_updateRequest.FullName" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" />
+                                    <ValidationMessage For="@(() => _updateRequest.FullName)" class="mt-1 text-xs text-red-500 font-medium" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-main mb-2">Phone Number</label>
+                                    <InputText @bind-Value="_updateRequest.PhoneNumber" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-main mb-2">Student ID</label>
+                                    <InputText @bind-Value="_updateRequest.StudentId" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" />
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-sm font-bold text-main mb-2">Address</label>
+                                    <InputTextArea @bind-Value="_updateRequest.Address" rows="3" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" />
+                                </div>
+                            </div>
+                            <div class="pt-8 border-t border-border flex justify-end gap-4 mt-8">
+                                <button type="button" @onclick="BackToList" class="bg-body border border-border text-main px-8 py-3 rounded-xl font-bold hover:bg-card transition-colors">Cancel</button>
+                                <button type="submit" class="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Update Member</button>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private enum ViewMode { List, Details, Create, Edit }
+    private ViewMode _currentView = ViewMode.List;
+    
+    private IEnumerable<UserDto>? _allUsers;
+    private PagedResult<UserDto>? _pagedResult;
+    private bool _isLoading = true;
+    private const int PageSize = 10;
+    
+    private MemberDetailsViewModel? _selectedUser;
+    private UserCreateRequest _createRequest = new();
+    private UserUpdateRequest _updateRequest = new();
+    private UserDto? _editUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        _isLoading = true;
+        try
+        {
+            _allUsers = await ApiClient.GetUsersAsync();
+            ApplyPagination(1);
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error loading users: " + ex.Message);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void ApplyPagination(int page)
+    {
+        if (_allUsers == null) return;
+        
+        var totalCount = _allUsers.Count();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)PageSize);
+        page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+        _pagedResult = new PagedResult<UserDto>
+        {
+            Items = _allUsers.Skip((page - 1) * PageSize).Take(PageSize),
+            CurrentPage = page,
+            TotalPages = totalPages,
+            TotalCount = totalCount,
+            PageSize = PageSize
+        };
+    }
+
+    private void ChangePage(int page)
+    {
+        ApplyPagination(page);
+    }
+
+    private async Task ShowDetails(Guid userId)
+    {
+        _isLoading = true;
+        try
+        {
+            var user = await ApiClient.GetUserAsync(userId);
+            if (user == null) return;
+
+            var memberships = await ApiClient.GetMembershipsAsync();
+            var subscription = await ApiClient.GetUserSubscriptionAsync(userId);
+
+            _selectedUser = new MemberDetailsViewModel
+            {
+                User = user,
+                AvailableMemberships = memberships.ToList(),
+                CurrentSubscription = subscription
+            };
+            _currentView = ViewMode.Details;
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error loading member details: " + ex.Message);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void ShowCreate()
+    {
+        _createRequest = new();
+        _currentView = ViewMode.Create;
+    }
+
+    private async Task ShowEdit(Guid userId)
+    {
+        _isLoading = true;
+        try
+        {
+            _editUser = _allUsers?.FirstOrDefault(u => u.Id == userId);
+            if (_editUser == null)
+            {
+                _editUser = await ApiClient.GetUserAsync(userId);
+            }
+            
+            if (_editUser != null)
+            {
+                _updateRequest = new UserUpdateRequest
+                {
+                    FullName = _editUser.FullName,
+                    PhoneNumber = _editUser.PhoneNumber,
+                    StudentId = _editUser.StudentId,
+                    Address = _editUser.Address
+                };
+                _currentView = ViewMode.Edit;
+            }
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void BackToList()
+    {
+        _currentView = ViewMode.List;
+        _selectedUser = null;
+        _editUser = null;
+    }
+
+    private async Task HandleCreate()
+    {
+        try
+        {
+            var result = await ApiClient.CreateUserAsync(_createRequest);
+            if (result != null)
+            {
+                await JS.InvokeVoidAsync("alert", "Member created successfully!");
+                await LoadUsers();
+                BackToList();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "Failed to create member.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error: " + ex.Message);
+        }
+    }
+
+    private async Task HandleUpdate()
+    {
+        if (_editUser == null) return;
+        try
+        {
+            var result = await ApiClient.UpdateUserAsync(_editUser.Id, _updateRequest);
+            if (result != null)
+            {
+                await JS.InvokeVoidAsync("alert", "Member updated successfully!");
+                await LoadUsers();
+                BackToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error: " + ex.Message);
+        }
+    }
+
+    private async Task DeleteUser()
+    {
+        if (_selectedUser == null) return;
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure you want to completely remove this member? This action cannot be undone.");
+        if (!confirmed) return;
+
+        try
+        {
+            var success = await ApiClient.DeleteUserAsync(_selectedUser.User.Id);
+            if (success)
+            {
+                await JS.InvokeVoidAsync("alert", "Member removed.");
+                await LoadUsers();
+                BackToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error: " + ex.Message);
+        }
+    }
+
+    private async Task UpdateRole()
+    {
+        if (_selectedUser == null) return;
+        var newRole = _selectedUser.User.Role == "Admin" ? "Member" : "Admin";
+        try
+        {
+            var success = await ApiClient.UpdateUserRoleAsync(_selectedUser.User.Id, newRole);
+            if (success)
+            {
+                await JS.InvokeVoidAsync("alert", $"Role updated to {newRole}.");
+                await ShowDetails(_selectedUser.User.Id); // Refresh details
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error: " + ex.Message);
+        }
+    }
+
+    private async Task AssignSubscription(int membershipId, string planName)
+    {
+        if (_selectedUser == null) return;
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Assign {planName} plan to this member?");
+        if (!confirmed) return;
+
+        try
+        {
+            var request = new AdminSubscribeRequest { UserId = _selectedUser.User.Id, MembershipId = membershipId };
+            var result = await ApiClient.AdminSubscribeAsync(request);
+            if (result != null)
+            {
+                await JS.InvokeVoidAsync("alert", "Subscription assigned successfully.");
+                await ShowDetails(_selectedUser.User.Id); // Refresh details
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error: " + ex.Message);
+        }
+    }
+}

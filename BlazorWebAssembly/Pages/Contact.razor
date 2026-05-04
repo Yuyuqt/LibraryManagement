@@ -1,49 +1,101 @@
 @page "/contact"
 
-<div class="max-w-6xl mx-auto py-24 px-8 animate-fade">
+<div class="max-w-7xl mx-auto py-24 px-8 animate-fade space-y-32">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-24">
         <div>
-            <h1 class="text-6xl font-black tracking-tighter text-main mb-8 uppercase">Get in <br /><span class="text-primary italic">Touch.</span></h1>
-            <p class="text-xl text-muted leading-relaxed mb-12">Have questions about our membership plans or need help with your account? Our librarians are here to help.</p>
+            <h2 class="text-xs font-black text-primary uppercase tracking-[0.3em] mb-4">Get in Touch</h2>
+            <h1 class="text-7xl font-black tracking-tighter text-main mb-8 uppercase leading-[0.9]">Let's <br /><span class="text-primary italic">Connect.</span></h1>
+            <p class="text-xl text-muted leading-relaxed mb-12">Have questions about our membership plans or need help with your account? Our librarians are here to help you 24/7.</p>
             
-            <div class="space-y-8">
-                <div class="flex items-center gap-6">
-                    <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12">
+                <div class="p-8 bg-card rounded-3xl border border-border hover:border-primary/30 transition-colors">
+                    <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     </div>
-                    <div>
-                        <p class="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Email Us</p>
-                        <p class="text-lg font-bold text-main">hello@libraryluxe.com</p>
-                    </div>
+                    <p class="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Email Us</p>
+                    <p class="text-sm font-bold text-main">hello@libraryluxe.com</p>
                 </div>
-                <div class="flex items-center gap-6">
-                    <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                <div class="p-8 bg-card rounded-3xl border border-border hover:border-primary/30 transition-colors">
+                    <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     </div>
-                    <div>
-                        <p class="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Visit Us</p>
-                        <p class="text-lg font-bold text-main">123 Literature Lane, Booktown</p>
-                    </div>
+                    <p class="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Visit Us</p>
+                    <p class="text-sm font-bold text-main">123 Literature Lane, NY</p>
                 </div>
+            </div>
+
+            <div class="bg-primary/5 p-8 rounded-3xl border border-primary/10">
+                <h4 class="text-xs font-black uppercase tracking-widest text-primary mb-4">Response Time</h4>
+                <p class="text-sm text-main font-medium leading-relaxed">We typically respond to all inquiries within 2 business hours. For urgent account issues, please use our internal support ticket system after signing in.</p>
             </div>
         </div>
 
-        <div class="bg-card p-10 rounded-[3rem] border border-border shadow-2xl">
+        <div class="bg-card p-12 rounded-[3.5rem] border border-border shadow-2xl relative">
+            <div class="absolute top-0 right-0 p-8">
+                <svg class="w-12 h-12 text-primary opacity-10" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+            </div>
+            <h3 class="text-2xl font-black text-main mb-10 uppercase tracking-tight">Send a Message</h3>
             <form class="space-y-6">
-                <div>
-                    <label class="block text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-3">Your Name</label>
-                    <input type="text" class="w-full bg-body border border-border rounded-xl px-4 py-4 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="John Doe" />
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-3">First Name</label>
+                        <input type="text" class="w-full bg-body border border-border rounded-2xl px-6 py-5 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="John" />
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-3">Email Address</label>
+                        <input type="email" class="w-full bg-body border border-border rounded-2xl px-6 py-5 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="john@example.com" />
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-3">Email Address</label>
-                    <input type="email" class="w-full bg-body border border-border rounded-xl px-4 py-4 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="name@example.com" />
+                    <label class="block text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-3">Subject</label>
+                    <select class="w-full bg-body border border-border rounded-2xl px-6 py-5 focus:ring-2 focus:ring-primary outline-none transition-all appearance-none">
+                        <option>General Inquiry</option>
+                        <option>Membership Issues</option>
+                        <option>Technical Support</option>
+                        <option>Partnership</option>
+                    </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-3">Message</label>
-                    <textarea rows="4" class="w-full bg-body border border-border rounded-xl px-4 py-4 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="How can we help?"></textarea>
+                    <label class="block text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-3">Your Message</label>
+                    <textarea rows="5" class="w-full bg-body border border-border rounded-2xl px-6 py-5 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Tell us more about your inquiry..."></textarea>
                 </div>
-                <button type="button" class="w-full py-5 bg-primary text-white rounded-xl font-black uppercase tracking-widest hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Send Message</button>
+                <button type="button" class="w-full py-6 bg-primary text-white rounded-2xl font-black uppercase tracking-widest hover:bg-primary-hover shadow-2xl shadow-primary/30 transition-all transform hover:scale-[1.02] active:scale-95">Dispatch Message</button>
             </form>
         </div>
     </div>
+
+    <!-- FAQ Snippet -->
+    <section>
+        <div class="text-center mb-16">
+            <h2 class="text-xs font-black text-primary uppercase tracking-[0.3em] mb-4">Quick Answers</h2>
+            <h3 class="text-5xl font-black text-main tracking-tight">Frequently Asked Questions</h3>
+        </div>
+        <div class="max-w-3xl mx-auto space-y-4">
+            <div class="bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-colors cursor-pointer group">
+                <div class="flex items-center justify-between">
+                    <h4 class="font-bold text-main">How do I upgrade my membership?</h4>
+                    <svg class="w-5 h-5 text-muted group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <p class="mt-4 text-sm text-muted hidden group-hover:block animate-fade">You can upgrade your membership at any time from your account dashboard. The price will be prorated based on your current cycle.</p>
+            </div>
+            <div class="bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-colors cursor-pointer group">
+                <div class="flex items-center justify-between">
+                    <h4 class="font-bold text-main">What happens if I return a book late?</h4>
+                    <svg class="w-5 h-5 text-muted group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <p class="mt-4 text-sm text-muted hidden group-hover:block animate-fade">Late returns may incur a small fee and deduction of loyalty points. We recommend using our renewal feature to avoid penalties.</p>
+            </div>
+            <div class="bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-colors cursor-pointer group">
+                <div class="flex items-center justify-between">
+                    <h4 class="font-bold text-main">Can I access digital books offline?</h4>
+                    <svg class="w-5 h-5 text-muted group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <p class="mt-4 text-sm text-muted hidden group-hover:block animate-fade">Yes, our mobile app supports offline reading for all digital titles borrowed under your plan.</p>
+            </div>
+        </div>
+        <div class="text-center mt-12">
+            <a href="/faq" class="text-xs font-black text-primary uppercase tracking-widest hover:underline">View All FAQs</a>
+        </div>
+    </section>
 </div>
+

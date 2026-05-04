@@ -32,4 +32,7 @@ builder.Services.AddScoped<ThemeService>();
 // Register LibraryApiClient
 builder.Services.AddScoped<LibraryApiClient>();
 
+// Register WishlistService
+builder.Services.AddScoped<WishlistService>();
+
 await builder.Build().RunAsync();

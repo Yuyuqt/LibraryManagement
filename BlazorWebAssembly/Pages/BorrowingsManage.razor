@@ -1,0 +1,255 @@
+@page "/borrowings/manage"
+@using BlazorWebAssembly.Services
+@using LibraryManagement.Shared.Models
+@using Microsoft.AspNetCore.Authorization
+@inject LibraryApiClient ApiClient
+@inject IJSRuntime JS
+@attribute [Authorize(Roles = "Librarian")]
+
+<div class="max-w-7xl mx-auto py-10 px-6 animate-fade">
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
+        <div>
+            <h1 class="text-4xl font-extrabold tracking-tight text-main mb-2">Manage Borrowings</h1>
+            <p class="text-muted text-lg font-medium">Monitor and process library loans across all members.</p>
+        </div>
+        <div class="flex gap-3">
+            <div class="bg-card px-6 py-3 flex items-center gap-3 border border-border rounded-xl shadow-sm">
+                <span class="text-xs font-black text-muted uppercase tracking-widest">Total Active:</span>
+                <span class="text-2xl font-black text-primary">@_borrowings.Count(m => m.Status == "Borrowed")</span>
+            </div>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="space-y-4">
+            @for (int i = 0; i < 5; i++)
+            {
+                <div class="animate-pulse bg-card rounded-xl border border-border h-24 w-full"></div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-max whitespace-nowrap">
+                    <thead class="bg-body border-b border-border">
+                        <tr>
+                            <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Book & Loan Info</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Member Details</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Loan Dates</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest text-center">Status</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Fines</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border">
+                        @if (!_borrowings.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="px-6 py-16 text-center text-muted italic bg-body">
+                                    No borrowing records found in the system.
+                                </td>
+                            </tr>
+                        }
+                        @foreach (var loan in PaginatedBorrowings)
+                        {
+                            <tr class="hover:bg-body transition-colors group">
+                                <td class="px-6 py-5">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-14 bg-primary/10 rounded-lg flex items-center justify-center text-primary border border-primary/20">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.246 18.477 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-bold text-main truncate mb-0.5">@loan.BookTitle</p>
+                                            <p class="text-[10px] font-bold text-muted uppercase tracking-tight">ID: #@loan.Id</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex flex-col gap-1">
+                                        <p class="text-sm font-semibold text-main">@loan.UserEmail</p>
+                                        <p class="text-[10px] text-muted font-bold tracking-widest uppercase">UID: #@loan.UserId</p>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="grid gap-1">
+                                        <div class="flex items-center gap-2 text-[11px]">
+                                            <span class="text-muted font-bold uppercase tracking-widest w-12">Out:</span>
+                                            <span class="font-bold text-main">@loan.BorrowDate.ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-[11px]">
+                                            <span class="text-muted font-bold uppercase tracking-widest w-12">Due:</span>
+                                            @{
+                                                var isOverdue = loan.DueDate < DateTime.Now && loan.Status == "Borrowed";
+                                            }
+                                            <span class="font-bold @(isOverdue ? "text-red-500 animate-pulse" : "text-amber-500")">@loan.DueDate.ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                        @if (loan.ReturnDate.HasValue)
+                                        {
+                                            <div class="flex items-center gap-2 text-[11px]">
+                                                <span class="text-muted font-bold uppercase tracking-widest w-12">Back:</span>
+                                                <span class="font-bold text-green-500">@loan.ReturnDate.Value.ToString("MMM dd, yyyy")</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5 text-center">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest
+                                        @(loan.Status == "Borrowed" ? "bg-amber-500/10 text-amber-500" : 
+                                          loan.Status == "PendingReturn" ? "bg-blue-500/10 text-blue-500 shadow-sm" :
+                                          "bg-green-500/10 text-green-500")">
+                                        @(loan.Status == "PendingReturn" ? "Pending Approval" : loan.Status)
+                                    </span>
+                                </td>
+                                <td class="px-6 py-5">
+                                    @if (loan.FineAmount > 0)
+                                    {
+                                        <div class="flex flex-col">
+                                            <span class="text-sm font-extrabold @(loan.IsFinePaid ? "text-muted line-through" : "text-red-500")">
+                                                MMK @loan.FineAmount.ToString("N0")
+                                            </span>
+                                            @if (loan.IsFinePaid)
+                                            {
+                                                <span class="text-[9px] text-green-500 font-black uppercase mt-0.5 tracking-tighter">Settled</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-[9px] text-red-400 font-black uppercase mt-0.5 tracking-tighter">Pending</span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[10px] text-muted font-bold italic">No Fines</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-5 text-right">
+                                    @if (loan.Status == "PendingReturn")
+                                    {
+                                        <button @onclick="() => ApproveReturnAsync(loan)" 
+                                                class="inline-flex items-center gap-2 bg-green-500/10 text-green-500 border border-green-500/20 px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-500 hover:text-white transition-all shadow-sm active:scale-95">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                            Approve Return
+                                        </button>
+                                    }
+                                    else if (loan.Status == "Borrowed")
+                                    {
+                                        <button @onclick="() => ForceReturnAsync(loan)"
+                                                class="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-primary-hover transition-all shadow-sm active:scale-95">
+                                            Process Return
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-green-500 flex justify-end">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (TotalPages > 1)
+            {
+                <div class="px-6 py-4 border-t border-border flex items-center justify-between bg-body">
+                    <p class="text-xs text-muted">
+                        Showing <span class="font-bold text-main">@((_currentPage - 1) * _pageSize + 1)</span> to 
+                        <span class="font-bold text-main">@(Math.Min(_currentPage * _pageSize, _borrowings.Count()))</span> of 
+                        <span class="font-bold text-main">@_borrowings.Count()</span> records
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <button disabled="@(_currentPage == 1)" @onclick="() => _currentPage--" 
+                                class="p-2 rounded-lg border border-border text-muted hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        
+                        <span class="text-xs font-bold text-main px-2 tracking-tight">Page @_currentPage of @TotalPages</span>
+
+                        <button disabled="@(_currentPage == TotalPages)" @onclick="() => _currentPage++" 
+                                class="p-2 rounded-lg border border-border text-muted hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private IEnumerable<BorrowingDto> _borrowings = Enumerable.Empty<BorrowingDto>();
+
+    // Pagination
+    private int _currentPage = 1;
+    private int _pageSize = 10;
+
+    private IEnumerable<BorrowingDto> PaginatedBorrowings => _borrowings
+        .OrderByDescending(l => l.BorrowDate)
+        .Skip((_currentPage - 1) * _pageSize)
+        .Take(_pageSize);
+
+    private int TotalPages => (int)Math.Ceiling(_borrowings.Count() / (double)_pageSize);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            _borrowings = await ApiClient.GetAllBorrowingsAsync();
+            _currentPage = 1;
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error loading all borrowings: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task ApproveReturnAsync(BorrowingDto loan)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Approve return for \"{loan.BookTitle}\" borrowed by {loan.UserEmail}?");
+        if (!confirmed) return;
+
+        var result = await ApiClient.ReturnBookAsync(loan.Id);
+        if (result != null)
+        {
+            await JS.InvokeVoidAsync("alert", "Return approved successfully!");
+            await LoadDataAsync();
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "Failed to approve return.");
+        }
+    }
+
+    private async Task ForceReturnAsync(BorrowingDto loan)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Force process return for \"{loan.BookTitle}\" (Member: {loan.UserEmail})? Use this if the member returned the book in person.");
+        if (!confirmed) return;
+
+        var result = await ApiClient.ReturnBookAsync(loan.Id);
+        if (result != null)
+        {
+            await JS.InvokeVoidAsync("alert", "Book marked as returned!");
+            await LoadDataAsync();
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "Failed to process return.");
+        }
+    }
+}

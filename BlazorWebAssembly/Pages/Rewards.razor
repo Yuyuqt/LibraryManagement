@@ -3,6 +3,7 @@
 @using BlazorWebAssembly.Services
 @inject LibraryApiClient ApiClient
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="max-w-6xl mx-auto py-12 px-6">
     <!-- Header -->
@@ -94,7 +95,11 @@
         if (success)
         {
             await LoadData();
-            // Show success message
+            await JS.InvokeVoidAsync("alert", msg);
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", msg);
         }
     }
 }

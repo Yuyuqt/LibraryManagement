@@ -1,143 +1,698 @@
 @page "/books"
 @using LibraryManagement.Shared.Models
 @using BlazorWebAssembly.Services
+@using Microsoft.AspNetCore.Authorization
 @inject LibraryApiClient ApiClient
+@inject WishlistService WishlistService
+@inject IJSRuntime JS
 @inject NavigationManager Navigation
 
-<div class="max-w-7xl mx-auto py-10 px-6">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
-        <div>
-            <h1 class="text-4xl font-extrabold tracking-tight text-main mb-2">Book Collection</h1>
-            <p class="text-muted text-lg">Discover your next favorite story among our curated selection.</p>
+<div class="max-w-7xl mx-auto py-10 px-6 animate-fade">
+    @if (_viewMode == ViewMode.List)
+    {
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+            <div>
+                <h1 class="text-4xl font-extrabold tracking-tight text-main mb-2">Book Collection</h1>
+                <p class="text-muted text-lg">Discover your next favorite story among our curated selection. <span class="text-xs">(@FilteredBooks.Count() total)</span></p>
+            </div>
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="relative w-full md:w-96">
+                    <input type="text" @bind="_searchQuery" @bind:event="oninput" 
+                           placeholder="Search by title, author, or ISBN..." 
+                           class="w-full bg-card border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-sm text-main" />
+                </div>
+                <AuthorizeView Roles="Librarian">
+                    <button @onclick="ShowCreate" class="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-primary-hover whitespace-nowrap">
+                        Add Book
+                    </button>
+                </AuthorizeView>
+            </div>
         </div>
-        <div class="relative w-full md:w-96">
-            <input type="text" @bind="_searchQuery" @bind:event="oninput" 
-                   placeholder="Search by title, author..." 
-                   class="w-full bg-card border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-sm" />
-        </div>
-    </div>
 
-    <!-- Category Filter -->
-    <div class="flex flex-wrap gap-2 mb-10">
-        <button @onclick="() => FilterByCategory(null)" 
-                class='px-4 py-2 rounded-full text-sm font-semibold transition-all @(_selectedCategoryId == null ? "bg-primary text-white" : "bg-card text-muted border border-border hover:border-primary hover:text-primary")'>
-            All Genres
-        </button>
-        @foreach (var cat in _categories)
-        {
-            <button @onclick="() => FilterByCategory(cat.Id)" 
-                    class='px-4 py-2 rounded-full text-sm font-semibold transition-all @(_selectedCategoryId == cat.Id ? "bg-primary text-white" : "bg-card text-muted border border-border hover:border-primary hover:text-primary")'>
-                @cat.Name
+        <!-- Quick Filters -->
+        <div class="flex flex-wrap items-center gap-3 mb-6">
+            <button @onclick='() => SetQuickFilter("All")'
+               class='px-5 py-2.5 rounded-full text-sm font-bold border transition-all @(_activeQuickFilter == "All" ? "bg-main text-body border-main shadow-md" : "bg-card text-muted border-border hover:border-primary hover:text-primary")'>
+                All Books
             </button>
-        }
-    </div>
+            <button @onclick='() => SetQuickFilter("New Arrivals")'
+               class='px-5 py-2.5 rounded-full text-sm font-bold border transition-all @(_activeQuickFilter == "New Arrivals" ? "bg-main text-body border-main shadow-md" : "bg-card text-muted border-border hover:border-primary hover:text-primary")'>
+                 New Arrivals
+            </button>
+            <button @onclick='() => SetQuickFilter("Trending")'
+               class='px-5 py-2.5 rounded-full text-sm font-bold border transition-all @(_activeQuickFilter == "Trending" ? "bg-main text-body border-main shadow-md" : "bg-card text-muted border-border hover:border-primary hover:text-primary")'>
+                 Trending
+            </button>
+            <button @onclick='() => SetQuickFilter("Recommended")'
+               class='px-5 py-2.5 rounded-full text-sm font-bold border transition-all @(_activeQuickFilter == "Recommended" ? "bg-main text-body border-main shadow-md" : "bg-card text-muted border-border hover:border-primary hover:text-primary")'>
+                 Recommended for You
+            </button>
+        </div>
 
-    <!-- Loading State -->
-    @if (_isLoading)
-    {
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            @for (int i = 0; i < 8; i++)
+        <!-- Category Filter Dropdown equivalent -->
+        @if (_categories.Any())
+        {
+            <div class="flex flex-wrap gap-2 mb-10">
+                <button @onclick="() => FilterByCategory(null)" 
+                        class='px-4 py-1.5 rounded-full text-[11px] font-bold border transition-all @(_selectedCategoryId == null ? "bg-primary text-white border-primary shadow-sm" : "bg-card text-muted border-border hover:border-primary hover:text-primary")'>
+                    All Categories
+                </button>
+                @foreach (var cat in _categories)
+                {
+                    <button @onclick="() => FilterByCategory(cat.Id)" 
+                            class='px-4 py-1.5 rounded-full text-[11px] font-bold border transition-all @(_selectedCategoryId == cat.Id ? "bg-primary text-white border-primary shadow-sm" : "bg-card text-muted border-border hover:border-primary hover:text-primary")'>
+                        @cat.Name
+                    </button>
+                }
+            </div>
+        }
+
+        <!-- Loading State -->
+        @if (_isLoading)
+        {
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                @for (int i = 0; i < 8; i++)
+                {
+                    <div class="animate-pulse bg-card rounded-xl border border-border h-96"></div>
+                }
+            </div>
+        }
+        else if (!FilteredBooks.Any())
+        {
+            <div class="text-center py-20 bg-card rounded-2xl border border-dashed border-border">
+                <h3 class="text-xl font-bold text-main mb-2">No results found</h3>
+                <p class="text-muted">Try adjusting your search or filters.</p>
+            </div>
+        }
+        else
+        {
+            <!-- Books Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                @foreach (var book in PaginatedBooks)
+                {
+                    <div class="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+                        <!-- Cover -->
+                        <div class="aspect-[2/3] bg-body relative overflow-hidden cursor-pointer" @onclick="() => ShowDetails(book.Id)">
+                            @if (!string.IsNullOrEmpty(book.CoverUrl))
+                            {
+                                <img src="@book.CoverUrl" alt="@book.Title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            }
+                            else
+                            {
+                                <div class="w-full h-full flex items-center justify-center text-muted opacity-20">
+                                    <span class="font-bold uppercase tracking-widest text-xs">No Cover</span>
+                                </div>
+                            }
+                            
+                            @if (book.AvailableCopies <= 0)
+                            {
+                                <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
+                                    <span class="bg-white text-black px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Out of Stock</span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Content -->
+                        <div class="p-5 flex-grow flex flex-col">
+                            <h3 class="font-bold text-main line-clamp-1 mb-1 group-hover:text-primary transition-colors cursor-pointer" @onclick="() => ShowDetails(book.Id)">@book.Title</h3>
+                            <p class="text-xs text-muted mb-3 font-medium">@book.Author</p>
+                            
+                            <div class="flex items-center gap-2 mb-4 flex-wrap">
+                                @foreach (var cat in book.Categories.Take(2))
+                                {
+                                    <span class="text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">@cat.Name</span>
+                                }
+                            </div>
+                            
+                            <div class="mt-auto flex flex-col gap-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-muted bg-body px-2 py-1 rounded border border-border">@book.Status</span>
+                                    <span class="text-xs font-bold @(book.AvailableCopies > 0 ? "text-green-500" : "text-red-400")">
+                                        @book.AvailableCopies / @book.TotalCopies
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <button @onclick="() => ShowDetails(book.Id)" class="flex-1 bg-body text-main border border-border py-1.5 rounded-lg text-[11px] font-bold hover:bg-card">Details</button>
+                                    
+                                    <AuthorizeView Roles="Member">
+                                        <div class="flex gap-1">
+                                            <button @onclick="() => ToggleFavourite(book)" 
+                                                    class='p-1.5 rounded-lg border transition-all @(IsFavourite(book.Id) ? "border-red-200 bg-red-500/10 text-red-500" : "border-border text-muted hover:bg-red-500/10 hover:text-red-500")' 
+                                                    title='@(IsFavourite(book.Id) ? "Remove from Favourites" : "Add to Favourites")'>
+                                                <svg class="w-4 h-4" fill='@(IsFavourite(book.Id) ? "currentColor" : "none")' stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001z"></path>
+                                                </svg>
+                                            </button>
+                                            @if (book.AvailableCopies == 0)
+                                            {
+                                                <button @onclick="() => ToggleWishlist(book)" 
+                                                        class='p-1.5 rounded-lg border transition-all @(IsInWishlist(book.Id) ? "border-amber-200 bg-amber-500/10 text-amber-500" : "border-border text-muted hover:bg-amber-500/10 hover:text-amber-500")' 
+                                                        title='@(IsInWishlist(book.Id) ? "Remove from Wishlist" : "Add to Wishlist")'>
+                                                    <svg class="w-4 h-4" fill='@(IsInWishlist(book.Id) ? "currentColor" : "none")' stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                                                    </svg>
+                                                </button>
+                                            }
+                                        </div>
+                                    </AuthorizeView>
+                                    <AuthorizeView Roles="Librarian">
+                                        <button @onclick="() => ShowEdit(book.Id)" class="p-1.5 rounded-lg border border-border hover:bg-body text-muted">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        </button>
+                                    </AuthorizeView>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Pagination -->
+            @if (TotalPages > 1)
             {
-                <div class="animate-pulse bg-card rounded-xl border border-border h-96"></div>
+                <div class="mt-12 flex items-center justify-center gap-2">
+                    <button disabled="@(_currentPage == 1)" @onclick="() => _currentPage--" 
+                            class="p-2 rounded-lg border border-border text-muted hover:bg-body disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    
+                    @for (int i = 1; i <= TotalPages; i++)
+                    {
+                        var pageNumber = i;
+                        <button @onclick="() => _currentPage = pageNumber" 
+                                class='w-10 h-10 rounded-lg border text-sm font-bold transition-all @(_currentPage == pageNumber ? "bg-main border-main text-body shadow-md" : "bg-card border-border text-muted hover:border-primary hover:text-primary")'>
+                            @pageNumber
+                        </button>
+                    }
+
+                    <button disabled="@(_currentPage == TotalPages)" @onclick="() => _currentPage++" 
+                            class="p-2 rounded-lg border border-border text-muted hover:bg-body disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
             }
-        </div>
+        }
     }
-    else if (!FilteredBooks.Any())
+    else if (_viewMode == ViewMode.Details && _selectedBook != null)
     {
-        <div class="text-center py-20 bg-card rounded-2xl border border-dashed border-border">
-            <h3 class="text-xl font-bold text-main mb-2">No results found</h3>
-            <p class="text-muted">Try adjusting your search or filters.</p>
-        </div>
-    }
-    else
-    {
-        <!-- Books Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            @foreach (var book in FilteredBooks)
-            {
-                <div class="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full cursor-pointer" 
-                     @onclick="() => ShowDetails(book.Id)">
-                    <!-- Cover -->
-                    <div class="aspect-[2/3] bg-body relative overflow-hidden">
-                        @if (!string.IsNullOrEmpty(book.CoverUrl))
+        <div class="mb-8 animate-fade">
+            <button @onclick="ShowList" class="inline-flex items-center text-sm font-medium text-muted hover:text-main mb-6 group">
+                <svg class="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to Catalog
+            </button>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <div class="lg:col-span-1">
+                    <div class="aspect-[2/3] w-full rounded-3xl bg-body border border-border shadow-sm flex items-center justify-center text-muted overflow-hidden">
+                        @if (!string.IsNullOrWhiteSpace(_selectedBook.CoverUrl))
                         {
-                            <img src="@book.CoverUrl" alt="@book.Title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <img src="@_selectedBook.CoverUrl" alt="@_selectedBook.Title" class="w-full h-full object-cover" />
                         }
                         else
                         {
-                            <div class="w-full h-full flex items-center justify-center text-muted opacity-20">
-                                <span class="font-bold uppercase tracking-widest text-xs">No Cover</span>
-                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
                         }
-                        
-                        @if (book.AvailableCopies <= 0)
-                        {
-                            <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
-                                <span class="bg-white text-black px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Unavailable</span>
-                            </div>
-                        }
-                    </div>
-
-                    <!-- Content -->
-                    <div class="p-5 flex-grow">
-                        <div class="flex items-center gap-2 mb-2">
-                            @foreach (var cat in book.Categories.Take(2))
-                            {
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-primary opacity-80">@cat.Name</span>
-                            }
-                        </div>
-                        <h3 class="font-bold text-main line-clamp-1 mb-1 group-hover:text-primary transition-colors">@book.Title</h3>
-                        <p class="text-xs text-muted mb-4 font-medium">@book.Author</p>
-                        
-                        <div class="mt-auto flex items-center justify-between">
-                            <span class="text-[10px] font-bold text-muted bg-body px-2 py-1 rounded border border-border">@book.Status</span>
-                            <span class="text-xs font-bold @(book.AvailableCopies > 0 ? "text-green-500" : "text-red-400")">
-                                @book.AvailableCopies / @book.TotalCopies
-                            </span>
-                        </div>
                     </div>
                 </div>
-            }
+
+                <div class="lg:col-span-2 space-y-8">
+                    <div>
+                        <span class="inline-flex items-center rounded-full bg-body border border-border px-3 py-1 text-xs font-semibold text-muted mb-4 tracking-wide uppercase">@_selectedBook.Status</span>
+                        <h1 class="text-4xl font-extrabold text-main tracking-tight">@_selectedBook.Title</h1>
+                        <p class="text-xl text-muted mt-2 font-medium">by @_selectedBook.Author</p>
+                    </div>
+
+                    <div class="prose max-w-none">
+                        <h3 class="text-lg font-bold text-main border-b border-border pb-2 mb-4 uppercase tracking-wider text-sm">Description</h3>
+                        <p class="text-muted leading-relaxed">
+                            @(string.IsNullOrEmpty(_selectedBook.Description) ? "No description available for this book." : _selectedBook.Description)
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-8 border-y border-border py-6">
+                        <div>
+                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-1">ISBN</h4>
+                            <p class="text-sm font-semibold text-main">@_selectedBook.Isbn</p>
+                        </div>
+                        <div>
+                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-1">Availability</h4>
+                            <p class="text-sm font-semibold @(_selectedBook.AvailableCopies > 0 ? "text-green-500" : "text-red-500")">
+                                @(_selectedBook.AvailableCopies > 0 ? $"{_selectedBook.AvailableCopies} / {_selectedBook.TotalCopies} units in stock" : "Currently occupied")
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-4 pt-4">
+                        <AuthorizeView Roles="Member">
+                            <div class="flex items-center gap-3">
+                                @if (_selectedBook.AvailableCopies > 0)
+                                {
+                                    <button @onclick="() => BorrowAsync(_selectedBook.Id)" class="bg-primary text-white py-3 px-8 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Borrow This Book</button>
+                                }
+                                else
+                                {
+                                    <div class="flex flex-col gap-2">
+                                        <button disabled class="bg-body border border-border text-muted py-3 px-8 rounded-xl font-bold opacity-50 cursor-not-allowed">Out of Stock</button>
+                                        <button @onclick="() => ToggleWishlist(_selectedBook)" 
+                                                class='text-xs font-bold flex items-center gap-1.5 transition-colors @(IsInWishlist(_selectedBook.Id) ? "text-amber-500 underline" : "text-muted hover:text-amber-500 hover:underline")'>
+                                            <svg class="w-4 h-4" fill='@(IsInWishlist(_selectedBook.Id) ? "currentColor" : "none")' stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                                            </svg>
+                                            @(IsInWishlist(_selectedBook.Id) ? "In Wishlist (Notifying)" : "Add to Wishlist for Notification")
+                                        </button>
+                                    </div>
+                                }
+                                <button @onclick="() => ToggleFavourite(_selectedBook)" 
+                                        class='p-3 rounded-xl border transition-all shadow-sm active:scale-95 @(IsFavourite(_selectedBook.Id) ? "border-red-200 bg-red-500/10 text-red-500" : "border-border text-muted hover:bg-red-500/10 hover:text-red-500")' 
+                                        title='@(IsFavourite(_selectedBook.Id) ? "Remove from Favourites" : "Add to Favourites")'>
+                                    <svg class="w-6 h-6" fill='@(IsFavourite(_selectedBook.Id) ? "currentColor" : "none")' stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </AuthorizeView>
+                        
+                        <AuthorizeView Roles="Librarian">
+                            <button @onclick="() => ShowEdit(_selectedBook.Id)" class="bg-body border border-border text-main py-3 px-8 rounded-xl font-bold hover:bg-card">Edit Details</button>
+                            <button @onclick="() => DeleteAsync(_selectedBook.Id)" class="p-3 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </AuthorizeView>
+
+                        <AuthorizeView>
+                            <NotAuthorized>
+                                <a href="/login" class="bg-primary text-white py-3 px-8 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20">Sign In to Borrow</a>
+                            </NotAuthorized>
+                        </AuthorizeView>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (_viewMode == ViewMode.Create || _viewMode == ViewMode.Edit)
+    {
+        <div class="mb-8 animate-fade">
+            <button @onclick="ShowList" class="inline-flex items-center text-sm font-medium text-muted hover:text-main mb-6 group">
+                <svg class="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to Catalog
+            </button>
+
+            <div class="max-w-3xl mx-auto">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold tracking-tight text-main">@(_viewMode == ViewMode.Create ? "Add New Book" : "Edit Book")</h1>
+                    <p class="mt-2 text-muted">Fill in the details below to @(_viewMode == ViewMode.Create ? "add a new book to" : "update the") library catalog.</p>
+                </div>
+
+                <div class="bg-card border border-border p-6 sm:p-8 rounded-3xl shadow-sm">
+                    <EditForm Model="@_formModel" OnValidSubmit="HandleSubmit" class="space-y-6">
+                        <DataAnnotationsValidator />
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-main mb-1">Book Title <span class="text-red-500">*</span></label>
+                                <InputText @bind-Value="_formModel.Title" class="w-full bg-body border border-border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main" placeholder="e.g. The Great Gatsby" required />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-main mb-1">Author <span class="text-red-500">*</span></label>
+                                <InputText @bind-Value="_formModel.Author" class="w-full bg-body border border-border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main" placeholder="e.g. F. Scott Fitzgerald" required />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-main mb-1">ISBN <span class="text-red-500">*</span></label>
+                                <InputText @bind-Value="_formModel.Isbn" class="w-full bg-body border border-border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main" placeholder="e.g. 978-0743273565" required />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-main mb-1">Total Copies <span class="text-red-500">*</span></label>
+                                <InputNumber @bind-Value="_formModel.TotalCopies" class="w-full bg-body border border-border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main" placeholder="1" required />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-main mb-1">Cover Image URL</label>
+                                <InputText @bind-Value="_formModel.CoverUrl" class="w-full bg-body border border-border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main" placeholder="https://example.com/cover.jpg" />
+                            </div>
+                            
+                            <div class="hidden sm:block"></div>
+
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-main mb-1">Description</label>
+                                <InputTextArea @bind-Value="_formModel.Description" rows="4" class="w-full bg-body border border-border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main" placeholder="Brief summary of the book..."></InputTextArea>
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-main mb-2">Categories</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    @foreach (var cat in _categories)
+                                    {
+                                        <label class="flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-body hover:bg-card cursor-pointer text-sm text-main transition-colors">
+                                            <input type="checkbox" checked="@(_formModel.CategoryIds.Contains(cat.Id))"
+                                                   @onchange='(e) => ToggleCategory(cat.Id, (bool)e.Value!)'
+                                                   class="h-4 w-4 rounded border-border text-primary focus:ring-primary" />
+                                            @cat.Name
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-6 border-t border-border flex justify-end gap-3 mt-8">
+                            <button type="button" @onclick="ShowList" class="bg-body border border-border text-main px-6 py-2.5 rounded-xl font-bold hover:bg-card">Cancel</button>
+                            <button type="submit" class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20" disabled="@_isSubmitting">
+                                @(_isSubmitting ? "Saving..." : (_viewMode == ViewMode.Create ? "Add Book" : "Update Book"))
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
         </div>
     }
 </div>
 
 @code {
+    private enum ViewMode { List, Details, Create, Edit }
+    private ViewMode _viewMode = ViewMode.List;
     private bool _isLoading = true;
+    private bool _isSubmitting = false;
     private string _searchQuery = "";
     private int? _selectedCategoryId;
-    private List<BookDto> _books = new();
-    private List<CategoryDto> _categories = new();
+    private string _activeQuickFilter = "All";
+    
+    // Pagination
+    private int _currentPage = 1;
+    private int _pageSize = 12;
+
+    private IEnumerable<BookDto> _books = Enumerable.Empty<BookDto>();
+    private IEnumerable<CategoryDto> _categories = Enumerable.Empty<CategoryDto>();
+    private IEnumerable<BorrowingDto> _myBorrowings = Enumerable.Empty<BorrowingDto>();
+    private IEnumerable<BorrowingDto> _allBorrowings = Enumerable.Empty<BorrowingDto>();
+    private BookDto? _selectedBook;
+
+    // Form Model
+    private BookFormModel _formModel = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadData();
+        await LoadDataAsync();
     }
 
-    private async Task LoadData()
+    private async Task LoadDataAsync()
     {
         _isLoading = true;
         try
         {
-            _books = (await ApiClient.GetBooksAsync()).ToList();
-            _categories = (await ApiClient.GetCategoriesAsync()).ToList();
+            _books = await ApiClient.GetBooksAsync();
+            _categories = await ApiClient.GetCategoriesAsync();
+            
+            // Fetch borrowings for Trending and Recommended
+            _myBorrowings = await ApiClient.GetMyBorrowingsAsync();
+            try {
+                _allBorrowings = await ApiClient.GetAllBorrowingsAsync();
+            } catch { }
+            
+            _currentPage = 1;
         }
-        catch { }
-        finally { _isLoading = false; }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
-    private IEnumerable<BookDto> FilteredBooks => _books
-        .Where(b => (string.IsNullOrEmpty(_searchQuery) || b.Title.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) || b.Author.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase))
-                 && (!_selectedCategoryId.HasValue || b.Categories.Any(c => c.Id == _selectedCategoryId)));
+    private IEnumerable<BookDto> FilteredBooks
+    {
+        get
+        {
+            var books = _books;
+
+            // Apply Search
+            if (!string.IsNullOrWhiteSpace(_searchQuery))
+            {
+                books = books.Where(b => b.Title.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) || 
+                                         b.Author.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) || 
+                                         b.Isbn.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply Category Filter
+            if (_selectedCategoryId != null)
+            {
+                books = books.Where(b => b.Categories.Any(c => c.Id == _selectedCategoryId));
+            }
+
+            // Apply Quick Filter
+            switch (_activeQuickFilter)
+            {
+                case "New Arrivals":
+                    books = books.Where(b => b.CreatedAt >= DateTime.UtcNow.AddDays(-7));
+                    break;
+                case "Trending":
+                    var trendingIds = _allBorrowings
+                        .Where(br => br.BorrowDate >= DateTime.UtcNow.AddDays(-7))
+                        .GroupBy(br => br.BookId)
+                        .OrderByDescending(g => g.Count())
+                        .Select(g => g.Key)
+                        .Take(12)
+                        .ToList();
+                    
+                    if (trendingIds.Any())
+                        books = books.Where(b => trendingIds.Contains(b.Id));
+                    else
+                        books = Enumerable.Empty<BookDto>(); // Or show nothing if no data
+                    break;
+                case "Recommended":
+                    var myCategoryIds = _myBorrowings.SelectMany(br => _books.FirstOrDefault(b => b.Id == br.BookId)?.Categories.Select(c => c.Id) ?? Enumerable.Empty<int>())
+                        .Concat(_favourites.SelectMany(b => b.Categories.Select(c => c.Id)))
+                        .Concat(_wishlist.SelectMany(b => b.Categories.Select(c => c.Id)))
+                        .Distinct()
+                        .ToList();
+                    
+                    if (myCategoryIds.Any())
+                        books = books.Where(b => b.Categories.Any(c => myCategoryIds.Contains(c.Id))).Take(8);
+                    break;
+            }
+
+            return books;
+        }
+    }
+
+    private IEnumerable<BookDto> PaginatedBooks => FilteredBooks
+        .Skip((_currentPage - 1) * _pageSize)
+        .Take(_pageSize);
+
+    private int TotalPages => (int)Math.Ceiling(FilteredBooks.Count() / (double)_pageSize);
+
+    private void SetQuickFilter(string filter)
+    {
+        _activeQuickFilter = filter;
+        _selectedCategoryId = null; // Clear category when switching quick filters
+        _currentPage = 1;
+    }
 
     private void FilterByCategory(int? id)
     {
         _selectedCategoryId = id;
+        _currentPage = 1;
     }
 
-    private void ShowDetails(int id)
+    private void ShowList()
     {
-        // Navigation.NavigateTo($"books/{id}");
+        _viewMode = ViewMode.List;
+        _selectedBook = null;
+    }
+
+    private async Task ShowDetails(int id)
+    {
+        _isLoading = true;
+        _selectedBook = await ApiClient.GetBookAsync(id);
+        _viewMode = ViewMode.Details;
+        _isLoading = false;
+    }
+
+    private void ShowCreate()
+    {
+        _formModel = new BookFormModel();
+        _viewMode = ViewMode.Create;
+    }
+
+    private async Task ShowEdit(int id)
+    {
+        _isLoading = true;
+        var book = await ApiClient.GetBookAsync(id);
+        if (book != null)
+        {
+            _selectedBook = book;
+            _formModel = new BookFormModel
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Author = book.Author,
+                Isbn = book.Isbn,
+                Description = book.Description,
+                TotalCopies = book.TotalCopies,
+                CoverUrl = book.CoverUrl,
+                CategoryIds = book.Categories.Select(c => c.Id).ToList()
+            };
+            _viewMode = ViewMode.Edit;
+        }
+        _isLoading = false;
+    }
+
+    private void ToggleCategory(int id, bool isChecked)
+    {
+        if (isChecked && !_formModel.CategoryIds.Contains(id))
+            _formModel.CategoryIds.Add(id);
+        else if (!isChecked)
+            _formModel.CategoryIds.Remove(id);
+    }
+
+    private List<BookDto> _wishlist = new();
+    private List<BookDto> _favourites = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadCollectionsAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadCollectionsAsync()
+    {
+        _wishlist = await WishlistService.GetWishlistAsync();
+        _favourites = await WishlistService.GetFavouritesAsync();
+    }
+
+    private bool IsFavourite(int id) => _favourites.Any(b => b.Id == id);
+    private bool IsInWishlist(int id) => _wishlist.Any(b => b.Id == id);
+
+    private async Task ToggleFavourite(BookDto book)
+    {
+        if (IsFavourite(book.Id))
+        {
+            await WishlistService.RemoveFromFavouriteAsync(book.Id);
+            await JS.InvokeVoidAsync("alert", $"Removed \"{book.Title}\" from favourites");
+        }
+        else
+        {
+            await WishlistService.AddToFavouritesAsync(book);
+            await JS.InvokeVoidAsync("alert", $"Added \"{book.Title}\" to favourites!");
+        }
+        await LoadCollectionsAsync();
+    }
+
+    private async Task ToggleWishlist(BookDto book)
+    {
+        if (IsInWishlist(book.Id))
+        {
+            await WishlistService.RemoveFromWishlistAsync(book.Id);
+            await JS.InvokeVoidAsync("alert", $"Removed \"{book.Title}\" from wishlist");
+        }
+        else
+        {
+            await WishlistService.AddToWishlistAsync(book);
+            await JS.InvokeVoidAsync("alert", $"Added \"{book.Title}\" to wishlist!");
+        }
+        await LoadCollectionsAsync();
+    }
+
+    private async Task HandleSubmit()
+    {
+        _isSubmitting = true;
+        try
+        {
+            if (_viewMode == ViewMode.Create)
+            {
+                var request = new BookCreateRequest
+                {
+                    Title = _formModel.Title,
+                    Author = _formModel.Author,
+                    Isbn = _formModel.Isbn,
+                    Description = _formModel.Description,
+                    TotalCopies = _formModel.TotalCopies,
+                    CoverUrl = _formModel.CoverUrl,
+                    CategoryIds = _formModel.CategoryIds
+                };
+                var result = await ApiClient.CreateBookAsync(request);
+                if (result != null)
+                {
+                    await JS.InvokeVoidAsync("alert", "Book added successfully!");
+                    await LoadDataAsync();
+                    ShowList();
+                }
+            }
+            else
+            {
+                var request = new BookUpdateRequest
+                {
+                    Title = _formModel.Title,
+                    Author = _formModel.Author,
+                    Description = _formModel.Description,
+                    TotalCopies = _formModel.TotalCopies,
+                    CoverUrl = _formModel.CoverUrl,
+                    CategoryIds = _formModel.CategoryIds
+                };
+                var result = await ApiClient.UpdateBookAsync(_formModel.Id, request);
+                if (result != null)
+                {
+                    await JS.InvokeVoidAsync("alert", "Book updated successfully!");
+                    await LoadDataAsync();
+                    ShowList();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private async Task DeleteAsync(int id)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure you want to remove this book from the catalog?");
+        if (!confirmed) return;
+
+        var success = await ApiClient.DeleteBookAsync(id);
+        if (success)
+        {
+            await JS.InvokeVoidAsync("alert", "Book deleted successfully");
+            await LoadDataAsync();
+            ShowList();
+        }
+    }
+
+    private async Task BorrowAsync(int id)
+    {
+        var result = await ApiClient.BorrowBookAsync(new BorrowRequest { BookId = id });
+        if (result != null)
+        {
+            await JS.InvokeVoidAsync("alert", "Book borrowed successfully! Check 'My Loans' for details.");
+            await LoadDataAsync();
+            await ShowDetails(id);
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "Failed to borrow book. Check your loan limit.");
+        }
+    }
+
+    private class BookFormModel
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Author { get; set; } = "";
+        public string Isbn { get; set; } = "";
+        public string? Description { get; set; }
+        public int TotalCopies { get; set; } = 1;
+        public string? CoverUrl { get; set; }
+        public List<int> CategoryIds { get; set; } = new();
     }
 }
