@@ -1,9 +1,9 @@
 {
-  "cleanUrls": true,
+  "buildCommand": "dotnet publish -c Release -o publish",
+  "outputDirectory": "publish/wwwroot",
   "routes": [
-    { "handle": "filesystem" },
     {
-      "src": "/.*",
+      "src": "/(.*)",
       "dest": "/index.html"
     }
   ]
