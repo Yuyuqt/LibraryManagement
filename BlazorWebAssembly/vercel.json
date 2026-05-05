@@ -1,6 +1,8 @@
 {
   "buildCommand": "./dotnet/dotnet publish -c Release -o publish",
   "outputDirectory": "publish/wwwroot",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "routes": [
     {
       "src": "/(.*)",
