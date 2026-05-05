@@ -25,6 +25,5 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          # We point exactly to where the web files are
           working-directory: ./release/wwwroot
-          vercel-args: '--prod'
+          vercel-args: '--prod --no-wait'
