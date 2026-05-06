@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -39,8 +39,8 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Author).HasMaxLength(100);
             entity.Property(e => e.AvailableCopies).HasDefaultValue(1);
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Isbn)
                 .HasMaxLength(20)
@@ -50,7 +50,7 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValue("Available");
             entity.Property(e => e.Title).HasMaxLength(200);
             entity.Property(e => e.TotalCopies).HasDefaultValue(1);
-            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAt).HasColumnType("timestamp");
 
             entity.HasMany(d => d.Categories).WithMany(p => p.Books)
                 .UsingEntity<Dictionary<string, object>>(
@@ -70,13 +70,13 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Borrowing>(entity =>
         {
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.BorrowDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.DueDate).HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp");
+            entity.Property(e => e.DueDate).HasColumnType("timestamp");
             entity.Property(e => e.FineAmount).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.ReturnDate).HasColumnType("datetime");
+            entity.Property(e => e.ReturnDate).HasColumnType("timestamp");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .HasDefaultValue("Active");
@@ -119,8 +119,8 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.ActionLink).HasMaxLength(500);
             entity.Property(e => e.ActionText).HasMaxLength(100);
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp");
             entity.Property(e => e.Message).HasMaxLength(1000);
             entity.Property(e => e.Title).HasMaxLength(200);
             entity.Property(e => e.Type)
@@ -136,11 +136,11 @@ public partial class AppDbContext : DbContext
         {
             entity.HasIndex(e => e.Email, "UQ_Users_Email").IsUnique();
 
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.Address).HasMaxLength(255);
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp");
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.FcmToken).HasMaxLength(500);
             entity.Property(e => e.FullName).HasMaxLength(100);
@@ -150,17 +150,17 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(20)
                 .HasDefaultValue("User");
             entity.Property(e => e.StudentId).HasMaxLength(20);
-            entity.Property(e => e.SuspensionEndDate).HasColumnType("datetime");
-            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+            entity.Property(e => e.SuspensionEndDate).HasColumnType("timestamp");
+            entity.Property(e => e.UpdatedAt).HasColumnType("timestamp");
         });
 
         modelBuilder.Entity<UserSubscription>(entity =>
         {
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.ExpiryDate).HasColumnType("timestamp");
             entity.Property(e => e.ExternalRedemptionId).HasMaxLength(100);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.StartDate).HasColumnType("datetime");
+            entity.Property(e => e.StartDate).HasColumnType("timestamp");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .HasDefaultValue("Active");
@@ -183,8 +183,8 @@ public partial class AppDbContext : DbContext
             entity.HasIndex(e => e.UserId, "IX_WishlistItems_UserId");
 
             entity.Property(e => e.AddedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp");
 
             entity.HasOne(d => d.Book).WithMany(p => p.WishlistItems)
                 .HasForeignKey(d => d.BookId)

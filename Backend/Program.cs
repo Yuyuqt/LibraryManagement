@@ -17,6 +17,7 @@ using Backend.Features.Wishlist;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
 // Firebase Admin SDK Initialization
@@ -66,7 +67,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MssqlConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Register Services
 builder.Services.AddScoped<IAuthService, AuthService>();
