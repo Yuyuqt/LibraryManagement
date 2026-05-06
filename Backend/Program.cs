@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text;
 using DbConnect.Data;
 using DbConnect.Entities;
@@ -21,10 +22,21 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
 // Firebase Admin SDK Initialization
-FirebaseApp.Create(new AppOptions()
+var firebaseConfig = Environment.GetEnvironmentVariable("FIREBASE_CONFIG");
+if (!string.IsNullOrEmpty(firebaseConfig))
 {
-    Credential = GoogleCredential.FromFile("LibraryFirebase.json")
-});
+    FirebaseApp.Create(new AppOptions()
+    {
+        Credential = GoogleCredential.FromJson(firebaseConfig)
+    });
+}
+else if (File.Exists("LibraryFirebase.json"))
+{
+    FirebaseApp.Create(new AppOptions()
+    {
+        Credential = GoogleCredential.FromFile("LibraryFirebase.json")
+    });
+}
 
 builder.Services.AddCors(options =>
 {
