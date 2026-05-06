@@ -41,7 +41,12 @@ else if (File.Exists("LibraryFirebase.json"))
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowWasm",
-        policy => policy.WithOrigins("https://localhost:7058", "http://localhost:5158")
+        policy => policy.WithOrigins(
+                "https://localhost:7058",
+                "http://localhost:5158",
+                "https://librarymanagement-eosin-omega.vercel.app",
+                "https://yuruyuruu-librarymanagement.hf.space"
+            )
             .AllowAnyMethod()
             .AllowAnyHeader());
 });

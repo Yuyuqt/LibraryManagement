@@ -11,7 +11,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Add HttpClient with Backend address
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7028/") });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://yuruyuruu-librarymanagement.hf.space/") });
 
 // Add Blazored LocalStorage
 builder.Services.AddBlazoredLocalStorage();
