@@ -138,6 +138,8 @@ namespace LibraryManagement.Shared.Models
         public int MembershipId { get; set; }
     }
 
+    public class AdminSubscribeRequest
+    {
         public Guid UserId { get; set; }
         public int MembershipId { get; set; }
     }
@@ -150,7 +152,6 @@ namespace LibraryManagement.Shared.Models
         public string? Message { get; set; }
         public bool CanUpgrade { get; set; }
     }
-
 
     // Loyalty DTOs
     public class LoyaltyAccountDto
@@ -264,7 +265,6 @@ namespace LibraryManagement.Shared.Models
         public decimal Amount { get; set; }
         public string? Description { get; set; }
     }
-
 
     public class UserCreateRequest
     {
