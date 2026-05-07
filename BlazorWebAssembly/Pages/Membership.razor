@@ -51,7 +51,34 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Wallet & Loyalty Summary -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                        <div class="bg-card border border-border rounded-3xl p-6 flex items-center justify-between shadow-sm">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-muted uppercase tracking-widest">Loyalty Points</p>
+                                    <p class="text-xl font-black text-main">@(_loyaltyAccount?.CurrentBalance.ToString("N0") ?? "0")</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-card border border-border rounded-3xl p-6 flex items-center justify-between shadow-sm">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-muted uppercase tracking-widest">Wallet Balance</p>
+                                    <p class="text-xl font-black text-main">@_walletBalance.ToString("N0") <span class="text-xs font-bold text-muted">MMK</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 }
+
 
                 @if (_queuedRewards.Any())
                 {
@@ -149,12 +176,23 @@
                         </div>
                     </div>
 
-                    <button @onclick="() => SubscribeAsync(plan)" 
-                            disabled="@IsCurrentPlan(plan.Id)"
-                            class='w-full py-6 rounded-[2rem] font-black uppercase tracking-widest text-sm transition-all @(IsCurrentPlan(plan.Id) ? "bg-body text-muted border border-border cursor-not-allowed" : "bg-primary text-white hover:bg-primary-hover hover:shadow-2xl hover:shadow-primary/30 transform hover:scale-[1.02] active:scale-95")'>
-                        @(IsCurrentPlan(plan.Id) ? "Current Plan" : "Select Plan")
-                    </button>
+                    <div class="space-y-4 mt-auto">
+                        <button @onclick="() => SubscribeAsync(plan)" 
+                                disabled="@IsCurrentPlan(plan.Id)"
+                                class='w-full py-5 rounded-[2rem] font-black uppercase tracking-widest text-[10px] transition-all @(IsCurrentPlan(plan.Id) ? "bg-body text-muted border border-border cursor-not-allowed" : "bg-main text-white hover:bg-black transform hover:scale-[1.02] active:scale-95")'>
+                            @(IsCurrentPlan(plan.Id) ? "Active Now" : "Pay Cash at Library")
+                        </button>
+
+                        @if (!IsCurrentPlan(plan.Id))
+                        {
+                            <button @onclick="() => BuyWithWallet(plan)" 
+                                    class="w-full py-5 rounded-[2rem] bg-primary text-white font-black uppercase tracking-widest text-[10px] hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all transform hover:scale-[1.02] active:scale-95">
+                                Buy with Wallet
+                            </button>
+                        }
+                    </div>
                 </div>
+
             }
         </div>
 
@@ -176,6 +214,9 @@
     private List<MembershipDto> _memberships = new();
     private SubscriptionDto? _currentSub;
     private List<SubscriptionDto> _queuedRewards = new();
+    private decimal _walletBalance;
+    private LoyaltyAccountDto? _loyaltyAccount;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -195,6 +236,9 @@
                 .Where(s => !string.IsNullOrEmpty(s.ExternalRedemptionId) && s.StartDate > DateTime.UtcNow)
                 .OrderBy(s => s.StartDate)
                 .ToList();
+
+            _walletBalance = await ApiClient.GetWalletBalanceAsync();
+            _loyaltyAccount = await ApiClient.GetMyLoyaltyAccountAsync();
         }
         catch { }
         finally { _isLoading = false; }
@@ -204,18 +248,63 @@
 
     private async Task SubscribeAsync(MembershipDto plan)
     {
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to subscribe to {plan.Type} for {plan.Price} mmk?");
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to subscribe to {plan.Type} for {plan.Price:N0} mmk? Please pay the cash at the library counter to activate.");
         if (!confirmed) return;
 
         var result = await ApiClient.SubscribeAsync(new SubscribeRequest { MembershipId = plan.Id });
         if (result != null)
         {
-            await JS.InvokeVoidAsync("alert", "Subscription successful!");
+            await JS.InvokeVoidAsync("alert", "Request submitted! Please visit the librarian to pay and activate.");
             await LoadData();
         }
-        else
+    }
+
+    private async Task BuyWithWallet(MembershipDto plan)
+    {
+        try
         {
-            await JS.InvokeVoidAsync("alert", "Subscription failed. Please check your account balance or try again.");
+            var preview = await ApiClient.GetUpgradePreviewAsync(plan.Id);
+            if (preview == null || !preview.CanUpgrade)
+            {
+                await JS.InvokeVoidAsync("alert", preview?.Message ?? "Cannot upgrade to this plan.");
+                return;
+            }
+
+            string confirmMsg = $"Purchase {plan.Type} membership?\n\n" +
+                               $"Price: {preview.OriginalPrice:N0} MMK\n";
+            
+            if (preview.DiscountAmount > 0)
+            {
+                confirmMsg += $"Upgrade Discount: -{preview.DiscountAmount:N0} MMK\n";
+            }
+            
+            confirmMsg += $"Total: {preview.FinalPrice:N0} MMK\n\n" +
+                         $"Your Balance: {_walletBalance:N0} MMK";
+
+            bool confirmed = await JS.InvokeAsync<bool>("confirm", confirmMsg);
+            if (!confirmed) return;
+
+            if (_walletBalance < preview.FinalPrice)
+            {
+                await JS.InvokeVoidAsync("alert", "Insufficient wallet balance. Please top up at the library counter.");
+                return;
+            }
+
+            var result = await ApiClient.SubscribeWithWalletAsync(new SubscribeRequest { MembershipId = plan.Id });
+            if (result != null)
+            {
+                await JS.InvokeVoidAsync("alert", "Subscription purchased successfully!");
+                await LoadData();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "Failed to complete purchase.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error: " + ex.Message);
         }
     }
 }
+

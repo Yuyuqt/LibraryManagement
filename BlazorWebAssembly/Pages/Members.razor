@@ -229,6 +229,34 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
+
+                    <!-- Wallet Management Section -->
+                    <div class="mt-12 pt-12 border-t border-border">
+                        <div class="flex items-center justify-between mb-8">
+                            <h3 class="text-2xl font-bold text-main">Library Wallet</h3>
+                            <div class="bg-primary/5 border border-primary/20 px-6 py-3 rounded-2xl">
+                                <span class="text-[10px] font-black text-primary uppercase tracking-widest block mb-1">Current Balance</span>
+                                <span class="text-2xl font-black text-main">@_selectedUser.User.Balance.ToString("N0") MMK</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-card border border-border rounded-3xl p-8 shadow-sm">
+                            <h4 class="text-xs font-black text-muted uppercase tracking-[0.2em] mb-6">Add Credits (Cash Deposit)</h4>
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <div class="flex-1 relative">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <span class="text-muted text-xs font-black">MMK</span>
+                                    </div>
+                                    <input type="number" @bind="_topUpAmount" class="w-full bg-body border border-border rounded-xl pl-16 pr-4 py-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all font-bold" placeholder="0.00" />
+                                </div>
+                                <button @onclick="TopUpWallet" class="bg-primary text-white px-10 py-4 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all whitespace-nowrap" disabled="@(_topUpAmount <= 0)">
+                                    Confirm Deposit
+                                </button>
+                            </div>
+                            <p class="mt-4 text-xs text-muted font-medium italic">Credits will be added instantly for automated subscription purchases.</p>
+                        </div>
+                    </div>
+
                     
                     <!-- Subscription Management -->
                     <div class="mt-12 pt-12 border-t border-border">
@@ -385,6 +413,8 @@
     private UserCreateRequest _createRequest = new();
     private UserUpdateRequest _updateRequest = new();
     private UserDto? _editUser;
+    private decimal _topUpAmount;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -606,4 +636,38 @@
             await JS.InvokeVoidAsync("alert", "Error: " + ex.Message);
         }
     }
+
+    private async Task TopUpWallet()
+    {
+        if (_selectedUser == null || _topUpAmount <= 0) return;
+
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Add {_topUpAmount:N0} MMK to {_selectedUser.User.FullName}'s wallet?");
+        if (!confirmed) return;
+
+        try
+        {
+            var success = await ApiClient.TopUpWalletAsync(new TopUpRequest 
+            { 
+                UserId = _selectedUser.User.Id, 
+                Amount = _topUpAmount,
+                Description = "Librarian Cash Top-up"
+            });
+
+            if (success)
+            {
+                await JS.InvokeVoidAsync("alert", "Wallet topped up successfully!");
+                _topUpAmount = 0;
+                await ShowDetails(_selectedUser.User.Id); // Refresh
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "Failed to top up wallet.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error: " + ex.Message);
+        }
+    }
 }
+
