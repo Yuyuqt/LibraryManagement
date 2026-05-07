@@ -203,12 +203,17 @@ namespace BlazorWebAssembly.Services
             catch { return Enumerable.Empty<WalletTransactionDto>(); }
         }
 
-        public async Task<bool> TopUpWalletAsync(TopUpRequest request)
+        public async Task<(bool Success, string Message)> TopUpWalletAsync(TopUpRequest request)
         {
             var response = await _httpClient.PostAsJsonAsync("api/wallet/topup", request);
-            return response.IsSuccessStatusCode;
+            if (response.IsSuccessStatusCode) return (true, "Success");
+            
+            var error = await response.Content.ReadFromJsonAsync<JsonDocument>();
+            var msg = error?.RootElement.TryGetProperty("message", out var m) == true ? m.GetString() : "Unknown error";
+            return (false, msg ?? "Failed to top up");
         }
         #endregion
+
 
 
         public async Task<LoyaltyAccountDto?> GetMyLoyaltyAccountAsync()

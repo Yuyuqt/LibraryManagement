@@ -136,7 +136,9 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
+            entity.ToTable("Users");
             entity.HasIndex(e => e.Email, "UQ_Users_Email").IsUnique();
+
 
             entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.Address).HasMaxLength(255);
@@ -201,7 +203,9 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<WalletTransaction>(entity =>
         {
+            entity.ToTable("WalletTransactions");
             entity.HasKey(e => e.Id);
+
             entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Type).HasMaxLength(20);

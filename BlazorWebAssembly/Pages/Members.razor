@@ -3,7 +3,7 @@
 @using LibraryManagement.Shared.Models
 @using BlazorWebAssembly.Models
 @using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "Librarian")]
+@attribute [Authorize(Roles = "Librarian,Admin")]
 @inject LibraryApiClient ApiClient
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
@@ -646,14 +646,14 @@
 
         try
         {
-            var success = await ApiClient.TopUpWalletAsync(new TopUpRequest 
+            var result = await ApiClient.TopUpWalletAsync(new TopUpRequest 
             { 
                 UserId = _selectedUser.User.Id, 
                 Amount = _topUpAmount,
                 Description = "Librarian Cash Top-up"
             });
 
-            if (success)
+            if (result.Success)
             {
                 await JS.InvokeVoidAsync("alert", "Wallet topped up successfully!");
                 _topUpAmount = 0;
@@ -661,7 +661,7 @@
             }
             else
             {
-                await JS.InvokeVoidAsync("alert", "Failed to top up wallet.");
+                await JS.InvokeVoidAsync("alert", "Failed: " + result.Message);
             }
         }
         catch (Exception ex)
@@ -670,4 +670,5 @@
         }
     }
 }
+
 

@@ -1,3 +1,4 @@
+using LibraryManagement.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -5,7 +6,7 @@ using System.Security.Claims;
 namespace Backend.Features.Wallet
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/wallet")]
     [Authorize]
     public class WalletController : ControllerBase
     {
@@ -37,28 +38,30 @@ namespace Backend.Features.Wallet
         }
 
         [HttpPost("topup")]
-        [Authorize(Roles = "Librarian")]
+        [Authorize(Roles = "Librarian,Admin")]
         public async Task<IActionResult> TopUp([FromBody] TopUpRequest request)
+
         {
-            var librarianIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(librarianIdStr)) return Unauthorized();
+            try 
+            {
+                var librarianIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(librarianIdStr)) return Unauthorized();
 
-            var success = await _walletService.TopUpAsync(
-                request.UserId, 
-                request.Amount, 
-                Guid.Parse(librarianIdStr), 
-                request.Description);
+                var success = await _walletService.TopUpAsync(
+                    request.UserId, 
+                    request.Amount, 
+                    Guid.Parse(librarianIdStr), 
+                    request.Description);
 
-            if (!success) return BadRequest(new { message = "Failed to top up wallet." });
+                if (!success) return BadRequest(new { message = "User not found or database error." });
 
-            return Ok(new { message = "Wallet topped up successfully." });
+                return Ok(new { message = "Wallet topped up successfully." });
+            }
+            catch (Exception ex)
+            {
+                // Return the actual error message to help debug (e.g., missing table error)
+                return StatusCode(500, new { message = ex.InnerException?.Message ?? ex.Message });
+            }
         }
-    }
-
-    public class TopUpRequest
-    {
-        public Guid UserId { get; set; }
-        public decimal Amount { get; set; }
-        public string? Description { get; set; }
     }
 }
