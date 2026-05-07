@@ -232,6 +232,36 @@ else if (_currentView == ViewMode.Details && _selectedUser != null)
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                 </div>
+
+                <!-- Wallet Management Section -->
+                <div class="mt-8 pt-8 border-t border-mystic-100">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-mystic-900">Library Wallet</h3>
+                        <div class="bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-xl">
+                            <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest block">Current Balance</span>
+                            <span class="text-xl font-black text-indigo-900">@_selectedUser.User.Balance.ToString("N0") MMK</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-mystic-200 rounded-2xl p-6 shadow-sm">
+                        <h4 class="text-sm font-bold text-mystic-700 mb-4">Add Credits (Cash Deposit)</h4>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="flex-1">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-mystic-400 text-sm font-bold">MMK</span>
+                                    </div>
+                                    <input type="number" @bind="_topUpAmount" class="block w-full pl-12 pr-3 py-3 border border-mystic-300 rounded-xl focus:ring-mystic-900 focus:border-mystic-900 sm:text-sm" placeholder="Amount (e.g. 5000)" />
+                                </div>
+                            </div>
+                            <button @onclick="TopUpWallet" class="btn-primary px-8 whitespace-nowrap" disabled="@(_topUpAmount <= 0)">
+                                Confirm Deposit
+                            </button>
+                        </div>
+                        <p class="mt-3 text-xs text-mystic-400 italic">This will instantly add credits to the user's library wallet.</p>
+                    </div>
+                </div>
+
                 
                 <!-- Subscription Management -->
                 <div class="mt-8 pt-8 border-t border-mystic-100">
@@ -409,6 +439,8 @@ else if (_currentView == ViewMode.Create || _currentView == ViewMode.Edit)
     private UserCreateRequest _createRequest = new();
     private UserUpdateRequest _updateRequest = new();
     private UserDto? _editUser;
+    private decimal _topUpAmount;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -630,6 +662,40 @@ else if (_currentView == ViewMode.Create || _currentView == ViewMode.Edit)
             await JSRuntime.InvokeVoidAsync("showToast", "Error: " + ex.Message, "error");
         }
     }
+
+    private async Task TopUpWallet()
+    {
+        if (_selectedUser == null || _topUpAmount <= 0) return;
+
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Add {_topUpAmount:N0} MMK to {_selectedUser.User.FullName}'s wallet?");
+        if (!confirmed) return;
+
+        try
+        {
+            var success = await ApiClient.TopUpWalletAsync(new TopUpRequest 
+            { 
+                UserId = _selectedUser.User.Id, 
+                Amount = _topUpAmount,
+                Description = "Librarian Cash Top-up"
+            });
+
+            if (success)
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Wallet topped up successfully!", "success");
+                _topUpAmount = 0;
+                await ShowDetails(_selectedUser.User.Id); // Refresh details to show new balance
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Failed to top up wallet.", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error: " + ex.Message, "error");
+        }
+    }
 }
+
 
 

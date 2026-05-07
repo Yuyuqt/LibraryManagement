@@ -171,7 +171,49 @@ namespace BlazorFrontend.Services
         {
             return await _httpClient.GetFromJsonAsync<IEnumerable<SubscriptionDto>>("api/subscriptions/all") ?? Enumerable.Empty<SubscriptionDto>();
         }
+
+        public async Task<SubscriptionUpgradePreviewDto?> GetUpgradePreviewAsync(int membershipId)
+        {
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<SubscriptionUpgradePreviewDto>($"api/subscriptions/preview-upgrade/{membershipId}");
+            }
+            catch { return null; }
+        }
+
+        public async Task<SubscriptionDto?> SubscribeWithWalletAsync(SubscribeRequest request)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/subscriptions/subscribe-wallet", request);
+            return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<SubscriptionDto>() : null;
+        }
         #endregion
+
+        #region Wallet
+        public async Task<decimal> GetWalletBalanceAsync()
+        {
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<decimal>("api/wallet/balance");
+            }
+            catch { return 0; }
+        }
+
+        public async Task<IEnumerable<WalletTransactionDto>> GetWalletHistoryAsync()
+        {
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<IEnumerable<WalletTransactionDto>>("api/wallet/history") ?? Enumerable.Empty<WalletTransactionDto>();
+            }
+            catch { return Enumerable.Empty<WalletTransactionDto>(); }
+        }
+
+        public async Task<bool> TopUpWalletAsync(TopUpRequest request)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/wallet/topup", request);
+            return response.IsSuccessStatusCode;
+        }
+        #endregion
+
 
         public async Task<LoyaltyAccountDto?> GetMyLoyaltyAccountAsync()
         {

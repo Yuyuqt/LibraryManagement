@@ -100,6 +100,34 @@ namespace Backend.Features.Subscriptions
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("subscriptions/preview-upgrade/{membershipId}")]
+        [Authorize]
+        public async Task<ActionResult<SubscriptionUpgradePreviewDto>> GetUpgradePreview(int membershipId)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+            var preview = await _subscriptionService.GetUpgradePreviewAsync(Guid.Parse(userIdStr), membershipId);
+            return Ok(preview);
+        }
+
+        [HttpPost("subscriptions/subscribe-wallet")]
+        [Authorize]
+        public async Task<ActionResult<SubscriptionDto>> SubscribeWithWallet([FromBody] SubscribeRequest request)
+        {
+            try
+            {
+                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+                var subscription = await _subscriptionService.SubscribeWithWalletAsync(Guid.Parse(userIdStr), request.MembershipId);
+                return Ok(subscription);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
-

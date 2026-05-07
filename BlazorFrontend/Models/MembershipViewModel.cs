@@ -10,6 +10,8 @@ namespace BlazorFrontend.Models
         public List<SubscriptionDto> QueuedMemberships { get; set; } = new List<SubscriptionDto>();
         public LoyaltyAccountDto? LoyaltyAccount { get; set; }
         public Dictionary<string, double> RewardPointCosts { get; set; } = new Dictionary<string, double>();
+        public decimal WalletBalance { get; set; }
     }
+
 }
 

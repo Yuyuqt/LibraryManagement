@@ -138,11 +138,19 @@ namespace LibraryManagement.Shared.Models
         public int MembershipId { get; set; }
     }
 
-    public class AdminSubscribeRequest
-    {
         public Guid UserId { get; set; }
         public int MembershipId { get; set; }
     }
+
+    public class SubscriptionUpgradePreviewDto
+    {
+        public decimal OriginalPrice { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public decimal FinalPrice { get; set; }
+        public string? Message { get; set; }
+        public bool CanUpgrade { get; set; }
+    }
+
 
     // Loyalty DTOs
     public class LoyaltyAccountDto
@@ -238,7 +246,25 @@ namespace LibraryManagement.Shared.Models
         public DateTime? UpdatedAt { get; set; }
         public bool? BanStatus { get; set; }
         public DateTime? SuspensionEndDate { get; set; }
+        public decimal Balance { get; set; }
     }
+
+    public class WalletTransactionDto
+    {
+        public Guid Id { get; set; }
+        public decimal Amount { get; set; }
+        public string Type { get; set; } = null!;
+        public string? Description { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class TopUpRequest
+    {
+        public Guid UserId { get; set; }
+        public decimal Amount { get; set; }
+        public string? Description { get; set; }
+    }
+
 
     public class UserCreateRequest
     {

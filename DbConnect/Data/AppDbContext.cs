@@ -27,6 +27,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<UserSubscription> UserSubscriptions { get; set; }
 
     public virtual DbSet<WishlistItem> WishlistItems { get; set; }
+    public virtual DbSet<WalletTransaction> WalletTransactions { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -152,7 +154,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.StudentId).HasMaxLength(20);
             entity.Property(e => e.SuspensionEndDate).HasColumnType("timestamp");
             entity.Property(e => e.UpdatedAt).HasColumnType("timestamp");
+            entity.Property(e => e.Balance).HasColumnType("decimal(18, 2)").HasDefaultValue(0);
         });
+
 
         modelBuilder.Entity<UserSubscription>(entity =>
         {
@@ -194,6 +198,21 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_WishlistItems_Users");
         });
+
+        modelBuilder.Entity<WalletTransaction>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Type).HasMaxLength(20);
+            entity.Property(e => e.CreatedAt).HasColumnType("timestamp").HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
 
         OnModelCreatingPartial(modelBuilder);
     }

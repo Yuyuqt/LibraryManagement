@@ -3,6 +3,8 @@ using DbConnect.Data;
 using DbConnect.Entities;
 using Microsoft.EntityFrameworkCore;
 using Backend.Features.Loyalty;
+using Backend.Features.Wallet;
+
 
 namespace Backend.Features.Subscriptions
 {
@@ -14,18 +16,24 @@ namespace Backend.Features.Subscriptions
         Task<bool> HandleLoyaltyRedemptionAsync(Guid userId, string rewardId, string rewardName, string redemptionId);
         Task<SubscriptionDto> SubscribeUserAsync(Guid userId, int membershipId, string? redemptionId = null);
         Task<IEnumerable<SubscriptionDto>> GetAllSubscriptionsAsync();
+        Task<SubscriptionUpgradePreviewDto> GetUpgradePreviewAsync(Guid userId, int newMembershipId);
+        Task<SubscriptionDto> SubscribeWithWalletAsync(Guid userId, int membershipId);
     }
+
 
     public class SubscriptionService : ISubscriptionService
     {
         private readonly AppDbContext _context;
         private readonly ILoyaltyService _loyaltyService;
+        private readonly IWalletService _walletService;
 
-        public SubscriptionService(AppDbContext context, ILoyaltyService loyaltyService)
+        public SubscriptionService(AppDbContext context, ILoyaltyService loyaltyService, IWalletService walletService)
         {
             _context = context;
             _loyaltyService = loyaltyService;
+            _walletService = walletService;
         }
+
 
         public async Task<IEnumerable<MembershipDto>> GetMembershipsAsync()
         {
@@ -110,15 +118,41 @@ namespace Backend.Features.Subscriptions
             var membership = await _context.Memberships.FindAsync(membershipId);
             if (membership == null) throw new Exception("Membership plan not found.");
 
-            var latestSubscription = await _context.UserSubscriptions
-                .Where(s => s.UserId == userId && s.IsActive)
+            // Cooldown check: Max 1 active and 1 queued subscription
+            var activeAndQueued = await _context.UserSubscriptions
+                .Where(s => s.UserId == userId && s.IsActive && s.ExpiryDate > DateTime.UtcNow)
+                .ToListAsync();
+
+            if (activeAndQueued.Count >= 2)
+            {
+                throw new Exception("You already have an active and a queued subscription. Please wait until one expires.");
+            }
+
+            var currentActive = activeAndQueued
+                .Where(s => s.StartDate <= DateTime.UtcNow)
                 .OrderByDescending(s => s.ExpiryDate)
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
 
             DateTime startDate = DateTime.UtcNow;
-            if (latestSubscription != null && latestSubscription.ExpiryDate > startDate)
+            decimal discount = 0;
+
+            if (currentActive != null)
             {
-                startDate = latestSubscription.ExpiryDate;
+                // If it's the same membership, we queue it
+                if (currentActive.MembershipId == membershipId)
+                {
+                    startDate = currentActive.ExpiryDate;
+                }
+                else
+                {
+                    // If it's a different membership, we treat it as an upgrade/change
+                    // Calculate discount and deactivate old one
+                    var preview = await GetUpgradePreviewAsync(userId, membershipId);
+                    discount = preview.DiscountAmount;
+                    currentActive.IsActive = false;
+                    currentActive.Status = "Upgraded";
+                    startDate = DateTime.UtcNow;
+                }
             }
 
             var subscription = new UserSubscription
@@ -138,18 +172,100 @@ namespace Backend.Features.Subscriptions
             await _context.Entry(subscription).Reference(s => s.Membership).LoadAsync();
             await _context.Entry(subscription).Reference(s => s.User).LoadAsync();
 
+            // Only award loyalty points for the amount actually paid (Price - Discount)
+            decimal paidAmount = membership.Price - discount;
+            if (paidAmount < 0) paidAmount = 0;
+
             await _loyaltyService.ProcessEventAsync(
                 externalUserId: userId.ToString(),
                 eventKey: "SUBSCRIBE",
-                eventValue: (double)membership.Price,
+                eventValue: (double)paidAmount,
                 referenceId: $"SUB-{subscription.Id}",
-                description: $"Purchased Membership: {membership.Type}",
+                description: $"Purchased Membership: {membership.Type} (Discount applied: {discount})",
                 email: subscription.User?.Email ?? "No Email",
                 mobile: subscription.User?.PhoneNumber ?? "0000000000"
             );
 
             return MapToDto(subscription);
         }
+
+        public async Task<SubscriptionUpgradePreviewDto> GetUpgradePreviewAsync(Guid userId, int newMembershipId)
+        {
+            var newMembership = await _context.Memberships.FindAsync(newMembershipId);
+            if (newMembership == null) return new SubscriptionUpgradePreviewDto { CanUpgrade = false, Message = "Plan not found" };
+
+            var currentSubscription = await _context.UserSubscriptions
+                .Include(s => s.Membership)
+                .Where(s => s.UserId == userId && s.IsActive && s.StartDate <= DateTime.UtcNow && s.ExpiryDate > DateTime.UtcNow)
+                .OrderByDescending(s => s.StartDate)
+                .FirstOrDefaultAsync();
+
+            if (currentSubscription == null)
+            {
+                return new SubscriptionUpgradePreviewDto
+                {
+                    OriginalPrice = newMembership.Price,
+                    DiscountAmount = 0,
+                    FinalPrice = newMembership.Price,
+                    CanUpgrade = true
+                };
+            }
+
+            if (currentSubscription.MembershipId == newMembershipId)
+            {
+                return new SubscriptionUpgradePreviewDto
+                {
+                    OriginalPrice = newMembership.Price,
+                    DiscountAmount = 0,
+                    FinalPrice = newMembership.Price,
+                    CanUpgrade = true,
+                    Message = "Same plan selected. This will be queued after your current subscription."
+                };
+            }
+
+            // Calculate unused value
+            var totalDuration = (currentSubscription.ExpiryDate - currentSubscription.StartDate).TotalDays;
+            var daysRemaining = (currentSubscription.ExpiryDate - DateTime.UtcNow).TotalDays;
+            
+            if (daysRemaining < 0) daysRemaining = 0;
+
+            decimal dailyRate = currentSubscription.Membership.Price / (decimal)totalDuration;
+            decimal unusedValue = dailyRate * (decimal)daysRemaining;
+
+            // Cap discount at new price
+            decimal discount = Math.Min(unusedValue, newMembership.Price);
+
+            return new SubscriptionUpgradePreviewDto
+            {
+                OriginalPrice = newMembership.Price,
+                DiscountAmount = Math.Round(discount, 2),
+                FinalPrice = Math.Round(newMembership.Price - discount, 2),
+                CanUpgrade = true,
+                Message = $"Pro-rated discount applied for your current {currentSubscription.Membership.Type} plan."
+            };
+        }
+
+        public async Task<SubscriptionDto> SubscribeWithWalletAsync(Guid userId, int membershipId)
+        {
+            var preview = await GetUpgradePreviewAsync(userId, membershipId);
+            if (!preview.CanUpgrade) throw new Exception(preview.Message ?? "Cannot purchase this plan.");
+
+            var balance = await _walletService.GetBalanceAsync(userId);
+            if (balance < preview.FinalPrice)
+            {
+                throw new Exception($"Insufficient balance. You need {preview.FinalPrice - balance:N0} more MMK.");
+            }
+
+            var membership = await _context.Memberships.FindAsync(membershipId);
+            
+            // Deduct from wallet
+            bool deducted = await _walletService.DeductAsync(userId, preview.FinalPrice, $"Subscription: {membership!.Type}");
+            if (!deducted) throw new Exception("Failed to deduct from wallet.");
+
+            // Create subscription
+            return await SubscribeUserAsync(userId, membershipId);
+        }
+
 
         public async Task<IEnumerable<SubscriptionDto>> GetAllSubscriptionsAsync()
         {

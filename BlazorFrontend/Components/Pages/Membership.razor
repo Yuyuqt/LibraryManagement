@@ -38,7 +38,18 @@ else if (_viewModel != null)
                     </div>
                 </div>
             }
+
+            <div class="flex items-center gap-4 bg-mystic-50 px-6 py-4 rounded-xl border border-mystic-200/60">
+                <div class="bg-indigo-100 p-2.5 rounded-lg text-indigo-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+                </div>
+                <div>
+                    <div class="text-xs font-bold text-mystic-400 uppercase tracking-widest">Wallet Balance</div>
+                    <div class="text-2xl font-black text-mystic-900 leading-none">@_viewModel.WalletBalance.ToString("N0") <span class="text-xs font-bold text-mystic-400">MMK</span></div>
+                </div>
+            </div>
         </div>
+
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Current Subscription Card -->
@@ -232,7 +243,13 @@ else if (_viewModel != null)
                             <div class="space-y-3">
                                 <a href="Borrowings" class="block w-full py-4 rounded-2xl bg-white border-2 border-mystic-900 text-mystic-900 text-center font-bold text-sm transition-all duration-200 hover:bg-mystic-900 hover:text-white">Pay Cash</a>
                                 
+                                <button @onclick="() => BuyWithWallet(plan)" 
+                                        class="w-full py-4 rounded-2xl bg-mystic-900 text-white font-bold text-sm hover:bg-mystic-800 transition-all shadow-lg shadow-mystic-900/20">
+                                    Buy with Wallet
+                                </button>
+
                                 @if (!string.IsNullOrEmpty(plan.RewardId) && _viewModel.RewardPointCosts.ContainsKey(plan.RewardId))
+
                                 {
                                     <button @onclick="() => RedeemMembership(plan.RewardId, plan.Type, _viewModel.RewardPointCosts[plan.RewardId])" 
                                             class="w-full py-4 rounded-2xl bg-amber-400 text-mystic-900 font-black text-sm hover:bg-amber-500 transition-all shadow-lg shadow-amber-400/20">
@@ -279,8 +296,10 @@ else if (_viewModel != null)
                 AvailableMemberships = memberships.ToList(),
                 QueuedMemberships = queuedMemberships,
                 LoyaltyAccount = loyaltyAccount,
-                RewardPointCosts = activeRewards.ToDictionary(r => r.Id, r => r.PointCost)
+                RewardPointCosts = activeRewards.ToDictionary(r => r.Id, r => r.PointCost),
+                WalletBalance = await ApiClient.GetWalletBalanceAsync()
             };
+
         }
         catch (Exception ex)
         {
@@ -316,6 +335,55 @@ else if (_viewModel != null)
             await JSRuntime.InvokeVoidAsync("showToast", "An unexpected error occurred: " + ex.Message, "error");
         }
     }
+
+    private async Task BuyWithWallet(MembershipDto plan)
+    {
+        try
+        {
+            var preview = await ApiClient.GetUpgradePreviewAsync(plan.Id);
+            if (preview == null || !preview.CanUpgrade)
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", preview?.Message ?? "Cannot upgrade to this plan.", "error");
+                return;
+            }
+
+            string confirmMsg = $"Are you sure you want to purchase {plan.Type} membership?\n\n" +
+                               $"Original Price: {preview.OriginalPrice:N0} MMK\n";
+            
+            if (preview.DiscountAmount > 0)
+            {
+                confirmMsg += $"Upgrade Discount: -{preview.DiscountAmount:N0} MMK\n";
+            }
+            
+            confirmMsg += $"Final Price: {preview.FinalPrice:N0} MMK\n\n" +
+                         $"Your Balance: {_viewModel?.WalletBalance:N0} MMK";
+
+            bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", confirmMsg);
+            if (!confirmed) return;
+
+            if (_viewModel?.WalletBalance < preview.FinalPrice)
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Insufficient wallet balance. Please top up at the library.", "error");
+                return;
+            }
+
+            var result = await ApiClient.SubscribeWithWalletAsync(new SubscribeRequest { MembershipId = plan.Id });
+            if (result != null)
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Subscription purchased successfully!", "success");
+                await OnInitializedAsync();
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Failed to complete purchase.", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error: " + ex.Message, "error");
+        }
+    }
 }
+
 
 

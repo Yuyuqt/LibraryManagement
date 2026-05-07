@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DbConnect.Entities;
@@ -32,6 +32,9 @@ public partial class User
     public string? Address { get; set; }
 
     public string? FcmToken { get; set; }
+    
+    public decimal Balance { get; set; }
+
 
     public virtual ICollection<Borrowing> Borrowings { get; set; } = new List<Borrowing>();
 

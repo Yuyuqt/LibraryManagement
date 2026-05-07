@@ -15,7 +15,9 @@ using Backend.Features.Borrowings;
 using Backend.Features.Loyalty;
 using Backend.Features.Notification;
 using Backend.Features.Wishlist;
+using Backend.Features.Wallet;
 using FirebaseAdmin;
+
 using Google.Apis.Auth.OAuth2;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -95,7 +97,9 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBorrowingService, BorrowingService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddHostedService<NotificationBackgroundService>();
+
 
 // Register Loyalty API Client
 builder.Services.AddHttpClient<ILoyaltyService, LoyaltyService>(client =>
