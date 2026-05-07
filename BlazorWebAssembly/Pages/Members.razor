@@ -9,403 +9,484 @@
 @inject NavigationManager Navigation
 
 <div class="max-w-7xl mx-auto py-10 px-6 animate-fade">
-    @if (_currentView == ViewMode.List)
-    {
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-                <h1 class="text-4xl font-extrabold tracking-tight text-main mb-2">Members Directory</h1>
-                <p class="text-muted text-lg">
-                    Manage library members and administrator accounts.
-                    <span class="ml-2 text-xs text-muted font-bold">(@(_allUsers?.Count() ?? 0) total)</span>
-                </p>
-            </div>
-            <div class="flex items-center gap-3">
-                <button @onclick="ShowCreate" class="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all whitespace-nowrap flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Add Member
-                </button>
-            </div>
-        </div>
+    <!-- Top Tabs Navigation -->
+    <div class="flex items-center gap-8 border-b border-border mb-10">
+        <button @onclick="() => SetTab(AdminTab.Directory)" class="pb-4 px-2 text-sm font-black uppercase tracking-widest transition-all relative @(_activeTab == AdminTab.Directory ? "text-primary" : "text-muted hover:text-main")">
+            Member Directory
+            @if (_activeTab == AdminTab.Directory) { <div class="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full"></div> }
+        </button>
+        <button @onclick="() => SetTab(AdminTab.Approvals)" class="pb-4 px-2 text-sm font-black uppercase tracking-widest transition-all relative @(_activeTab == AdminTab.Approvals ? "text-primary" : "text-muted hover:text-main")">
+            Membership Approvals
+            @if (_pendingSubscriptions?.Any() == true)
+            {
+                <span class="ml-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">@_pendingSubscriptions.Count()</span>
+            }
+            @if (_activeTab == AdminTab.Approvals) { <div class="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full"></div> }
+        </button>
+    </div>
 
-        @if (_isLoading)
+    @if (_activeTab == AdminTab.Directory)
+    {
+        @if (_currentView == ViewMode.List)
         {
-            <div class="space-y-4">
-                @for (int i = 0; i < 5; i++)
-                {
-                    <div class="animate-pulse bg-card rounded-xl border border-border h-24 w-full"></div>
-                }
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 class="text-4xl font-extrabold tracking-tight text-main mb-2">Members Directory</h1>
+                    <p class="text-muted text-lg">
+                        Manage library members and administrator accounts.
+                        <span class="ml-2 text-xs text-muted font-bold">(@(_allUsers?.Count() ?? 0) total)</span>
+                    </p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button @onclick="ShowCreate" class="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all whitespace-nowrap flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Add Member
+                    </button>
+                </div>
             </div>
+
+            @if (_isLoading)
+            {
+                <div class="space-y-4">
+                    @for (int i = 0; i < 5; i++)
+                    {
+                        <div class="animate-pulse bg-card rounded-xl border border-border h-24 w-full"></div>
+                    }
+                </div>
+            }
+            else if (_pagedResult != null)
+            {
+                <div class="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-max whitespace-nowrap">
+                            <thead class="bg-body border-b border-border">
+                                <tr>
+                                    <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Member</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Contact</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Role</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Status</th>
+                                    <th class="px-6 py-4 text-right text-[10px] font-bold text-muted uppercase tracking-widest">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border">
+                                @foreach (var user in _pagedResult.Items)
+                                {
+                                    <tr class="hover:bg-body transition-colors group">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-4">
+                                                <div class="h-10 w-10 flex-shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                                                    @(user.FullName?.Substring(0, Math.Min(2, user.FullName.Length)).ToUpper() ?? "U")
+                                                </div>
+                                                <div>
+                                                    <button @onclick="() => ShowDetails(user.Id)" class="text-sm font-bold text-main hover:text-primary transition-colors text-left">@user.FullName</button>
+                                                    @if (!string.IsNullOrEmpty(user.StudentId))
+                                                    {
+                                                        <div class="text-xs text-muted font-medium mt-0.5">ID: @user.StudentId</div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm text-main font-medium">@user.Email</div>
+                                            <div class="text-xs text-muted">@(string.IsNullOrEmpty(user.PhoneNumber) ? "No phone" : user.PhoneNumber)</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase @(user.Role == "Admin" ? "bg-amber-500/10 text-amber-500" : "bg-blue-500/10 text-blue-500")">
+                                                @user.Role
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            @if (user.BanStatus == true)
+                                            {
+                                                <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase bg-red-500/10 text-red-500">
+                                                    Suspended
+                                                </span>
+                                            }
+                                            else if (user.IsActive)
+                                            {
+                                                <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase bg-green-500/10 text-green-500">
+                                                    Active
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase bg-body text-muted border border-border">
+                                                    Inactive
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <div class="flex items-center justify-end gap-2">
+                                                <button @onclick="() => ShowDetails(user.Id)" class="p-2 rounded-lg border border-border text-muted hover:bg-primary hover:text-white hover:border-primary transition-all">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                                </button>
+                                                <button @onclick="() => ShowEdit(user.Id)" class="p-2 rounded-lg border border-border text-muted hover:bg-primary hover:text-white hover:border-primary transition-all">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (_pagedResult.TotalPages > 1)
+                    {
+                        <div class="px-6 py-4 border-t border-border flex items-center justify-between bg-body">
+                            <p class="text-xs text-muted">
+                                Showing <span class="font-bold text-main">@((_pagedResult.CurrentPage - 1) * _pagedResult.PageSize + 1)</span>
+                                to
+                                <span class="font-bold text-main">@(Math.Min(_pagedResult.CurrentPage * _pagedResult.PageSize, _pagedResult.TotalCount))</span>
+                                of <span class="font-bold text-main">@_pagedResult.TotalCount</span> members
+                            </p>
+                            <div class="flex items-center gap-2">
+                                <button @onclick="() => ChangePage(_pagedResult.CurrentPage - 1)" disabled="@(!_pagedResult.HasPreviousPage)"
+                                        class="p-2 rounded-lg border border-border text-muted hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                                </button>
+
+                                @for (int p = 1; p <= _pagedResult.TotalPages; p++)
+                                {
+                                    var pageNumber = p;
+                                    if (p == _pagedResult.CurrentPage)
+                                    {
+                                        <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-main text-body text-xs font-bold">@p</span>
+                                    }
+                                    else if (p == 1 || p == _pagedResult.TotalPages || (p >= _pagedResult.CurrentPage - 1 && p <= _pagedResult.CurrentPage + 1))
+                                    {
+                                        <button @onclick="() => ChangePage(pageNumber)"
+                                                class="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-xs font-bold text-muted hover:text-primary hover:border-primary transition-colors">@p</button>
+                                    }
+                                    else if (p == _pagedResult.CurrentPage - 2 || p == _pagedResult.CurrentPage + 2)
+                                    {
+                                        <span class="w-8 h-8 flex items-center justify-center text-xs text-muted">...</span>
+                                    }
+                                }
+
+                                <button @onclick="() => ChangePage(_pagedResult.CurrentPage + 1)" disabled="@(!_pagedResult.HasNextPage)"
+                                        class="p-2 rounded-lg border border-border text-muted hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
         }
-        else if (_pagedResult != null)
+        else if (_currentView == ViewMode.Details && _selectedUser != null)
         {
-            <div class="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-max whitespace-nowrap">
-                        <thead class="bg-body border-b border-border">
-                            <tr>
-                                <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Member</th>
-                                <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Contact</th>
-                                <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Role</th>
-                                <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Status</th>
-                                <th class="px-6 py-4 text-right text-[10px] font-bold text-muted uppercase tracking-widest">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-border">
-                            @foreach (var user in _pagedResult.Items)
-                            {
-                                <tr class="hover:bg-body transition-colors group">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-4">
-                                            <div class="h-10 w-10 flex-shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                                                @(user.FullName?.Substring(0, Math.Min(2, user.FullName.Length)).ToUpper() ?? "U")
-                                            </div>
-                                            <div>
-                                                <button @onclick="() => ShowDetails(user.Id)" class="text-sm font-bold text-main hover:text-primary transition-colors text-left">@user.FullName</button>
-                                                @if (!string.IsNullOrEmpty(user.StudentId))
-                                                {
-                                                    <div class="text-xs text-muted font-medium mt-0.5">ID: @user.StudentId</div>
-                                                }
-                                            </div>
+            <div class="animate-fade">
+                <button @onclick="BackToList" class="inline-flex items-center text-sm font-medium text-muted hover:text-main mb-6 group">
+                    <svg class="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back to Directory
+                </button>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                    <div class="lg:col-span-1">
+                        <div class="aspect-square w-full rounded-3xl bg-card border border-border flex flex-col items-center justify-center text-main p-6 shadow-sm relative overflow-hidden">
+                            <div class="absolute inset-0 bg-primary/5"></div>
+                            <div class="relative z-10 flex flex-col items-center">
+                                <div class="w-32 h-32 rounded-full bg-main text-body flex items-center justify-center text-5xl font-black mb-6 shadow-xl">
+                                    @(_selectedUser.User.FullName?.Substring(0, Math.Min(2, _selectedUser.User.FullName.Length)).ToUpper() ?? "U")
+                                </div>
+                                <h2 class="text-2xl font-bold text-center mb-2">@_selectedUser.User.FullName</h2>
+                                <div class="inline-flex rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest @(_selectedUser.User.Role == "Admin" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "bg-blue-500/10 text-blue-500 border border-blue-500/20")">
+                                    @_selectedUser.User.Role
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 space-y-8">
+                        <div>
+                            <h1 class="text-4xl font-extrabold text-main tracking-tight mb-4">Member Profile</h1>
+                            <div class="flex items-center gap-3">
+                                @if (_selectedUser.User.BanStatus == true)
+                                {
+                                    <span class="inline-flex items-center rounded-full bg-red-500/10 border border-red-500/20 px-4 py-1.5 text-[10px] font-black text-red-500 tracking-widest uppercase">Suspended</span>
+                                }
+                                else if (_selectedUser.User.IsActive)
+                                {
+                                    <span class="inline-flex items-center rounded-full bg-green-500/10 border border-green-500/20 px-4 py-1.5 text-[10px] font-black text-green-500 tracking-widest uppercase">Active</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 border-y border-border py-8">
+                            <div>
+                                <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Email Address</h4>
+                                <p class="text-sm font-semibold text-main">@_selectedUser.User.Email</p>
+                            </div>
+                            <div>
+                                <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Phone Number</h4>
+                                <p class="text-sm font-semibold text-main">@(string.IsNullOrEmpty(_selectedUser.User.PhoneNumber) ? "-" : _selectedUser.User.PhoneNumber)</p>
+                            </div>
+                            <div>
+                                <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Student ID</h4>
+                                <p class="text-sm font-semibold text-main">@(string.IsNullOrEmpty(_selectedUser.User.StudentId) ? "-" : _selectedUser.User.StudentId)</p>
+                            </div>
+                            <div>
+                                <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Joined Date</h4>
+                                <p class="text-sm font-semibold text-main">@_selectedUser.User.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Physical Address</h4>
+                                <p class="text-sm font-semibold text-main">@(string.IsNullOrEmpty(_selectedUser.User.Address) ? "-" : _selectedUser.User.Address)</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-4 pt-2">
+                            <button @onclick="() => ShowEdit(_selectedUser.User.Id)" class="bg-primary text-white py-3 px-8 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Edit Details</button>
+                            
+                            <button @onclick="UpdateRole" class="bg-body border border-border text-main py-3 px-8 rounded-xl font-bold hover:bg-card transition-colors">
+                                Make @(_selectedUser.User.Role == "Admin" ? "Member" : "Admin")
+                            </button>
+
+                            <button @onclick="DeleteUser" class="p-3 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors ml-auto border border-transparent hover:border-red-500/20">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+
+                        <!-- Wallet Management Section -->
+                        <div class="mt-12 pt-12 border-t border-border">
+                            <div class="flex items-center justify-between mb-8">
+                                <h3 class="text-2xl font-bold text-main">Library Wallet</h3>
+                                <div class="bg-primary/5 border border-primary/20 px-6 py-3 rounded-2xl">
+                                    <span class="text-[10px] font-black text-primary uppercase tracking-widest block mb-1">Current Balance</span>
+                                    <span class="text-2xl font-black text-main">@_selectedUser.User.Balance.ToString("N0") MMK</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-card border border-border rounded-3xl p-8 shadow-sm">
+                                <h4 class="text-xs font-black text-muted uppercase tracking-[0.2em] mb-6">Add Credits (Cash Deposit)</h4>
+                                <div class="flex flex-col sm:flex-row gap-4">
+                                    <div class="flex-1 relative">
+                                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <span class="text-muted text-xs font-black">MMK</span>
                                         </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm text-main font-medium">@user.Email</div>
-                                        <div class="text-xs text-muted">@(string.IsNullOrEmpty(user.PhoneNumber) ? "No phone" : user.PhoneNumber)</div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase @(user.Role == "Admin" ? "bg-amber-500/10 text-amber-500" : "bg-blue-500/10 text-blue-500")">
-                                            @user.Role
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        @if (user.BanStatus == true)
+                                        <input type="number" @bind="_topUpAmount" class="w-full bg-body border border-border rounded-xl pl-16 pr-4 py-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all font-bold" placeholder="0.00" />
+                                    </div>
+                                    <button @onclick="TopUpWallet" class="bg-primary text-white px-10 py-4 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all whitespace-nowrap" disabled="@(_topUpAmount <= 0)">
+                                        Confirm Deposit
+                                    </button>
+                                </div>
+                                <p class="mt-4 text-xs text-muted font-medium italic">Credits will be added instantly for automated subscription purchases.</p>
+                            </div>
+                        </div>
+
+                        
+                        <!-- Subscription Management -->
+                        <div class="mt-12 pt-12 border-t border-border">
+                            <h3 class="text-2xl font-bold text-main mb-8">Manage Subscription</h3>
+                            
+                            @if (_selectedUser.CurrentSubscription != null && _selectedUser.CurrentSubscription.IsActive)
+                            {
+                                <div class="bg-green-500/5 border border-green-500/20 rounded-2xl p-6 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div>
+                                        <span class="text-[10px] text-green-600 font-black uppercase tracking-widest mb-1 block">Active Plan</span>
+                                        <h4 class="text-2xl font-black text-green-700">@_selectedUser.CurrentSubscription.MembershipType</h4>
+                                    </div>
+                                    <div class="sm:text-right">
+                                        <div class="text-[10px] text-green-600/70 font-black uppercase tracking-widest mb-1">Expires On</div>
+                                        <div class="font-bold text-green-700">@_selectedUser.CurrentSubscription.ExpiryDate.ToString("MMMM dd, yyyy")</div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="bg-card border border-dashed border-border rounded-2xl p-6 mb-8 text-center">
+                                    <p class="text-muted font-medium">No active subscription for this member.</p>
+                                </div>
+                            }
+
+                            <h4 class="text-xs font-black text-muted uppercase tracking-[0.2em] mb-6">Assign New Plan</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                @foreach (var plan in _selectedUser.AvailableMemberships)
+                                {
+                                    var isCurrent = _selectedUser.CurrentSubscription?.IsActive == true && _selectedUser.CurrentSubscription.MembershipId == plan.Id;
+                                    <div class="bg-card rounded-2xl border p-6 flex flex-col transition-all relative @(isCurrent ? "border-primary shadow-lg shadow-primary/10" : "border-border hover:border-primary/50")">
+                                        @if (isCurrent)
                                         {
-                                            <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase bg-red-500/10 text-red-500">
-                                                Suspended
-                                            </span>
+                                            <div class="absolute -top-3 right-6 bg-primary text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">Current</div>
                                         }
-                                        else if (user.IsActive)
+                                        <h5 class="font-bold text-main text-xl mb-1">@plan.Type</h5>
+                                        <p class="text-muted font-medium text-sm mb-6 flex-grow">@plan.Price.ToString("N0") MMK / @plan.DurationMonths mo</p>
+                                        
+                                        @if (!isCurrent)
                                         {
-                                            <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase bg-green-500/10 text-green-500">
-                                                Active
-                                            </span>
+                                            <button @onclick="() => AssignSubscription(plan.Id, plan.Type)" class="w-full bg-body border border-border text-main py-2.5 rounded-xl text-sm font-bold hover:bg-primary hover:text-white hover:border-primary transition-colors">Assign Plan</button>
                                         }
                                         else
                                         {
-                                            <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase bg-body text-muted border border-border">
-                                                Inactive
-                                            </span>
+                                            <button disabled class="w-full bg-body border border-border text-muted py-2.5 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed">Current Plan</button>
                                         }
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <button @onclick="() => ShowDetails(user.Id)" class="p-2 rounded-lg border border-border text-muted hover:bg-primary hover:text-white hover:border-primary transition-all">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                            </button>
-                                            <button @onclick="() => ShowEdit(user.Id)" class="p-2 rounded-lg border border-border text-muted hover:bg-primary hover:text-white hover:border-primary transition-all">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                @if (_pagedResult.TotalPages > 1)
-                {
-                    <div class="px-6 py-4 border-t border-border flex items-center justify-between bg-body">
-                        <p class="text-xs text-muted">
-                            Showing <span class="font-bold text-main">@((_pagedResult.CurrentPage - 1) * _pagedResult.PageSize + 1)</span>
-                            to
-                            <span class="font-bold text-main">@(Math.Min(_pagedResult.CurrentPage * _pagedResult.PageSize, _pagedResult.TotalCount))</span>
-                            of <span class="font-bold text-main">@_pagedResult.TotalCount</span> members
-                        </p>
-                        <div class="flex items-center gap-2">
-                            <button @onclick="() => ChangePage(_pagedResult.CurrentPage - 1)" disabled="@(!_pagedResult.HasPreviousPage)"
-                                    class="p-2 rounded-lg border border-border text-muted hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                            </button>
-
-                            @for (int p = 1; p <= _pagedResult.TotalPages; p++)
-                            {
-                                var pageNumber = p;
-                                if (p == _pagedResult.CurrentPage)
-                                {
-                                    <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-main text-body text-xs font-bold">@p</span>
+                                    </div>
                                 }
-                                else if (p == 1 || p == _pagedResult.TotalPages || (p >= _pagedResult.CurrentPage - 1 && p <= _pagedResult.CurrentPage + 1))
-                                {
-                                    <button @onclick="() => ChangePage(pageNumber)"
-                                            class="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-xs font-bold text-muted hover:text-primary hover:border-primary transition-colors">@p</button>
-                                }
-                                else if (p == _pagedResult.CurrentPage - 2 || p == _pagedResult.CurrentPage + 2)
-                                {
-                                    <span class="w-8 h-8 flex items-center justify-center text-xs text-muted">...</span>
-                                }
-                            }
-
-                            <button @onclick="() => ChangePage(_pagedResult.CurrentPage + 1)" disabled="@(!_pagedResult.HasNextPage)"
-                                    class="p-2 rounded-lg border border-border text-muted hover:bg-card disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                            </button>
+                            </div>
                         </div>
                     </div>
-                }
+                </div>
+            </div>
+        }
+        else if (_currentView == ViewMode.Create || _currentView == ViewMode.Edit)
+        {
+            <div class="animate-fade">
+                <button @onclick="BackToList" class="inline-flex items-center text-sm font-medium text-muted hover:text-main mb-6 group">
+                    <svg class="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back to Directory
+                </button>
+
+                <div class="max-w-3xl mx-auto">
+                    <div class="mb-10 text-center">
+                        <h1 class="text-4xl font-extrabold tracking-tight text-main mb-3">@(_currentView == ViewMode.Create ? "Register New Member" : "Edit Member Details")</h1>
+                        <p class="text-lg text-muted">@(_currentView == ViewMode.Create ? "Add a new reader to the library system." : $"Update profile details for {_editUser?.FullName}.")</p>
+                    </div>
+
+                    <div class="bg-card border border-border p-8 sm:p-10 rounded-3xl shadow-sm">
+                        @if (_currentView == ViewMode.Create)
+                        {
+                            <EditForm Model="@_createRequest" OnValidSubmit="HandleCreate" class="space-y-6">
+                                <DataAnnotationsValidator />
+                                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-sm font-bold text-main mb-2">Full Name <span class="text-red-500">*</span></label>
+                                        <InputText @bind-Value="_createRequest.FullName" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="John Doe" />
+                                        <ValidationMessage For="@(() => _createRequest.FullName)" class="mt-1 text-xs text-red-500 font-medium" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-main mb-2">Email Address <span class="text-red-500">*</span></label>
+                                        <InputText @bind-Value="_createRequest.Email" type="email" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="you@domain.com" />
+                                        <ValidationMessage For="@(() => _createRequest.Email)" class="mt-1 text-xs text-red-500 font-medium" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-main mb-2">Password <span class="text-red-500">*</span></label>
+                                        <InputText @bind-Value="_createRequest.Password" type="password" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="••••••••" />
+                                        <ValidationMessage For="@(() => _createRequest.Password)" class="mt-1 text-xs text-red-500 font-medium" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-main mb-2">Phone Number</label>
+                                        <InputText @bind-Value="_createRequest.PhoneNumber" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="+123456789" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-main mb-2">Student ID</label>
+                                        <InputText @bind-Value="_createRequest.StudentId" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="Optional" />
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-sm font-bold text-main mb-2">Address</label>
+                                        <InputTextArea @bind-Value="_createRequest.Address" rows="3" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="Full physical address" />
+                                    </div>
+                                </div>
+                                <div class="pt-8 border-t border-border flex justify-end gap-4 mt-8">
+                                    <button type="button" @onclick="BackToList" class="bg-body border border-border text-main px-8 py-3 rounded-xl font-bold hover:bg-card transition-colors">Cancel</button>
+                                    <button type="submit" class="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Create Member</button>
+                                </div>
+                            </EditForm>
+                        }
+                        else if (_currentView == ViewMode.Edit)
+                        {
+                            <EditForm Model="@_updateRequest" OnValidSubmit="HandleUpdate" class="space-y-6">
+                                <DataAnnotationsValidator />
+                                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-sm font-bold text-main mb-2">Full Name <span class="text-red-500">*</span></label>
+                                        <InputText @bind-Value="_updateRequest.FullName" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" />
+                                        <ValidationMessage For="@(() => _updateRequest.FullName)" class="mt-1 text-xs text-red-500 font-medium" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-main mb-2">Phone Number</label>
+                                        <InputText @bind-Value="_updateRequest.PhoneNumber" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-main mb-2">Student ID</label>
+                                        <InputText @bind-Value="_updateRequest.StudentId" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" />
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-sm font-bold text-main mb-2">Address</label>
+                                        <InputTextArea @bind-Value="_updateRequest.Address" rows="3" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" />
+                                    </div>
+                                </div>
+                                <div class="pt-8 border-t border-border flex justify-end gap-4 mt-8">
+                                    <button type="button" @onclick="BackToList" class="bg-body border border-border text-main px-8 py-3 rounded-xl font-bold hover:bg-card transition-colors">Cancel</button>
+                                    <button type="submit" class="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Update Member</button>
+                                </div>
+                            </EditForm>
+                        }
+                    </div>
+                </div>
             </div>
         }
     }
-    else if (_currentView == ViewMode.Details && _selectedUser != null)
+    else if (_activeTab == AdminTab.Approvals)
     {
         <div class="animate-fade">
-            <button @onclick="BackToList" class="inline-flex items-center text-sm font-medium text-muted hover:text-main mb-6 group">
-                <svg class="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Back to Directory
-            </button>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                <div class="lg:col-span-1">
-                    <div class="aspect-square w-full rounded-3xl bg-card border border-border flex flex-col items-center justify-center text-main p-6 shadow-sm relative overflow-hidden">
-                        <div class="absolute inset-0 bg-primary/5"></div>
-                        <div class="relative z-10 flex flex-col items-center">
-                            <div class="w-32 h-32 rounded-full bg-main text-body flex items-center justify-center text-5xl font-black mb-6 shadow-xl">
-                                @(_selectedUser.User.FullName?.Substring(0, Math.Min(2, _selectedUser.User.FullName.Length)).ToUpper() ?? "U")
-                            </div>
-                            <h2 class="text-2xl font-bold text-center mb-2">@_selectedUser.User.FullName</h2>
-                            <div class="inline-flex rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest @(_selectedUser.User.Role == "Admin" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "bg-blue-500/10 text-blue-500 border border-blue-500/20")">
-                                @_selectedUser.User.Role
-                            </div>
-                        </div>
-                    </div>
+            <h1 class="text-4xl font-extrabold tracking-tight text-main mb-2">Membership Approvals</h1>
+            <p class="text-muted text-lg mb-8">Review and approve pending "Pay Cash at Library" subscription requests.</p>
+
+            @if (_isLoading)
+            {
+                <div class="space-y-4">
+                    @for (int i = 0; i < 3; i++)
+                    {
+                        <div class="animate-pulse bg-card rounded-xl border border-border h-24 w-full"></div>
+                    }
                 </div>
-
-                <div class="lg:col-span-2 space-y-8">
-                    <div>
-                        <h1 class="text-4xl font-extrabold text-main tracking-tight mb-4">Member Profile</h1>
-                        <div class="flex items-center gap-3">
-                            @if (_selectedUser.User.BanStatus == true)
-                            {
-                                <span class="inline-flex items-center rounded-full bg-red-500/10 border border-red-500/20 px-4 py-1.5 text-[10px] font-black text-red-500 tracking-widest uppercase">Suspended</span>
-                            }
-                            else if (_selectedUser.User.IsActive)
-                            {
-                                <span class="inline-flex items-center rounded-full bg-green-500/10 border border-green-500/20 px-4 py-1.5 text-[10px] font-black text-green-500 tracking-widest uppercase">Active</span>
-                            }
-                        </div>
+            }
+            else if (_pendingSubscriptions == null || !_pendingSubscriptions.Any())
+            {
+                <div class="bg-card rounded-3xl border border-dashed border-border p-20 text-center">
+                    <div class="w-20 h-20 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-6 text-primary">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 border-y border-border py-8">
-                        <div>
-                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Email Address</h4>
-                            <p class="text-sm font-semibold text-main">@_selectedUser.User.Email</p>
-                        </div>
-                        <div>
-                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Phone Number</h4>
-                            <p class="text-sm font-semibold text-main">@(string.IsNullOrEmpty(_selectedUser.User.PhoneNumber) ? "-" : _selectedUser.User.PhoneNumber)</p>
-                        </div>
-                        <div>
-                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Student ID</h4>
-                            <p class="text-sm font-semibold text-main">@(string.IsNullOrEmpty(_selectedUser.User.StudentId) ? "-" : _selectedUser.User.StudentId)</p>
-                        </div>
-                        <div>
-                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Joined Date</h4>
-                            <p class="text-sm font-semibold text-main">@_selectedUser.User.CreatedAt.ToString("MMMM dd, yyyy")</p>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <h4 class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Physical Address</h4>
-                            <p class="text-sm font-semibold text-main">@(string.IsNullOrEmpty(_selectedUser.User.Address) ? "-" : _selectedUser.User.Address)</p>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-4 pt-2">
-                        <button @onclick="() => ShowEdit(_selectedUser.User.Id)" class="bg-primary text-white py-3 px-8 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Edit Details</button>
-                        
-                        <button @onclick="UpdateRole" class="bg-body border border-border text-main py-3 px-8 rounded-xl font-bold hover:bg-card transition-colors">
-                            Make @(_selectedUser.User.Role == "Admin" ? "Member" : "Admin")
-                        </button>
-
-                        <button @onclick="DeleteUser" class="p-3 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors ml-auto border border-transparent hover:border-red-500/20">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </div>
-
-                    <!-- Wallet Management Section -->
-                    <div class="mt-12 pt-12 border-t border-border">
-                        <div class="flex items-center justify-between mb-8">
-                            <h3 class="text-2xl font-bold text-main">Library Wallet</h3>
-                            <div class="bg-primary/5 border border-primary/20 px-6 py-3 rounded-2xl">
-                                <span class="text-[10px] font-black text-primary uppercase tracking-widest block mb-1">Current Balance</span>
-                                <span class="text-2xl font-black text-main">@_selectedUser.User.Balance.ToString("N0") MMK</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-card border border-border rounded-3xl p-8 shadow-sm">
-                            <h4 class="text-xs font-black text-muted uppercase tracking-[0.2em] mb-6">Add Credits (Cash Deposit)</h4>
-                            <div class="flex flex-col sm:flex-row gap-4">
-                                <div class="flex-1 relative">
-                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <span class="text-muted text-xs font-black">MMK</span>
-                                    </div>
-                                    <input type="number" @bind="_topUpAmount" class="w-full bg-body border border-border rounded-xl pl-16 pr-4 py-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all font-bold" placeholder="0.00" />
+                    <h3 class="text-xl font-bold text-main mb-2">All Caught Up!</h3>
+                    <p class="text-muted">No pending membership requests to approve.</p>
+                </div>
+            }
+            else
+            {
+                <div class="grid grid-cols-1 gap-6">
+                    @foreach (var sub in _pendingSubscriptions)
+                    {
+                        <div class="bg-card border border-border rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="flex items-center gap-6">
+                                <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-xl">
+                                    @(sub.UserName?.Substring(0, Math.Min(2, sub.UserName.Length)).ToUpper() ?? "U")
                                 </div>
-                                <button @onclick="TopUpWallet" class="bg-primary text-white px-10 py-4 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all whitespace-nowrap" disabled="@(_topUpAmount <= 0)">
-                                    Confirm Deposit
+                                <div>
+                                    <h4 class="text-xl font-bold text-main mb-1">@sub.UserName</h4>
+                                    <p class="text-sm text-muted mb-2">@sub.UserEmail</p>
+                                    <div class="inline-flex items-center rounded-full bg-blue-500/10 px-3 py-1 text-[10px] font-black text-blue-500 tracking-widest uppercase border border-blue-500/20">
+                                        @sub.MembershipType
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-4 ml-auto sm:ml-0">
+                                <button @onclick="() => HandleApproval(sub.Id, false)" class="bg-body border border-border text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 px-6 py-3 rounded-xl font-bold transition-all">
+                                    Reject
+                                </button>
+                                <button @onclick="() => HandleApproval(sub.Id, true)" class="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">
+                                    Approve
                                 </button>
                             </div>
-                            <p class="mt-4 text-xs text-muted font-medium italic">Credits will be added instantly for automated subscription purchases.</p>
                         </div>
-                    </div>
-
-                    
-                    <!-- Subscription Management -->
-                    <div class="mt-12 pt-12 border-t border-border">
-                        <h3 class="text-2xl font-bold text-main mb-8">Manage Subscription</h3>
-                        
-                        @if (_selectedUser.CurrentSubscription != null && _selectedUser.CurrentSubscription.IsActive)
-                        {
-                            <div class="bg-green-500/5 border border-green-500/20 rounded-2xl p-6 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div>
-                                    <span class="text-[10px] text-green-600 font-black uppercase tracking-widest mb-1 block">Active Plan</span>
-                                    <h4 class="text-2xl font-black text-green-700">@_selectedUser.CurrentSubscription.MembershipType</h4>
-                                </div>
-                                <div class="sm:text-right">
-                                    <div class="text-[10px] text-green-600/70 font-black uppercase tracking-widest mb-1">Expires On</div>
-                                    <div class="font-bold text-green-700">@_selectedUser.CurrentSubscription.ExpiryDate.ToString("MMMM dd, yyyy")</div>
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="bg-card border border-dashed border-border rounded-2xl p-6 mb-8 text-center">
-                                <p class="text-muted font-medium">No active subscription for this member.</p>
-                            </div>
-                        }
-
-                        <h4 class="text-xs font-black text-muted uppercase tracking-[0.2em] mb-6">Assign New Plan</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            @foreach (var plan in _selectedUser.AvailableMemberships)
-                            {
-                                var isCurrent = _selectedUser.CurrentSubscription?.IsActive == true && _selectedUser.CurrentSubscription.MembershipId == plan.Id;
-                                <div class="bg-card rounded-2xl border p-6 flex flex-col transition-all relative @(isCurrent ? "border-primary shadow-lg shadow-primary/10" : "border-border hover:border-primary/50")">
-                                    @if (isCurrent)
-                                    {
-                                        <div class="absolute -top-3 right-6 bg-primary text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">Current</div>
-                                    }
-                                    <h5 class="font-bold text-main text-xl mb-1">@plan.Type</h5>
-                                    <p class="text-muted font-medium text-sm mb-6 flex-grow">@plan.Price.ToString("N0") MMK / @plan.DurationMonths mo</p>
-                                    
-                                    @if (!isCurrent)
-                                    {
-                                        <button @onclick="() => AssignSubscription(plan.Id, plan.Type)" class="w-full bg-body border border-border text-main py-2.5 rounded-xl text-sm font-bold hover:bg-primary hover:text-white hover:border-primary transition-colors">Assign Plan</button>
-                                    }
-                                    else
-                                    {
-                                        <button disabled class="w-full bg-body border border-border text-muted py-2.5 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed">Current Plan</button>
-                                    }
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-    else if (_currentView == ViewMode.Create || _currentView == ViewMode.Edit)
-    {
-        <div class="animate-fade">
-            <button @onclick="BackToList" class="inline-flex items-center text-sm font-medium text-muted hover:text-main mb-6 group">
-                <svg class="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Back to Directory
-            </button>
-
-            <div class="max-w-3xl mx-auto">
-                <div class="mb-10 text-center">
-                    <h1 class="text-4xl font-extrabold tracking-tight text-main mb-3">@(_currentView == ViewMode.Create ? "Register New Member" : "Edit Member Details")</h1>
-                    <p class="text-lg text-muted">@(_currentView == ViewMode.Create ? "Add a new reader to the library system." : $"Update profile details for {_editUser?.FullName}.")</p>
-                </div>
-
-                <div class="bg-card border border-border p-8 sm:p-10 rounded-3xl shadow-sm">
-                    @if (_currentView == ViewMode.Create)
-                    {
-                        <EditForm Model="@_createRequest" OnValidSubmit="HandleCreate" class="space-y-6">
-                            <DataAnnotationsValidator />
-                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                <div class="sm:col-span-2">
-                                    <label class="block text-sm font-bold text-main mb-2">Full Name <span class="text-red-500">*</span></label>
-                                    <InputText @bind-Value="_createRequest.FullName" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="John Doe" />
-                                    <ValidationMessage For="@(() => _createRequest.FullName)" class="mt-1 text-xs text-red-500 font-medium" />
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-main mb-2">Email Address <span class="text-red-500">*</span></label>
-                                    <InputText @bind-Value="_createRequest.Email" type="email" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="you@domain.com" />
-                                    <ValidationMessage For="@(() => _createRequest.Email)" class="mt-1 text-xs text-red-500 font-medium" />
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-main mb-2">Password <span class="text-red-500">*</span></label>
-                                    <InputText @bind-Value="_createRequest.Password" type="password" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="••••••••" />
-                                    <ValidationMessage For="@(() => _createRequest.Password)" class="mt-1 text-xs text-red-500 font-medium" />
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-main mb-2">Phone Number</label>
-                                    <InputText @bind-Value="_createRequest.PhoneNumber" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="+123456789" />
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-main mb-2">Student ID</label>
-                                    <InputText @bind-Value="_createRequest.StudentId" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="Optional" />
-                                </div>
-                                <div class="sm:col-span-2">
-                                    <label class="block text-sm font-bold text-main mb-2">Address</label>
-                                    <InputTextArea @bind-Value="_createRequest.Address" rows="3" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" placeholder="Full physical address" />
-                                </div>
-                            </div>
-                            <div class="pt-8 border-t border-border flex justify-end gap-4 mt-8">
-                                <button type="button" @onclick="BackToList" class="bg-body border border-border text-main px-8 py-3 rounded-xl font-bold hover:bg-card transition-colors">Cancel</button>
-                                <button type="submit" class="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Create Member</button>
-                            </div>
-                        </EditForm>
-                    }
-                    else if (_currentView == ViewMode.Edit)
-                    {
-                        <EditForm Model="@_updateRequest" OnValidSubmit="HandleUpdate" class="space-y-6">
-                            <DataAnnotationsValidator />
-                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                <div class="sm:col-span-2">
-                                    <label class="block text-sm font-bold text-main mb-2">Full Name <span class="text-red-500">*</span></label>
-                                    <InputText @bind-Value="_updateRequest.FullName" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" />
-                                    <ValidationMessage For="@(() => _updateRequest.FullName)" class="mt-1 text-xs text-red-500 font-medium" />
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-main mb-2">Phone Number</label>
-                                    <InputText @bind-Value="_updateRequest.PhoneNumber" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" />
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-main mb-2">Student ID</label>
-                                    <InputText @bind-Value="_updateRequest.StudentId" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" />
-                                </div>
-                                <div class="sm:col-span-2">
-                                    <label class="block text-sm font-bold text-main mb-2">Address</label>
-                                    <InputTextArea @bind-Value="_updateRequest.Address" rows="3" class="w-full bg-body border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-main transition-all" />
-                                </div>
-                            </div>
-                            <div class="pt-8 border-t border-border flex justify-end gap-4 mt-8">
-                                <button type="button" @onclick="BackToList" class="bg-body border border-border text-main px-8 py-3 rounded-xl font-bold hover:bg-card transition-colors">Cancel</button>
-                                <button type="submit" class="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Update Member</button>
-                            </div>
-                        </EditForm>
                     }
                 </div>
-            </div>
+            }
         </div>
     }
 </div>
 
 @code {
     private enum ViewMode { List, Details, Create, Edit }
+    private enum AdminTab { Directory, Approvals }
+    
     private ViewMode _currentView = ViewMode.List;
+    private AdminTab _activeTab = AdminTab.Directory;
     
     private IEnumerable<UserDto>? _allUsers;
     private PagedResult<UserDto>? _pagedResult;
+    private IEnumerable<SubscriptionDto>? _pendingSubscriptions;
     private bool _isLoading = true;
     private const int PageSize = 10;
     
@@ -418,7 +499,33 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadUsers();
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        try
+        {
+            _allUsers = await ApiClient.GetUsersAsync();
+            _pendingSubscriptions = await ApiClient.GetPendingSubscriptionsAsync();
+            ApplyPagination(1);
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error loading data: " + ex.Message);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task SetTab(AdminTab tab)
+    {
+        _activeTab = tab;
+        _currentView = ViewMode.List;
+        await LoadData();
     }
 
     private async Task LoadUsers()
@@ -669,6 +776,26 @@
             await JS.InvokeVoidAsync("alert", "Error: " + ex.Message);
         }
     }
+
+    private async Task HandleApproval(Guid subscriptionId, bool approve)
+    {
+        try
+        {
+            var success = await ApiClient.ApproveSubscriptionAsync(new ApproveSubscriptionRequest 
+            { 
+                SubscriptionId = subscriptionId, 
+                Approve = approve 
+            });
+
+            if (success)
+            {
+                await JS.InvokeVoidAsync("alert", approve ? "Subscription approved!" : "Subscription rejected.");
+                await LoadData(); // Refresh list
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error: " + ex.Message);
+        }
+    }
 }
-
-

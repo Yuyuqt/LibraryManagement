@@ -182,8 +182,23 @@ namespace BlazorWebAssembly.Services
 
         public async Task<IEnumerable<SubscriptionDto>> GetAllSubscriptionsAsync()
         {
+            await EnsureAuthHeader();
             return await _httpClient.GetFromJsonAsync<IEnumerable<SubscriptionDto>>("api/subscriptions/all") ?? Enumerable.Empty<SubscriptionDto>();
         }
+
+        public async Task<IEnumerable<SubscriptionDto>> GetPendingSubscriptionsAsync()
+        {
+            await EnsureAuthHeader();
+            return await _httpClient.GetFromJsonAsync<IEnumerable<SubscriptionDto>>("api/subscriptions/pending") ?? Enumerable.Empty<SubscriptionDto>();
+        }
+
+        public async Task<bool> ApproveSubscriptionAsync(ApproveSubscriptionRequest request)
+        {
+            await EnsureAuthHeader();
+            var response = await _httpClient.PostAsJsonAsync("api/subscriptions/approve", request);
+            return response.IsSuccessStatusCode;
+        }
+
 
         public async Task<SubscriptionUpgradePreviewDto?> GetUpgradePreviewAsync(int membershipId)
         {

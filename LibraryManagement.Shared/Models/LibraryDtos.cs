@@ -129,6 +129,8 @@ namespace LibraryManagement.Shared.Models
         public DateTime StartDate { get; set; }
         public DateTime ExpiryDate { get; set; }
         public bool IsActive { get; set; }
+        public string Status { get; set; } = "Active";
+        public string? PaymentMethod { get; set; }
         public string? ExternalRedemptionId { get; set; }
         public bool IsExpired => DateTime.UtcNow > ExpiryDate;
     }
@@ -142,6 +144,12 @@ namespace LibraryManagement.Shared.Models
     {
         public Guid UserId { get; set; }
         public int MembershipId { get; set; }
+    }
+
+    public class ApproveSubscriptionRequest
+    {
+        public Guid SubscriptionId { get; set; }
+        public bool Approve { get; set; }
     }
 
     public class SubscriptionUpgradePreviewDto

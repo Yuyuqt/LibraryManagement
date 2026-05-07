@@ -26,9 +26,10 @@
     }
     else
     {
-        <!-- Current Subscription Banner (Only for Auth) -->
+        <!-- Auth Section -->
         <AuthorizeView>
             <Authorized>
+                <!-- Current Subscription Banner -->
                 @if (_currentSub != null)
                 {
                     <div class="bg-primary/5 border border-primary/20 rounded-[2.5rem] p-10 mb-12 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm relative overflow-hidden group">
@@ -51,34 +52,33 @@
                             </div>
                         </div>
                     </div>
+                }
 
-                    <!-- Wallet & Loyalty Summary -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-                        <div class="bg-card border border-border rounded-3xl p-6 flex items-center justify-between shadow-sm">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-black text-muted uppercase tracking-widest">Loyalty Points</p>
-                                    <p class="text-xl font-black text-main">@(_loyaltyAccount?.CurrentBalance.ToString("N0") ?? "0")</p>
-                                </div>
+                <!-- Wallet & Loyalty Summary (Always visible for logged in) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                    <div class="bg-card border border-border rounded-3xl p-6 flex items-center justify-between shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                             </div>
-                        </div>
-                        <div class="bg-card border border-border rounded-3xl p-6 flex items-center justify-between shadow-sm">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-black text-muted uppercase tracking-widest">Wallet Balance</p>
-                                    <p class="text-xl font-black text-main">@_walletBalance.ToString("N0") <span class="text-xs font-bold text-muted">MMK</span></p>
-                                </div>
+                            <div>
+                                <p class="text-[10px] font-black text-muted uppercase tracking-widest">Loyalty Points</p>
+                                <p class="text-xl font-black text-main">@(_loyaltyAccount?.CurrentBalance.ToString("N0") ?? "0")</p>
                             </div>
                         </div>
                     </div>
-                }
-
+                    <div class="bg-card border border-border rounded-3xl p-6 flex items-center justify-between shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black text-muted uppercase tracking-widest">Wallet Balance</p>
+                                <p class="text-xl font-black text-main">@_walletBalance.ToString("N0") <span class="text-xs font-bold text-muted">MMK</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 @if (_queuedRewards.Any())
                 {
@@ -307,4 +307,3 @@
         }
     }
 }
-

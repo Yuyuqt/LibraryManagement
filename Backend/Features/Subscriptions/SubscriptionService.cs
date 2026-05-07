@@ -14,11 +14,15 @@ namespace Backend.Features.Subscriptions
         Task<SubscriptionDto?> GetUserSubscriptionAsync(Guid userId);
         Task<IEnumerable<SubscriptionDto>> GetUserAllSubscriptionsAsync(Guid userId);
         Task<bool> HandleLoyaltyRedemptionAsync(Guid userId, string rewardId, string rewardName, string redemptionId);
-        Task<SubscriptionDto> SubscribeUserAsync(Guid userId, int membershipId, string? redemptionId = null);
+        Task<SubscriptionDto> SubscribeUserAsync(Guid userId, int membershipId, string? redemptionId = null, string status = "Active", string paymentMethod = "Cash");
         Task<IEnumerable<SubscriptionDto>> GetAllSubscriptionsAsync();
+        Task<IEnumerable<SubscriptionDto>> GetPendingSubscriptionsAsync();
+        Task<SubscriptionDto> CreatePendingSubscriptionAsync(Guid userId, int membershipId);
+        Task<bool> ApproveSubscriptionAsync(Guid subscriptionId, bool approve);
         Task<SubscriptionUpgradePreviewDto> GetUpgradePreviewAsync(Guid userId, int newMembershipId);
         Task<SubscriptionDto> SubscribeWithWalletAsync(Guid userId, int membershipId);
     }
+
 
 
     public class SubscriptionService : ISubscriptionService
@@ -113,7 +117,8 @@ namespace Backend.Features.Subscriptions
             }
         }
 
-        public async Task<SubscriptionDto> SubscribeUserAsync(Guid userId, int membershipId, string? redemptionId = null)
+        public async Task<SubscriptionDto> SubscribeUserAsync(Guid userId, int membershipId, string? redemptionId = null, string status = "Active", string paymentMethod = "Cash")
+
         {
             var membership = await _context.Memberships.FindAsync(membershipId);
             if (membership == null) throw new Exception("Membership plan not found.");
@@ -161,10 +166,12 @@ namespace Backend.Features.Subscriptions
                 MembershipId = membershipId,
                 StartDate = startDate,
                 ExpiryDate = startDate.AddMonths(membership.DurationMonths),
-                IsActive = true,
+                IsActive = status == "Active",
                 ExternalRedemptionId = redemptionId,
-                Status = "Active"
+                Status = status,
+                PaymentMethod = paymentMethod
             };
+
 
             _context.UserSubscriptions.Add(subscription);
             await _context.SaveChangesAsync();
@@ -176,15 +183,19 @@ namespace Backend.Features.Subscriptions
             decimal paidAmount = membership.Price - discount;
             if (paidAmount < 0) paidAmount = 0;
 
-            await _loyaltyService.ProcessEventAsync(
-                externalUserId: userId.ToString(),
-                eventKey: "SUBSCRIBE",
-                eventValue: (double)paidAmount,
-                referenceId: $"SUB-{subscription.Id}",
-                description: $"Purchased Membership: {membership.Type} (Discount applied: {discount})",
-                email: subscription.User?.Email ?? "No Email",
-                mobile: subscription.User?.PhoneNumber ?? "0000000000"
-            );
+            if (status == "Active")
+            {
+                await _loyaltyService.ProcessEventAsync(
+                    externalUserId: userId.ToString(),
+                    eventKey: "SUBSCRIBE",
+                    eventValue: (double)paidAmount,
+                    referenceId: $"SUB-{subscription.Id}",
+                    description: $"Purchased Membership: {membership.Type} (Discount applied: {discount})",
+                    email: subscription.User?.Email ?? "No Email",
+                    mobile: subscription.User?.PhoneNumber ?? "0000000000"
+                );
+            }
+
 
             return MapToDto(subscription);
         }
@@ -263,8 +274,65 @@ namespace Backend.Features.Subscriptions
             if (!deducted) throw new Exception("Failed to deduct from wallet.");
 
             // Create subscription
-            return await SubscribeUserAsync(userId, membershipId);
+            return await SubscribeUserAsync(userId, membershipId, status: "Active", paymentMethod: "Wallet");
         }
+
+        public async Task<IEnumerable<SubscriptionDto>> GetPendingSubscriptionsAsync()
+        {
+            var pending = await _context.UserSubscriptions
+                .Include(s => s.Membership)
+                .Include(s => s.User)
+                .Where(s => s.Status == "PendingApproval")
+                .OrderByDescending(s => s.StartDate)
+                .ToListAsync();
+
+            return pending.Select(MapToDto);
+        }
+
+        public async Task<SubscriptionDto> CreatePendingSubscriptionAsync(Guid userId, int membershipId)
+        {
+            // Similar logic to SubscribeUserAsync but set to PendingApproval
+            return await SubscribeUserAsync(userId, membershipId, status: "PendingApproval", paymentMethod: "Cash");
+        }
+
+        public async Task<bool> ApproveSubscriptionAsync(Guid subscriptionId, bool approve)
+        {
+            var subscription = await _context.UserSubscriptions
+                .Include(s => s.Membership)
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == subscriptionId);
+
+            if (subscription == null) return false;
+
+            if (approve)
+            {
+                subscription.Status = "Active";
+                subscription.IsActive = true;
+                
+                // Award points now
+                decimal discount = 0; // Simplified for approval flow for now
+                decimal paidAmount = subscription.Membership.Price - discount;
+                
+                await _loyaltyService.ProcessEventAsync(
+                    externalUserId: subscription.UserId.ToString(),
+                    eventKey: "SUBSCRIBE",
+                    eventValue: (double)paidAmount,
+                    referenceId: $"SUB-{subscription.Id}",
+                    description: $"Membership Approved: {subscription.Membership.Type}",
+                    email: subscription.User?.Email ?? "No Email",
+                    mobile: subscription.User?.PhoneNumber ?? "0000000000"
+                );
+            }
+            else
+            {
+                subscription.Status = "Rejected";
+                subscription.IsActive = false;
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
 
 
         public async Task<IEnumerable<SubscriptionDto>> GetAllSubscriptionsAsync()
@@ -291,8 +359,11 @@ namespace Backend.Features.Subscriptions
                 StartDate = subscription.StartDate,
                 ExpiryDate = subscription.ExpiryDate,
                 IsActive = subscription.IsActive,
+                Status = subscription.Status,
+                PaymentMethod = subscription.PaymentMethod,
                 ExternalRedemptionId = subscription.ExternalRedemptionId
             };
+
         }
     }
 }

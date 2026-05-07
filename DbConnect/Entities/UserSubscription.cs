@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DbConnect.Entities;
@@ -20,6 +20,8 @@ public partial class UserSubscription
     public string Status { get; set; } = null!;
 
     public string? ExternalRedemptionId { get; set; }
+    public string? PaymentMethod { get; set; }
+
 
     public virtual Membership Membership { get; set; } = null!;
 

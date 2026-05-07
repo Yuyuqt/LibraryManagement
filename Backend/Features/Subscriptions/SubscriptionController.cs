@@ -60,9 +60,11 @@ namespace Backend.Features.Subscriptions
                 if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
 
                 var userId = Guid.Parse(userIdStr);
-                var subscription = await _subscriptionService.SubscribeUserAsync(userId, request.MembershipId);
+                // For cash payments, we create a pending subscription
+                var subscription = await _subscriptionService.CreatePendingSubscriptionAsync(userId, request.MembershipId);
                 return Ok(subscription);
             }
+
             catch (Exception ex)
             {
                 return BadRequest(new { message = ex.Message });
@@ -129,5 +131,22 @@ namespace Backend.Features.Subscriptions
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("subscriptions/pending")]
+        [Authorize(Roles = "Librarian")]
+        public async Task<ActionResult<IEnumerable<SubscriptionDto>>> GetPendingSubscriptions()
+        {
+            return Ok(await _subscriptionService.GetPendingSubscriptionsAsync());
+        }
+
+        [HttpPost("subscriptions/approve")]
+        [Authorize(Roles = "Librarian")]
+        public async Task<IActionResult> ApproveSubscription([FromBody] ApproveSubscriptionRequest request)
+        {
+            var success = await _subscriptionService.ApproveSubscriptionAsync(request.SubscriptionId, request.Approve);
+            if (!success) return NotFound(new { message = "Subscription not found." });
+            return Ok(new { message = request.Approve ? "Subscription approved." : "Subscription rejected." });
+        }
     }
 }
+
