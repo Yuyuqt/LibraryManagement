@@ -1,17 +1,32 @@
 using System.Text.Json.Serialization;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Net.Http.Headers;
 using LibraryManagement.Shared.Models;
+using Blazored.LocalStorage;
+
 
 namespace BlazorWebAssembly.Services
 {
     public class LibraryApiClient
     {
         private readonly HttpClient _httpClient;
-        public LibraryApiClient(HttpClient httpClient)
+        private readonly ILocalStorageService _localStorage;
+
+        public LibraryApiClient(HttpClient httpClient, ILocalStorageService localStorage)
         {
             _httpClient = httpClient;
+            _localStorage = localStorage;
         }
+
+        /// <summary>Ensures the JWT token from localStorage is attached before every request.</summary>
+        private async Task EnsureAuthHeader()
+        {
+            var token = await _localStorage.GetItemAsync<string>("authToken");
+            if (!string.IsNullOrWhiteSpace(token))
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+        }
+
 
         #region Auth
         public async Task<AuthResponse?> LoginAsync(LoginRequest request)
@@ -159,9 +174,11 @@ namespace BlazorWebAssembly.Services
 
         public async Task<SubscriptionDto?> AdminSubscribeAsync(AdminSubscribeRequest request)
         {
+            await EnsureAuthHeader();
             var response = await _httpClient.PostAsJsonAsync("api/subscriptions/admin-subscribe", request);
             return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<SubscriptionDto>() : null;
         }
+
 
         public async Task<IEnumerable<SubscriptionDto>> GetAllSubscriptionsAsync()
         {
@@ -172,6 +189,7 @@ namespace BlazorWebAssembly.Services
         {
             try
             {
+                await EnsureAuthHeader();
                 return await _httpClient.GetFromJsonAsync<SubscriptionUpgradePreviewDto>($"api/subscriptions/preview-upgrade/{membershipId}");
             }
             catch { return null; }
@@ -179,6 +197,7 @@ namespace BlazorWebAssembly.Services
 
         public async Task<SubscriptionDto?> SubscribeWithWalletAsync(SubscribeRequest request)
         {
+            await EnsureAuthHeader();
             var response = await _httpClient.PostAsJsonAsync("api/subscriptions/subscribe-wallet", request);
             return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<SubscriptionDto>() : null;
         }
@@ -189,6 +208,7 @@ namespace BlazorWebAssembly.Services
         {
             try
             {
+                await EnsureAuthHeader();
                 return await _httpClient.GetFromJsonAsync<decimal>("api/wallet/balance");
             }
             catch { return 0; }
@@ -198,19 +218,35 @@ namespace BlazorWebAssembly.Services
         {
             try
             {
+                await EnsureAuthHeader();
                 return await _httpClient.GetFromJsonAsync<IEnumerable<WalletTransactionDto>>("api/wallet/history") ?? Enumerable.Empty<WalletTransactionDto>();
             }
             catch { return Enumerable.Empty<WalletTransactionDto>(); }
         }
 
+
         public async Task<(bool Success, string Message)> TopUpWalletAsync(TopUpRequest request)
         {
+            await EnsureAuthHeader();
             var response = await _httpClient.PostAsJsonAsync("api/wallet/topup", request);
+
             if (response.IsSuccessStatusCode) return (true, "Success");
             
-            var error = await response.Content.ReadFromJsonAsync<JsonDocument>();
-            var msg = error?.RootElement.TryGetProperty("message", out var m) == true ? m.GetString() : "Unknown error";
-            return (false, msg ?? "Failed to top up");
+            // Read as string first to avoid crash if response is not JSON (e.g. 401/403 with empty body)
+            var raw = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(raw))
+                return (false, $"HTTP {(int)response.StatusCode}: {response.StatusCode}");
+            
+            try
+            {
+                var error = JsonSerializer.Deserialize<JsonDocument>(raw);
+                var msg = error?.RootElement.TryGetProperty("message", out var m) == true ? m.GetString() : raw;
+                return (false, msg ?? raw);
+            }
+            catch
+            {
+                return (false, raw);
+            }
         }
         #endregion
 

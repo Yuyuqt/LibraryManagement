@@ -167,8 +167,10 @@ namespace Backend.Features.Users
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt,
                 BanStatus = user.BanStatus,
-                SuspensionEndDate = user.SuspensionEndDate
+                SuspensionEndDate = user.SuspensionEndDate,
+                Balance = user.Balance
             };
         }
+
     }
 }
