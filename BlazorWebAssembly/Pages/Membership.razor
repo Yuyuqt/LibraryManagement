@@ -179,7 +179,7 @@
                     <div class="space-y-4 mt-auto">
                         <button @onclick="() => SubscribeAsync(plan)" 
                                 disabled="@IsCurrentPlan(plan.Id)"
-                                class='w-full py-5 rounded-[2rem] font-black uppercase tracking-widest text-[10px] transition-all @(IsCurrentPlan(plan.Id) ? "bg-body text-muted border border-border cursor-not-allowed" : "bg-main text-white hover:bg-black transform hover:scale-[1.02] active:scale-95")'>
+                                class='w-full py-5 rounded-[2rem] font-black uppercase tracking-widest text-[10px] transition-all @(IsCurrentPlan(plan.Id) ? "bg-body text-muted border border-border cursor-not-allowed" : "bg-transparent border-2 border-main text-main hover:bg-main hover:text-white transform hover:scale-[1.02] active:scale-95")'>
                             @(IsCurrentPlan(plan.Id) ? "Active Now" : "Pay Cash at Library")
                         </button>
 
