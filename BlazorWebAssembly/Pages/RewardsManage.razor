@@ -6,7 +6,7 @@
 @inject LibraryApiClient ApiClient
 @inject IJSRuntime JS
 
-<div class="max-w-7xl mx-auto py-12 px-6">
+<div class="max-w-7xl mx-auto py-8 sm:py-10 lg:py-12 px-4 sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="mb-12">
         <h1 class="text-5xl font-black tracking-tight text-main mb-4">Rewards Management</h1>
@@ -16,7 +16,7 @@
     </div>
 
     <!-- Tabs -->
-    <div class="flex items-center gap-8 border-b border-border mb-12">
+    <div class="flex flex-wrap items-center gap-4 sm:gap-6 lg:gap-8 border-b border-border mb-8 sm:mb-10 lg:mb-12">
         <button @onclick='() => _activeTab = "pending"'
                 class='pb-4 text-sm font-bold tracking-widest uppercase transition-all relative @(_activeTab == "pending" ? "text-primary" : "text-muted hover:text-main")'>
             Pending Redemptions
@@ -60,7 +60,8 @@
                 {
                     <div class="max-w-6xl">
                         <div class="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
-                            <table class="w-full text-left border-collapse whitespace-nowrap">
+                            <div class="responsive-table-wrap">
+                            <table class="responsive-table text-left border-collapse md:whitespace-nowrap">
                                 <thead class="bg-body border-b border-border">
                                     <tr>
                                         <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Member</th>
@@ -106,6 +107,7 @@
                                     }
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     </div>
                 }

@@ -63,6 +63,55 @@ html, body {
     transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
+body {
+    overflow-x: hidden;
+}
+
+#app {
+    overflow-x: hidden;
+}
+
+/* Mobile-safe helpers for dense dashboards and data pages */
+.app-page-shell {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+    .app-page-shell {
+        padding-inline: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .app-page-shell {
+        padding-inline: 2rem;
+    }
+}
+
+.text-safe-wrap {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.min-w-safe {
+    min-width: 0;
+}
+
+.responsive-table-wrap {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 1rem;
+}
+
+.responsive-table {
+    width: 100%;
+    min-width: 44rem;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }

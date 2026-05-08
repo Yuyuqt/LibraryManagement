@@ -8,9 +8,9 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
-<div class="max-w-7xl mx-auto py-10 px-6 animate-fade">
+<div class="max-w-7xl mx-auto py-8 sm:py-10 px-4 sm:px-6 lg:px-8 animate-fade">
     <!-- Top Tabs Navigation -->
-    <div class="flex items-center gap-8 border-b border-border mb-10">
+    <div class="flex flex-wrap items-center gap-4 sm:gap-6 lg:gap-8 border-b border-border mb-8 sm:mb-10">
         <button @onclick="() => SetTab(LibrarianTab.Directory)" class="pb-4 px-2 text-sm font-black uppercase tracking-widest transition-all relative @(_activeTab == LibrarianTab.Directory ? "text-primary" : "text-muted hover:text-main")">
             Member Directory
             @if (_activeTab == LibrarianTab.Directory) { <div class="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full"></div> }
@@ -57,8 +57,8 @@
             else if (_pagedResult != null)
             {
                 <div class="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-max whitespace-nowrap">
+                    <div class="responsive-table-wrap">
+                        <table class="responsive-table text-left border-collapse md:whitespace-nowrap">
                             <thead class="bg-body border-b border-border">
                                 <tr>
                                     <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Member</th>

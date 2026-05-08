@@ -6,7 +6,7 @@
 @inject IJSRuntime JS
 @attribute [Authorize(Roles = "Librarian")]
 
-<div class="max-w-7xl mx-auto py-10 px-6 animate-fade">
+<div class="max-w-7xl mx-auto py-8 sm:py-10 px-4 sm:px-6 lg:px-8 animate-fade">
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
         <div>
             <h1 class="text-4xl font-extrabold tracking-tight text-main mb-2">Manage Borrowings</h1>
@@ -32,8 +32,8 @@
     else
     {
         <div class="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse min-w-max whitespace-nowrap">
+            <div class="responsive-table-wrap">
+                <table class="responsive-table text-left border-collapse md:whitespace-nowrap">
                     <thead class="bg-body border-b border-border">
                         <tr>
                             <th class="px-6 py-4 text-[10px] font-bold text-muted uppercase tracking-widest">Book & Loan Info</th>

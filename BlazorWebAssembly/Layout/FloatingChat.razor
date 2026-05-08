@@ -10,7 +10,7 @@
     <!-- Chat Window -->
     @if (_isOpen)
     {
-        <div class="pointer-events-auto w-[380px] h-[550px] bg-card border border-border rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 duration-300">
+        <div class="pointer-events-auto w-[calc(100vw-2rem)] md:w-[380px] h-[70vh] md:h-[550px] bg-card border border-border rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 duration-300 fixed bottom-24 right-4 md:static">
             <!-- Header -->
             <div class="bg-primary p-4 flex items-center justify-between text-white shadow-lg relative overflow-hidden">
                 <div class="absolute inset-0 bg-white/5 pointer-events-none"></div>
