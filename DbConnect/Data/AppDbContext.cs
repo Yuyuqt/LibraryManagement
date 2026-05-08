@@ -170,6 +170,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .HasDefaultValue("Active");
+            entity.Property(e => e.PaymentMethod).HasMaxLength(50);
 
             entity.HasOne(d => d.Membership).WithMany(p => p.UserSubscriptions)
                 .HasForeignKey(d => d.MembershipId)

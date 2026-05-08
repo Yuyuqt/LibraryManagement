@@ -38,4 +38,7 @@ builder.Services.AddScoped<WishlistService>();
 // Register NotificationStateService
 builder.Services.AddScoped<NotificationStateService>();
 
+// Register ChatService
+builder.Services.AddScoped<ChatService>();
+
 await builder.Build().RunAsync();
