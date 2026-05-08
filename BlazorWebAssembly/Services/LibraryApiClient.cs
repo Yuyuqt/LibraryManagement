@@ -405,7 +405,7 @@ namespace BlazorWebAssembly.Services
 
         public async Task<bool> UpdateUserRoleAsync(Guid id, string role)
         {
-            var response = await _httpClient.PutAsJsonAsync($"api/users/role/{id}", new UserRoleUpdateRequest { Role = role });
+            var response = await _httpClient.PatchAsJsonAsync($"api/users/{id}/role", new UserRoleUpdateRequest { Role = role });
             return response.IsSuccessStatusCode;
         }
 

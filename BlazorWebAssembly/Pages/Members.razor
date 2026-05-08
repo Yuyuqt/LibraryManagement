@@ -3,7 +3,7 @@
 @using LibraryManagement.Shared.Models
 @using BlazorWebAssembly.Models
 @using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "Librarian,Admin")]
+@attribute [Authorize(Roles = "Librarian")]
 @inject LibraryApiClient ApiClient
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
@@ -11,21 +11,21 @@
 <div class="max-w-7xl mx-auto py-10 px-6 animate-fade">
     <!-- Top Tabs Navigation -->
     <div class="flex items-center gap-8 border-b border-border mb-10">
-        <button @onclick="() => SetTab(AdminTab.Directory)" class="pb-4 px-2 text-sm font-black uppercase tracking-widest transition-all relative @(_activeTab == AdminTab.Directory ? "text-primary" : "text-muted hover:text-main")">
+        <button @onclick="() => SetTab(LibrarianTab.Directory)" class="pb-4 px-2 text-sm font-black uppercase tracking-widest transition-all relative @(_activeTab == LibrarianTab.Directory ? "text-primary" : "text-muted hover:text-main")">
             Member Directory
-            @if (_activeTab == AdminTab.Directory) { <div class="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full"></div> }
+            @if (_activeTab == LibrarianTab.Directory) { <div class="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full"></div> }
         </button>
-        <button @onclick="() => SetTab(AdminTab.Approvals)" class="pb-4 px-2 text-sm font-black uppercase tracking-widest transition-all relative @(_activeTab == AdminTab.Approvals ? "text-primary" : "text-muted hover:text-main")">
+        <button @onclick="() => SetTab(LibrarianTab.Approvals)" class="pb-4 px-2 text-sm font-black uppercase tracking-widest transition-all relative @(_activeTab == LibrarianTab.Approvals ? "text-primary" : "text-muted hover:text-main")">
             Membership Approvals
             @if (_pendingSubscriptions?.Any() == true)
             {
                 <span class="ml-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">@_pendingSubscriptions.Count()</span>
             }
-            @if (_activeTab == AdminTab.Approvals) { <div class="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full"></div> }
+            @if (_activeTab == LibrarianTab.Approvals) { <div class="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full"></div> }
         </button>
     </div>
 
-    @if (_activeTab == AdminTab.Directory)
+    @if (_activeTab == LibrarianTab.Directory)
     {
         @if (_currentView == ViewMode.List)
         {
@@ -91,7 +91,7 @@
                                             <div class="text-xs text-muted">@(string.IsNullOrEmpty(user.PhoneNumber) ? "No phone" : user.PhoneNumber)</div>
                                         </td>
                                         <td class="px-6 py-4">
-                                            <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase @(user.Role == "Admin" ? "bg-amber-500/10 text-amber-500" : "bg-blue-500/10 text-blue-500")">
+                                            <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase @(user.Role == "Librarian" ? "bg-amber-500/10 text-amber-500" : "bg-blue-500/10 text-blue-500")">
                                                 @user.Role
                                             </span>
                                         </td>
@@ -191,7 +191,7 @@
                                     @(_selectedUser.User.FullName?.Substring(0, Math.Min(2, _selectedUser.User.FullName.Length)).ToUpper() ?? "U")
                                 </div>
                                 <h2 class="text-2xl font-bold text-center mb-2">@_selectedUser.User.FullName</h2>
-                                <div class="inline-flex rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest @(_selectedUser.User.Role == "Admin" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "bg-blue-500/10 text-blue-500 border border-blue-500/20")">
+                                <div class="inline-flex rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest @(_selectedUser.User.Role == "Librarian" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "bg-blue-500/10 text-blue-500 border border-blue-500/20")">
                                     @_selectedUser.User.Role
                                 </div>
                             </div>
@@ -240,7 +240,7 @@
                             <button @onclick="() => ShowEdit(_selectedUser.User.Id)" class="bg-primary text-white py-3 px-8 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">Edit Details</button>
                             
                             <button @onclick="UpdateRole" class="bg-body border border-border text-main py-3 px-8 rounded-xl font-bold hover:bg-card transition-colors">
-                                Make @(_selectedUser.User.Role == "Admin" ? "Member" : "Admin")
+                                Make @(_selectedUser.User.Role == "Librarian" ? "Member" : "Librarian")
                             </button>
 
                             <button @onclick="DeleteUser" class="p-3 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors ml-auto border border-transparent hover:border-red-500/20">
@@ -417,7 +417,7 @@
             </div>
         }
     }
-    else if (_activeTab == AdminTab.Approvals)
+    else if (_activeTab == LibrarianTab.Approvals)
     {
         <div class="animate-fade">
             <h1 class="text-4xl font-extrabold tracking-tight text-main mb-2">Membership Approvals</h1>
@@ -479,10 +479,10 @@
 
 @code {
     private enum ViewMode { List, Details, Create, Edit }
-    private enum AdminTab { Directory, Approvals }
+    private enum LibrarianTab { Directory, Approvals }
     
     private ViewMode _currentView = ViewMode.List;
-    private AdminTab _activeTab = AdminTab.Directory;
+    private LibrarianTab _activeTab = LibrarianTab.Directory;
     
     private IEnumerable<UserDto>? _allUsers;
     private PagedResult<UserDto>? _pagedResult;
@@ -521,7 +521,7 @@
         }
     }
 
-    private async Task SetTab(AdminTab tab)
+    private async Task SetTab(LibrarianTab tab)
     {
         _activeTab = tab;
         _currentView = ViewMode.List;
@@ -706,7 +706,7 @@
     private async Task UpdateRole()
     {
         if (_selectedUser == null) return;
-        var newRole = _selectedUser.User.Role == "Admin" ? "Member" : "Admin";
+        var newRole = _selectedUser.User.Role == "Librarian" ? "Member" : "Librarian";
         try
         {
             var success = await ApiClient.UpdateUserRoleAsync(_selectedUser.User.Id, newRole);

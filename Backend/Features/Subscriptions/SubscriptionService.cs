@@ -310,15 +310,19 @@ namespace Backend.Features.Subscriptions
                 subscription.IsActive = true;
                 
                 // Award points now
-                decimal discount = 0; // Simplified for approval flow for now
-                decimal paidAmount = subscription.Membership.Price - discount;
+                decimal paidAmount = 0;
+                if (subscription.Membership != null)
+                {
+                    decimal discount = 0; // Simplified for approval flow for now
+                    paidAmount = subscription.Membership.Price - discount;
+                }
                 
                 await _loyaltyService.ProcessEventAsync(
                     externalUserId: subscription.UserId.ToString(),
                     eventKey: "SUBSCRIBE",
                     eventValue: (double)paidAmount,
                     referenceId: $"SUB-{subscription.Id}",
-                    description: $"Membership Approved: {subscription.Membership.Type}",
+                    description: $"Membership Approved: {subscription.Membership?.Type ?? "Unknown Plan"}",
                     email: subscription.User?.Email ?? "No Email",
                     mobile: subscription.User?.PhoneNumber ?? "0000000000"
                 );
@@ -353,7 +357,7 @@ namespace Backend.Features.Subscriptions
                 Id = subscription.Id,
                 UserId = subscription.UserId,
                 MembershipId = subscription.MembershipId,
-                MembershipType = subscription.Membership.Type,
+                MembershipType = subscription.Membership?.Type ?? "Unknown",
                 UserEmail = subscription.User?.Email ?? "Unknown",
                 UserName = subscription.User?.FullName ?? "Unknown",
                 StartDate = subscription.StartDate,

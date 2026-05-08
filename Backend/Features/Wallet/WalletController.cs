@@ -38,7 +38,7 @@ namespace Backend.Features.Wallet
         }
 
         [HttpPost("topup")]
-        [Authorize(Roles = "Librarian,Admin")]
+        [Authorize(Roles = "Librarian")]
         public async Task<IActionResult> TopUp([FromBody] TopUpRequest request)
 
         {
